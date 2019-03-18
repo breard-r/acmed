@@ -139,7 +139,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &CERT_DER,
             &Format::Der,
             &Format::Der,
-            &PersistKind::Certificate,
+            PersistKind::Certificate,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
@@ -152,7 +152,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &CERT_PEM,
             &Format::Pem,
             &Format::Pem,
-            &PersistKind::Certificate,
+            PersistKind::Certificate,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
@@ -165,7 +165,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &PK_DER,
             &Format::Der,
             &Format::Pem,
-            &PersistKind::PrivateKey,
+            PersistKind::PrivateKey,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
@@ -178,7 +178,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &CERT_DER,
             &Format::Der,
             &Format::Pem,
-            &PersistKind::Certificate,
+            PersistKind::Certificate,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
@@ -191,7 +191,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &CERT_PEM,
             &Format::Pem,
             &Format::Der,
-            &PersistKind::Certificate,
+            PersistKind::Certificate,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
@@ -204,7 +204,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
             &PK_PEM,
             &Format::Pem,
             &Format::Der,
-            &PersistKind::PrivateKey,
+            PersistKind::PrivateKey,
         );
         assert!(res.is_ok());
         let res = res.unwrap();
