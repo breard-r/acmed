@@ -1,0 +1,44 @@
+[global]
+accounts_directory = "/etc/acmed/accounts"
+certificates_directory = "/etc/acmed/certs"
+
+[[endpoint]]
+name = "letsencrypt v2 prod"
+url = "https://acme-v02.api.letsencrypt.org/directory"
+
+[[endpoint]]
+name = "letsencrypt v2 staging"
+url = "https://acme-staging-v02.api.letsencrypt.org/directory"
+
+[[hook]]
+name = "http-echo"
+cmd = "echo"
+args = ["{{proof}}"]
+stdout = "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{token}}"
+
+[[hook]]
+name = "email-report"
+cmd = "sendmail"
+args = [
+    "-f", "noreply@example.org",
+    "john.doe@example.org"
+]
+stdin = """Subject: Certificate renewal alert for {{domains.[0]}}
+
+The following certificate is being renewed.
+domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}
+algorithm: {{algorithm}}
+challenge: {{challenge}}
+status: {{status}}"""
+
+[[certificate]]
+email = "certs@example.org"
+endpoint = "letsencrypt v2 staging"
+domains = [
+    "test.example.org"
+]
+algorithm = "ecdsa_p384"
+formats = ["pem"]
+challenge = "http-01"
+challenge_hooks = ["http-echo"]
+post_operation_hook = ["email-report"]
