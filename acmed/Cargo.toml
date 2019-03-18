@@ -1,0 +1,26 @@
+[package]
+name = "acmed"
+version = "0.1.0"
+authors = ["Rodolphe Breard <rodolphe@what.tf>"]
+edition = "2018"
+description = "ACME (RFC 8555) client daemon"
+keywords = ["acme", "tls", "X.509"]
+repository = "https://github.com/breard-r/acmed"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+
+[dependencies]
+acme-lib = "0.4"
+clap = "2.32"
+env_logger = "0.6"
+handlebars = "2.0.0-beta.1"
+log = "0.4"
+pem = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+time = "0.1"
+toml = "0.4"
+x509-parser = "0.4"
+
+[target.'cfg(unix)'.dependencies]
+nix = "0.13"
