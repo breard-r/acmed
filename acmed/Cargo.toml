@@ -19,7 +19,7 @@ log = "0.4"
 pem = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 time = "0.1"
-toml = "0.4"
+toml = "0.5"
 x509-parser = "0.4"
 
 [target.'cfg(unix)'.dependencies]
