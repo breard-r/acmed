@@ -1,5 +1,10 @@
 # ACMEd
 
+[![Build Status](https://api.travis-ci.org/breard-r/acmed.svg?branch=master)](https://travis-ci.org/breard-r/acmed)
+[![Minimum rustc version](https://img.shields.io/badge/rustc-1.31.0+-lightgray.svg)](#build-from-source)
+i[![LICENSE MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT.txt)
+i[![LICENSE Apache 2.0](https://img.shields.io/badge/license-Apache 2.0-blue.svg)](LICENSE-APACHE-2.0.txt)
+
 The Automatic Certificate Management Environment (ACME), is an internet standard ([RFC 8555](https://tools.ietf.org/html/rfc8555)) which allows to automate X.509 certificates signing by a Certification Authority (CA). ACMEd is one of the many clients for this protocol.
 
 
@@ -19,7 +24,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - daemon management via the `acmectl` tool
 
 
-## Build
+## Build from source
 
 In order to compile ADMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.31.0, although it is recommended to use the latest stable one.
 
