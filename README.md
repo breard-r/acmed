@@ -21,7 +21,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 ## Build
 
-In order to compile ADMEd, you will need the latest stable version of [Rust](https://www.rust-lang.org/), although it should work with versions as low as 1.31.
+In order to compile ADMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.31.0, although it is recommended to use the latest stable one.
 
 ```
 cargo build --release
