@@ -38,6 +38,12 @@ The executable is located in `target/release/acmed`.
 
 After testing multiple ACME clients, I found out none supported all the features I wished for (see the key features above). It may have been possible to contribute or fork an existing project, however I believe those project made architectural choices incompatible with what i wanted, and therefore it would be as much or less work to start a new project from scratch.
 
+### Is it free and open-source software?
+
+Yes, ACMEd is dual-licensed under the MIT and Apache 2.0 terms.
+
+See [LICENSE-MIT.txt](LICENSE-MIT.txt) and [LICENSE-APACHE-2.0.txt](LICENSE-APACHE-2.0.txt) for details.
+
 ### Can it automatically change my server configuration?
 
 Some ACME client, like certbot, can read some software configuration and automatically edit it so this software will use the issued certificates. ACMEd will never do that since we believe this feature is dangerous. As the proverb says, the road to hell is paved with good intentions. This feature was meant to make the web more secure since system administrators with no knowledge at all about TLS could set-it up in a decent way. However, we think this feature pushed towards a list of "blessed" software and therefore harms the diversity. Some people's ignorance should not be an excuse to recommend some kind uniform set-up. Instead, people should be educated so they can make the best choices. This is achieved through tutorials and courses, not some kind of dark-magic automation.
