@@ -1,11 +1,9 @@
-ACMEd
-=====
+# ACMEd
 
 The Automatic Certificate Management Environment (ACME), is an internet standard ([RFC 8555](https://tools.ietf.org/html/rfc8555)) which allows to automate X.509 certificates signing by a Certification Authority (CA). ACMEd is one of the many clients for this protocol.
 
 
-Key features
-------------
+## Key features
 
 - HTTP-01 and DNS-01 challenges
 - RSA 2048, RSA 4096, ECDSA P-256 and ECDSA P-384 certificates
@@ -14,16 +12,14 @@ Key features
 - Nice and simple configuration file
 
 
-Planned features
-----------------
+## Planned features
 
 - optional private-key reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
 - customizable way to archive old certificates and private keys
 - daemon management via the `acmectl` tool
 
 
-Build
------
+## Build
 
 In order to compile ADMEd, you will need the latest stable version of [Rust](https://www.rust-lang.org/), although it should work with versions as low as 1.31.
 
@@ -34,21 +30,17 @@ cargo build --release
 The executable is located in `target/release/acmed`.
 
 
-Frequently Asked Questions
---------------------------
+## Frequently Asked Questions
 
-Why this project?
-~~~~~~~~~~~~~~~~~
+### Why this project?
 
 After testing multiple ACME clients, I found out none supported all the features I wished for (see the key features above). It may have been possible to contribute or fork an existing project, however I believe those project made architectural choices incompatible with what i wanted, and therefore it would be as much or less work to start a new project from scratch.
 
-Can it automatically change my server configuration?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Can it automatically change my server configuration?
 
 Some ACME client, like certbot, can read some software configuration and automatically edit it so this software will use the issued certificates. ACMEd will never do that since we believe this feature is dangerous. As the proverb says, the road to hell is paved with good intentions. This feature was meant to make the web more secure since system administrators with no knowledge at all about TLS could set-it up in a decent way. However, we think this feature pushed towards a list of "blessed" software and therefore harms the diversity. Some people's ignorance should not be an excuse to recommend some kind uniform set-up. Instead, people should be educated so they can make the best choices. This is achieved through tutorials and courses, not some kind of dark-magic automation.
 
-Why is RSA 2048 the default?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Why is RSA 2048 the default?
 
 Yes, ACMED support RSA 4096, ECDSA P-256 and ECDSA P-384. However, those are not fitted to be the default choice.
 
@@ -57,8 +49,7 @@ It is not obvious at the first sight, but [RSA 4096](https://gnupg.org/faq/gnupg
 
 ECDSA certificates may be a good alternative to RSA since, for the same security level, they are smaller and requires less computation. Unfortunately, as x.509 certificates are not meant only for websites visited using a web browser, some software may not support this not-so-recent technology. To achieve maximal compatibility while using ECC, you usually have to set-up an hybrid configuration with both an ECDSA and a RSA certificate to fall-back to. Therefore, even if you are encouraged to use ECDSA certificates, it should not currently be the default. That said, it may be in a soon future.
 
-What is the difference between SSL, TLS and X.509?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### What is the difference between SSL, TLS and X.509?
 
 SSL is an old and now insecure protocol that has been deprecated in favor of TLS. In fact, TLS 1.0 was an upgrade of SSL 3. In order to work, both uses X.509 certificates. Please note that X.509 is only the certificate format, it is not suitable for private keys.
 
