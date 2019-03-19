@@ -55,15 +55,15 @@ Some ACME client, like certbot, can read some software configuration and automat
 
 ### Why is RSA 2048 the default?
 
-Yes, ACMED support RSA 4096, ECDSA P-256 and ECDSA P-384. However, those are not fitted to be the default choice.
+Yes, ACMED support RSA 4096, ECDSA P-256 and ECDSA P-384. However, those are not (yet) fitted to be the default choice.
 
 It is not obvious at the first sight, but [RSA 4096](https://gnupg.org/faq/gnupg-faq.html#no_default_of_rsa4096) is NOT twice more secure than RSA 2048. In fact, it adds a lot more calculation while providing only a small security improvement. If you think you will use it anyway since you are more concerned about security than performance, please check your certificate chain up to the root. Most of the time, the root certificate and the intermediates will be RSA 2048 ones (that is the case for [Let’s Encrypt](https://letsencrypt.org/certificates/)). If so, using RSA 4096 in the final certificate will not add any additional security since a system's global security level is equal to the level of its weakest point.
 
 
-ECDSA certificates may be a good alternative to RSA since, for the same security level, they are smaller and requires less computation. Unfortunately, as x.509 certificates are not meant only for websites visited using a web browser, some software may not support this not-so-recent technology. To achieve maximal compatibility while using ECC, you usually have to set-up an hybrid configuration with both an ECDSA and a RSA certificate to fall-back to. Therefore, even if you are encouraged to use ECDSA certificates, it should not currently be the default. That said, it may be in a soon future.
+ECDSA certificates may be a good alternative to RSA since, for the same security level, they are smaller and requires less computation, hence improve performance. Unfortunately, as X.509 certificates may be used in various contexts, some software may not support this not-so-recent technology. To achieve maximal compatibility while using ECC, you usually have to set-up an hybrid configuration with both an ECDSA and a RSA certificate to fall-back to. Therefore, even if you are encouraged to use ECDSA certificates, it should not currently be the default. That said, it may be in a soon future.
 
 ### What is the difference between SSL, TLS and X.509?
 
 SSL is an old and now insecure protocol that has been deprecated in favor of TLS. In fact, TLS 1.0 was an upgrade of SSL 3. In order to work, both uses X.509 certificates. Please note that X.509 is only the certificate format, it is not suitable for private keys.
 
-Therefore, do not say "a CA issue SSL certificates". Instead, say "a CA issue X.509 certificated that can be used for TLS". Yes, most CA websites are wrong, mostly because of commercial reasons since most people don't know what X.509 (or TLS) is but have the term SSL anchored in their mind.
+Therefore, do not say "a CA issue SSL certificates". Instead, say "a CA issue X.509 certificates that can be used for TLS". Yes, most CA websites are wrong, mostly because of commercial reasons since most people don't know what X.509 (or TLS) is but have the term SSL anchored in their mind.
