@@ -38,6 +38,7 @@ domains = [
     "test.example.org"
 ]
 algorithm = "ecdsa_p384"
+kp_reuse = true
 formats = ["pem"]
 challenge = "http-01"
 challenge_hooks = ["http-echo"]

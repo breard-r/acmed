@@ -50,6 +50,12 @@ impl From<handlebars::TemplateRenderError> for Error {
     }
 }
 
+impl From<openssl::error::ErrorStack> for Error {
+    fn from(error: openssl::error::ErrorStack) -> Self {
+        Error::new(&format!("{}", error))
+    }
+}
+
 #[cfg(unix)]
 impl From<nix::Error> for Error {
     fn from(error: nix::Error) -> Self {

@@ -161,12 +161,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
 
     #[test]
     fn test_der_to_pem_pk() {
-        let res = convert(
-            &PK_DER,
-            &Format::Der,
-            &Format::Pem,
-            PersistKind::PrivateKey,
-        );
+        let res = convert(&PK_DER, &Format::Der, &Format::Pem, PersistKind::PrivateKey);
         assert!(res.is_ok());
         let res = res.unwrap();
         assert_eq!(PK_PEM, res.as_slice());
@@ -200,12 +195,7 @@ zseNNFkN0oOc55UAd2ECe6gGOXB0r4MycFOM9ccR2t8ttwE=\r
 
     #[test]
     fn test_pem_to_der_pk() {
-        let res = convert(
-            &PK_PEM,
-            &Format::Pem,
-            &Format::Der,
-            PersistKind::PrivateKey,
-        );
+        let res = convert(&PK_PEM, &Format::Pem, &Format::Der, PersistKind::PrivateKey);
         assert!(res.is_ok());
         let res = res.unwrap();
         assert_eq!(PK_DER, res.as_slice());

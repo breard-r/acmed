@@ -18,6 +18,7 @@ pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
+pub const DEFAULT_KP_REUSE: bool = false;
 
 fn main() {
     let matches = App::new("acmed")

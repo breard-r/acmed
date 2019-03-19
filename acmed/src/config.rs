@@ -121,6 +121,7 @@ pub struct Certificate {
     pub challenge_hooks: Vec<String>,
     pub post_operation_hook: Option<Vec<String>>,
     pub algorithm: Option<String>,
+    pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
     pub name: Option<String>,
     pub name_format: Option<String>,
@@ -138,6 +139,13 @@ impl Certificate {
 
     pub fn get_challenge(&self) -> Result<Challenge, Error> {
         Challenge::from_str(&self.challenge)
+    }
+
+    pub fn get_kp_reuse(&self) -> bool {
+        match self.kp_reuse {
+            Some(b) => b,
+            None => crate::DEFAULT_KP_REUSE,
+        }
     }
 
     pub fn get_formats(&self) -> Result<Vec<Format>, Error> {

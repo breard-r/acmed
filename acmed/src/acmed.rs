@@ -4,6 +4,7 @@ use crate::errors::Error;
 use crate::storage::Storage;
 use handlebars::Handlebars;
 use log::{debug, info, warn};
+use openssl;
 use serde::Serialize;
 use std::{fmt, thread};
 use std::fs::File;
@@ -148,6 +149,7 @@ impl HookData {
 struct Certificate {
     domains: Vec<String>,
     algo: Algorithm,
+    kp_reuse: bool,
     storage: Storage,
     email: String,
     remote_url: String,
@@ -266,12 +268,29 @@ impl Certificate {
             }
             ord_new.refresh()?;
         };
-        // TODO: allow PK reuse
-        let (pkey_pri, pkey_pub) = match self.algo {
-            Algorithm::Rsa2048 => acme_lib::create_rsa_key(2048),
-            Algorithm::Rsa4096 => acme_lib::create_rsa_key(4096),
-            Algorithm::EcdsaP256 => acme_lib::create_p256_key(),
-            Algorithm::EcdsaP384 => acme_lib::create_p384_key(),
+
+        let mut raw_crt = vec![];
+        let mut raw_pk = vec![];
+        if self.kp_reuse {
+            raw_crt = self.storage
+                .get_certificate(&Format::Der)?
+                .unwrap_or_else(|| vec![]);
+            raw_pk = self.storage
+                .get_private_key(&Format::Der)?
+                .unwrap_or_else(|| vec![]);
+        };
+        let (pkey_pri, pkey_pub) = if !raw_crt.is_empty() && !raw_pk.is_empty() {
+            (
+                openssl::pkey::PKey::private_key_from_der(&raw_pk)?,
+                openssl::x509::X509::from_der(&raw_crt)?.public_key()?,
+            )
+        } else {
+            match self.algo {
+                Algorithm::Rsa2048 => acme_lib::create_rsa_key(2048),
+                Algorithm::Rsa4096 => acme_lib::create_rsa_key(4096),
+                Algorithm::EcdsaP256 => acme_lib::create_p256_key(),
+                Algorithm::EcdsaP384 => acme_lib::create_p384_key(),
+            }
         };
         let ord_cert = ord_csr.finalize_pkey(pkey_pri, pkey_pub, crate::DEFAULT_POOL_TIME)?;
         ord_cert.download_and_save_cert()?;
@@ -292,6 +311,7 @@ impl Acmed {
             let cert = Certificate {
                 domains: crt.domains.to_owned(),
                 algo: crt.get_algorithm()?,
+                kp_reuse: crt.get_kp_reuse(),
                 storage: Storage {
                     account_directory: cnf.get_account_dir(),
                     account_name: crt.email.to_owned(),

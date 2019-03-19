@@ -112,6 +112,10 @@ impl Storage {
         self.get_file(PersistKind::Certificate, fmt)
     }
 
+    pub fn get_private_key(&self, fmt: &Format) -> Result<Option<Vec<u8>>, Error> {
+        self.get_file(PersistKind::PrivateKey, fmt)
+    }
+
     pub fn get_file(&self, kind: PersistKind, fmt: &Format) -> Result<Option<Vec<u8>>, Error> {
         let src_fmt = if self.formats.contains(fmt) {
             fmt
