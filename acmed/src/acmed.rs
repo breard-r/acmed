@@ -331,7 +331,7 @@ impl Acmed {
                 remote_url: crt.get_remote_url(&cnf)?,
                 challenge: crt.get_challenge()?,
                 challenge_hooks: crt.get_challenge_hooks(&cnf)?,
-                post_operation_hooks: crt.get_post_operation_hook(&cnf)?,
+                post_operation_hooks: crt.get_post_operation_hooks(&cnf)?,
             };
             certs.push(cert);
         }

@@ -10,3 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The `kp_reuse` flag allow to reuse a key pair instead of creating a new one at each renewal.
 - It is now possible to define hook groups that can reference either hooks or other hook groups.
+
+### Changed
+- `post_operation_hook` has been renamed `post_operation_hooks`.

@@ -136,7 +136,7 @@ pub struct Certificate {
     pub domains: Vec<String>,
     pub challenge: String,
     pub challenge_hooks: Vec<String>,
-    pub post_operation_hook: Option<Vec<String>>,
+    pub post_operation_hooks: Option<Vec<String>>,
     pub algorithm: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
@@ -231,9 +231,9 @@ impl Certificate {
         Ok(res)
     }
 
-    pub fn get_post_operation_hook(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_post_operation_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
         let mut res = vec![];
-        match &self.post_operation_hook {
+        match &self.post_operation_hooks {
             Some(po_hooks) => for name in po_hooks.iter() {
                 let mut h = cnf.get_hook(&name)?;
                 res.append(&mut h);
