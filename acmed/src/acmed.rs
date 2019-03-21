@@ -1,15 +1,12 @@
 use acme_lib::{Directory, DirectoryUrl};
 use crate::config::{self, Hook};
 use crate::errors::Error;
+use crate::hooks;
 use crate::storage::Storage;
-use handlebars::Handlebars;
 use log::{debug, info, warn};
 use openssl;
 use serde::Serialize;
 use std::{fmt, thread};
-use std::fs::File;
-use std::io::Write;
-use std::process::{Command, Stdio};
 use std::time::Duration;
 use x509_parser::parse_x509_der;
 
@@ -100,51 +97,6 @@ struct HookData {
     proof: String,
 }
 
-macro_rules! get_hook_output {
-    ($out: expr, $reg: ident, $data: expr) => {{
-        match $out {
-            Some(path) => {
-                let path = $reg.render_template(path, $data)?;
-                let file = File::create(path)?;
-                Stdio::from(file)
-            }
-            None => Stdio::null(),
-        }
-    }};
-}
-
-impl HookData {
-    pub fn call(&self, hook: &Hook) -> Result<(), Error> {
-        let reg = Handlebars::new();
-        let mut v = vec![];
-        let args = match &hook.args {
-            Some(lst) => {
-                for fmt in lst.iter() {
-                    let s = reg.render_template(fmt, &self)?;
-                    v.push(s);
-                }
-                v.as_slice()
-            }
-            None => &[],
-        };
-        let mut cmd = Command::new(&hook.cmd)
-            .args(args)
-            .stdout(get_hook_output!(&hook.stdout, reg, &self))
-            .stderr(get_hook_output!(&hook.stderr, reg, &self))
-            .stdin(match &hook.stdin {
-                Some(_) => Stdio::piped(),
-                None => Stdio::null(),
-            })
-            .spawn()?;
-        if hook.stdin.is_some() {
-            let data_in = reg.render_template(&hook.stdin.to_owned().unwrap(), &self)?;
-            let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
-            stdin.write_all(data_in.as_bytes())?;
-        }
-        Ok(())
-    }
-}
-
 #[derive(Debug)]
 struct Certificate {
     domains: Vec<String>,
@@ -210,9 +162,7 @@ impl Certificate {
             token: token.to_string(),
             proof: proof.to_string(),
         };
-        for hook in self.challenge_hooks.iter() {
-            hook_data.call(&hook)?;
-        }
+        hooks::call_multiple(&hook_data, &self.challenge_hooks)?;
         Ok(())
     }
 
@@ -226,9 +176,7 @@ impl Certificate {
             token: "".to_string(),
             proof: "".to_string(),
         };
-        for hook in self.post_operation_hooks.iter() {
-            hook_data.call(&hook)?;
-        }
+        hooks::call_multiple(&hook_data, &self.post_operation_hooks)?;
         Ok(())
     }
 
@@ -326,6 +274,10 @@ impl Acmed {
                     pk_file_mode: cnf.get_pk_file_mode(),
                     pk_file_owner: cnf.get_pk_file_user(),
                     pk_file_group: cnf.get_pk_file_group(),
+                    file_pre_create_hooks: crt.get_file_pre_create_hooks(&cnf)?,
+                    file_post_create_hooks: crt.get_file_post_create_hooks(&cnf)?,
+                    file_pre_edit_hooks: crt.get_file_pre_edit_hooks(&cnf)?,
+                    file_post_edit_hooks: crt.get_file_post_edit_hooks(&cnf)?,
                 },
                 email: crt.email.to_owned(),
                 remote_url: crt.get_remote_url(&cnf)?,

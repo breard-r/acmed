@@ -12,7 +12,8 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 - HTTP-01 and DNS-01 challenges
 - RSA 2048, RSA 4096, ECDSA P-256 and ECDSA P-384 certificates
-- Fully customizable  challenge validation action
+- Fully customizable challenge validation action
+- Fully customizable archiving method (yes, you can use git or anything else)
 - Run as a deamon: no need to set-up timers, crontab or other time-triggered process
 - Nice and simple configuration file
 

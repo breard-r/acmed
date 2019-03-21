@@ -135,14 +135,18 @@ pub struct Certificate {
     pub endpoint: String,
     pub domains: Vec<String>,
     pub challenge: String,
-    pub challenge_hooks: Vec<String>,
-    pub post_operation_hooks: Option<Vec<String>>,
     pub algorithm: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
     pub name: Option<String>,
     pub name_format: Option<String>,
     pub formats: Option<Vec<String>>,
+    pub challenge_hooks: Vec<String>,
+    pub post_operation_hooks: Option<Vec<String>>,
+    pub file_pre_create_hooks: Option<Vec<String>>,
+    pub file_post_create_hooks: Option<Vec<String>>,
+    pub file_pre_edit_hooks: Option<Vec<String>>,
+    pub file_post_edit_hooks: Option<Vec<String>>,
 }
 
 impl Certificate {
@@ -223,25 +227,52 @@ impl Certificate {
     }
 
     pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
-        let mut res = vec![];
-        for name in self.challenge_hooks.iter() {
-            let mut h = cnf.get_hook(&name)?;
-            res.append(&mut h);
-        }
-        Ok(res)
+        get_hooks(&self.challenge_hooks, cnf)
     }
 
     pub fn get_post_operation_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
-        let mut res = vec![];
         match &self.post_operation_hooks {
-            Some(po_hooks) => for name in po_hooks.iter() {
-                let mut h = cnf.get_hook(&name)?;
-                res.append(&mut h);
-            },
-            None => {}
-        };
-        Ok(res)
+            Some(hooks) => get_hooks(hooks, cnf),
+            None => Ok(vec![]),
+        }
     }
+
+    pub fn get_file_pre_create_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+        match &self.file_pre_create_hooks {
+            Some(hooks) => get_hooks(hooks, cnf),
+            None => Ok(vec![]),
+        }
+    }
+
+    pub fn get_file_post_create_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+        match &self.file_post_create_hooks {
+            Some(hooks) => get_hooks(hooks, cnf),
+            None => Ok(vec![]),
+        }
+    }
+
+    pub fn get_file_pre_edit_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+        match &self.file_pre_edit_hooks {
+            Some(hooks) => get_hooks(hooks, cnf),
+            None => Ok(vec![]),
+        }
+    }
+
+    pub fn get_file_post_edit_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+        match &self.file_post_edit_hooks {
+            Some(hooks) => get_hooks(hooks, cnf),
+            None => Ok(vec![]),
+        }
+    }
+}
+
+fn get_hooks(lst: &Vec<String>, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    let mut res = vec![];
+    for name in lst.iter() {
+        let mut h = cnf.get_hook(&name)?;
+        res.append(&mut h);
+    }
+    Ok(res)
 }
 
 fn create_dir(path: &str) -> Result<(), Error> {

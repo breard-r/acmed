@@ -6,6 +6,7 @@ mod acmed;
 mod config;
 mod encoding;
 mod errors;
+mod hooks;
 mod storage;
 
 pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";

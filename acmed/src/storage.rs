@@ -1,8 +1,12 @@
 use acme_lib::Error;
 use acme_lib::persist::{Persist, PersistKey, PersistKind};
 use crate::acmed::{Algorithm, Format};
+use crate::config::Hook;
+use crate::errors;
 use crate::encoding::convert;
+use crate::hooks;
 use log::debug;
+use serde::Serialize;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::PathBuf;
@@ -28,6 +32,13 @@ macro_rules! get_file_name {
     }};
 }
 
+#[derive(Serialize)]
+struct FileData {
+    file_name: String,
+    file_directory: String,
+    file_path: PathBuf,
+}
+
 #[derive(Clone, Debug)]
 pub struct Storage {
     pub account_directory: String,
@@ -43,6 +54,10 @@ pub struct Storage {
     pub pk_file_mode: u32,
     pub pk_file_owner: Option<String>,
     pub pk_file_group: Option<String>,
+    pub file_pre_create_hooks: Vec<Hook>,
+    pub file_post_create_hooks: Vec<Hook>,
+    pub file_pre_edit_hooks: Vec<Hook>,
+    pub file_post_edit_hooks: Vec<Hook>,
 }
 
 impl Storage {
@@ -90,7 +105,7 @@ impl Storage {
         }
     }
 
-    fn get_file_path(&self, kind: PersistKind, fmt: &Format) -> PathBuf {
+    fn get_file_path(&self, kind: PersistKind, fmt: &Format) -> FileData {
         let base_path = match kind {
             PersistKind::Certificate => &self.crt_directory,
             PersistKind::PrivateKey => &self.crt_directory,
@@ -104,8 +119,12 @@ impl Storage {
             }
         };
         let mut path = PathBuf::from(base_path);
-        path.push(file_name);
-        path
+        path.push(&file_name);
+        FileData {
+            file_directory: base_path.to_string(),
+            file_name: file_name,
+            file_path: path,
+        }
     }
 
     pub fn get_certificate(&self, fmt: &Format) -> Result<Option<Vec<u8>>, Error> {
@@ -122,12 +141,12 @@ impl Storage {
         } else {
             self.formats.first().unwrap()
         };
-        let path = self.get_file_path(kind, src_fmt);
-        debug!("Reading file {:?}", path);
-        if !path.exists() {
+        let file_data = self.get_file_path(kind, src_fmt);
+        debug!("Reading file {:?}", file_data.file_path);
+        if !file_data.file_path.exists() {
             return Ok(None);
         }
-        let mut file = File::open(&path)?;
+        let mut file = File::open(&file_data.file_path)?;
         let mut contents = vec![];
         file.read_to_end(&mut contents)?;
         if contents.is_empty() {
@@ -145,15 +164,21 @@ impl Storage {
 impl Persist for Storage {
     fn put(&self, key: &PersistKey, value: &[u8]) -> Result<(), Error> {
         for fmt in self.formats.iter() {
-            let path = self.get_file_path(key.kind, &fmt);
-            debug!("Writing file {:?}", path);
+            let file_data = self.get_file_path(key.kind, &fmt);
+            debug!("Writing file {:?}", file_data.file_path);
+            let file_exists = file_data.file_path.exists();
+            if file_exists {
+                hooks::call_multiple(&file_data, &self.file_pre_edit_hooks).map_err(to_acme_err)?;
+            } else {
+                hooks::call_multiple(&file_data, &self.file_pre_create_hooks).map_err(to_acme_err)?;
+            }
             {
                 let mut f = if cfg!(unix) {
                     let mut options = OpenOptions::new();
                     options.mode(self.get_file_mode(key.kind));
-                    options.write(true).create(true).open(&path)?
+                    options.write(true).create(true).open(&file_data.file_path)?
                 } else {
-                    File::create(&path)?
+                    File::create(&file_data.file_path)?
                 };
                 match fmt {
                     Format::Der => {
@@ -165,7 +190,13 @@ impl Persist for Storage {
                 f.sync_all()?;
             }
             if cfg!(unix) {
-                self.set_owner(&path, key.kind)?;
+                self.set_owner(&file_data.file_path, key.kind)?;
+            }
+            if file_exists {
+                hooks::call_multiple(&file_data, &self.file_post_edit_hooks).map_err(to_acme_err)?;
+            } else {
+                hooks::call_multiple(&file_data, &self.file_post_create_hooks)
+                    .map_err(to_acme_err)?;
             }
         }
         Ok(())
@@ -174,4 +205,8 @@ impl Persist for Storage {
     fn get(&self, key: &PersistKey) -> Result<Option<Vec<u8>>, Error> {
         self.get_file(key.kind, &Format::Pem)
     }
+}
+
+fn to_acme_err(e: errors::Error) -> Error {
+    Error::Other(e.message)
 }
