@@ -11,6 +11,7 @@ pub struct Config {
     pub global: Option<GlobalOptions>,
     pub endpoint: Vec<Endpoint>,
     pub hook: Vec<Hook>,
+    pub group: Vec<Group>,
     pub certificate: Vec<Certificate>,
 }
 
@@ -26,10 +27,20 @@ impl Config {
         account_dir.to_string()
     }
 
-    pub fn get_hook(&self, name: &str) -> Result<Hook, Error> {
+    pub fn get_hook(&self, name: &str) -> Result<Vec<Hook>, Error> {
         for hook in self.hook.iter() {
             if name == hook.name {
-                return Ok(hook.clone());
+                return Ok(vec![hook.clone()]);
+            }
+        }
+        for grp in self.group.iter() {
+            if name == grp.name {
+                let mut ret = vec![];
+                for hook_name in grp.hooks.iter() {
+                    let mut h = self.get_hook(&hook_name)?;
+                    ret.append(&mut h);
+                }
+                return Ok(ret);
             }
         }
         Err(Error::new(&format!("{}: hook not found", name)))
@@ -110,6 +121,12 @@ pub struct Hook {
     pub stdin: Option<String>,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct Group {
+    pub name: String,
+    pub hooks: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -208,8 +225,8 @@ impl Certificate {
     pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
         let mut res = vec![];
         for name in self.challenge_hooks.iter() {
-            let h = cnf.get_hook(&name)?;
-            res.push(h);
+            let mut h = cnf.get_hook(&name)?;
+            res.append(&mut h);
         }
         Ok(res)
     }
@@ -218,8 +235,8 @@ impl Certificate {
         let mut res = vec![];
         match &self.post_operation_hook {
             Some(po_hooks) => for name in po_hooks.iter() {
-                let h = cnf.get_hook(&name)?;
-                res.push(h);
+                let mut h = cnf.get_hook(&name)?;
+                res.append(&mut h);
             },
             None => {}
         };
