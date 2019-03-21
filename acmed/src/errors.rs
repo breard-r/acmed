@@ -24,6 +24,12 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<&str> for Error {
+    fn from(error: &str) -> Self {
+        Error::new(error)
+    }
+}
+
 impl From<toml::de::Error> for Error {
     fn from(error: toml::de::Error) -> Self {
         Error::new(&format!("IO error: {}", error))

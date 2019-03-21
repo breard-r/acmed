@@ -138,8 +138,8 @@ impl HookData {
             .spawn()?;
         if hook.stdin.is_some() {
             let data_in = reg.render_template(&hook.stdin.to_owned().unwrap(), &self)?;
-            let stdin = cmd.stdin.as_mut().unwrap();
-            stdin.write_all(data_in.as_bytes()).unwrap();
+            let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
+            stdin.write_all(data_in.as_bytes())?;
         }
         Ok(())
     }
