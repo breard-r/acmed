@@ -19,6 +19,7 @@ log = "0.4"
 openssl = "0.10"
 pem = "0.5"
 serde = { version = "1.0", features = ["derive"] }
+syslog = "4.0"
 time = "0.1"
 toml = "0.5"
 x509-parser = "0.4"

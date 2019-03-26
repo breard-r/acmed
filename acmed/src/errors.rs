@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Debug)]
 pub struct Error {
     pub message: String,
 }
@@ -27,6 +28,12 @@ impl From<std::io::Error> for Error {
 impl From<&str> for Error {
     fn from(error: &str) -> Self {
         Error::new(error)
+    }
+}
+
+impl From<syslog::Error> for Error {
+    fn from(error: syslog::Error) -> Self {
+        Error::new(&format!("syslog error: {}", error))
     }
 }
 
