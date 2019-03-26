@@ -16,3 +16,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `post_operation_hook` has been renamed `post_operation_hooks`.
 - By default, logs are now sent to syslog instead of stderr.
+- The process is now daemonized by default. It is possible to still run it in the foreground using the `--foregroung` flag.
