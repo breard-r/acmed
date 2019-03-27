@@ -62,7 +62,6 @@ fn main() {
                 .short("f")
                 .long("foregroung")
                 .help("Runs in the foregroung")
-                .conflicts_with("to-stderr"),
         )
         .arg(
             Arg::with_name("pid-file")
