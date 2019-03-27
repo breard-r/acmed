@@ -42,4 +42,4 @@ kp_reuse = true
 formats = ["pem"]
 challenge = "http-01"
 challenge_hooks = ["http-echo"]
-post_operation_hook = ["email-report"]
+post_operation_hooks = ["email-report"]
