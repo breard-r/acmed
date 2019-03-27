@@ -3,8 +3,8 @@ use crate::errors::Error;
 use log::info;
 use serde::Deserialize;
 use std::fs::{self, File};
-use std::path::Path;
 use std::io::prelude::*;
+use std::path::Path;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -266,7 +266,7 @@ impl Certificate {
     }
 }
 
-fn get_hooks(lst: &Vec<String>, cnf: &Config) -> Result<Vec<Hook>, Error> {
+fn get_hooks(lst: &[String], cnf: &Config) -> Result<Vec<Hook>, Error> {
     let mut res = vec![];
     for name in lst.iter() {
         let mut h = cnf.get_hook(&name)?;

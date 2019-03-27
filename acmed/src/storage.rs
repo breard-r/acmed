@@ -1,10 +1,10 @@
-use acme_lib::Error;
-use acme_lib::persist::{Persist, PersistKey, PersistKind};
 use crate::acmed::{Algorithm, Format};
 use crate::config::Hook;
-use crate::errors;
 use crate::encoding::convert;
+use crate::errors;
 use crate::hooks;
+use acme_lib::persist::{Persist, PersistKey, PersistKind};
+use acme_lib::Error;
 use log::debug;
 use serde::Serialize;
 use std::fs::{File, OpenOptions};
@@ -78,25 +78,29 @@ impl Storage {
             }
         };
         let uid = match uid {
-            Some(u) => if u.bytes().all(|b| b.is_ascii_digit()) {
-                let raw_uid = u.parse::<u32>().unwrap();
-                let nix_uid = nix::unistd::Uid::from_raw(raw_uid);
-                Some(nix_uid)
-            } else {
-                // TODO: handle username
-                None
-            },
+            Some(u) => {
+                if u.bytes().all(|b| b.is_ascii_digit()) {
+                    let raw_uid = u.parse::<u32>().unwrap();
+                    let nix_uid = nix::unistd::Uid::from_raw(raw_uid);
+                    Some(nix_uid)
+                } else {
+                    // TODO: handle username
+                    None
+                }
+            }
             None => None,
         };
         let gid = match gid {
-            Some(g) => if g.bytes().all(|b| b.is_ascii_digit()) {
-                let raw_gid = g.parse::<u32>().unwrap();
-                let nix_gid = nix::unistd::Gid::from_raw(raw_gid);
-                Some(nix_gid)
-            } else {
-                // TODO: handle group name
-                None
-            },
+            Some(g) => {
+                if g.bytes().all(|b| b.is_ascii_digit()) {
+                    let raw_gid = g.parse::<u32>().unwrap();
+                    let nix_gid = nix::unistd::Gid::from_raw(raw_gid);
+                    Some(nix_gid)
+                } else {
+                    // TODO: handle group name
+                    None
+                }
+            }
             None => None,
         };
         match nix::unistd::chown(path, uid, gid) {
@@ -122,7 +126,7 @@ impl Storage {
         path.push(&file_name);
         FileData {
             file_directory: base_path.to_string(),
-            file_name: file_name,
+            file_name,
             file_path: path,
         }
     }
@@ -170,13 +174,17 @@ impl Persist for Storage {
             if file_exists {
                 hooks::call_multiple(&file_data, &self.file_pre_edit_hooks).map_err(to_acme_err)?;
             } else {
-                hooks::call_multiple(&file_data, &self.file_pre_create_hooks).map_err(to_acme_err)?;
+                hooks::call_multiple(&file_data, &self.file_pre_create_hooks)
+                    .map_err(to_acme_err)?;
             }
             {
                 let mut f = if cfg!(unix) {
                     let mut options = OpenOptions::new();
                     options.mode(self.get_file_mode(key.kind));
-                    options.write(true).create(true).open(&file_data.file_path)?
+                    options
+                        .write(true)
+                        .create(true)
+                        .open(&file_data.file_path)?
                 } else {
                     File::create(&file_data.file_path)?
                 };
@@ -193,7 +201,8 @@ impl Persist for Storage {
                 self.set_owner(&file_data.file_path, key.kind)?;
             }
             if file_exists {
-                hooks::call_multiple(&file_data, &self.file_post_edit_hooks).map_err(to_acme_err)?;
+                hooks::call_multiple(&file_data, &self.file_post_edit_hooks)
+                    .map_err(to_acme_err)?;
             } else {
                 hooks::call_multiple(&file_data, &self.file_post_create_hooks)
                     .map_err(to_acme_err)?;

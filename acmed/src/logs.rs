@@ -44,13 +44,13 @@ pub fn set_log_system(
     has_stderr: bool,
 ) -> Result<(LogSystem, LevelFilter), Error> {
     let log_level = get_loglevel(log_level)?;
-    let mut logtype = crate::DEFAULT_LOG_SYSTEM;
-    if has_stderr {
-        logtype = LogSystem::StdErr;
-    }
-    if has_syslog {
-        logtype = LogSystem::SysLog;
-    }
+    let logtype = if has_syslog {
+        LogSystem::SysLog
+    } else if has_stderr {
+        LogSystem::StdErr
+    } else {
+        crate::DEFAULT_LOG_SYSTEM
+    };
     match logtype {
         LogSystem::SysLog => set_log_syslog(log_level)?,
         LogSystem::StdErr => set_log_stderr(log_level)?,

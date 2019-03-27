@@ -1,13 +1,13 @@
-use acme_lib::{Directory, DirectoryUrl};
 use crate::config::{self, Hook};
 use crate::errors::Error;
 use crate::hooks;
 use crate::storage::Storage;
+use acme_lib::{Directory, DirectoryUrl};
 use log::{debug, info, warn};
 use openssl;
 use serde::Serialize;
-use std::{fmt, thread};
 use std::time::Duration;
+use std::{fmt, thread};
 use x509_parser::parse_x509_der;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
@@ -220,10 +220,12 @@ impl Certificate {
         let mut raw_crt = vec![];
         let mut raw_pk = vec![];
         if self.kp_reuse {
-            raw_crt = self.storage
+            raw_crt = self
+                .storage
                 .get_certificate(&Format::Der)?
                 .unwrap_or_else(|| vec![]);
-            raw_pk = self.storage
+            raw_pk = self
+                .storage
                 .get_private_key(&Format::Der)?
                 .unwrap_or_else(|| vec![]);
         };

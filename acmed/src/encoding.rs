@@ -1,6 +1,6 @@
-use acme_lib::Error;
-use acme_lib::persist::PersistKind;
 use crate::acmed::Format;
+use acme_lib::persist::PersistKind;
+use acme_lib::Error;
 use log::debug;
 use pem::{encode, Pem};
 
@@ -71,9 +71,9 @@ pub fn convert(
 
 #[cfg(test)]
 mod tests {
-    use acme_lib::persist::PersistKind;
-    use crate::acmed::Format;
     use super::convert;
+    use crate::acmed::Format;
+    use acme_lib::persist::PersistKind;
 
     // Test data generated using:
     //

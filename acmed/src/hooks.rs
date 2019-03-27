@@ -20,7 +20,7 @@ macro_rules! get_hook_output {
     }};
 }
 
-pub fn call_multiple<T: Serialize>(data: &T, hooks: &Vec<Hook>) -> Result<(), Error> {
+pub fn call_multiple<T: Serialize>(data: &T, hooks: &[Hook]) -> Result<(), Error> {
     for hook in hooks.iter() {
         call(data, &hook)?;
     }

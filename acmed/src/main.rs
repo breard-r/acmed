@@ -61,7 +61,7 @@ fn main() {
             Arg::with_name("foregroung")
                 .short("f")
                 .long("foregroung")
-                .help("Runs in the foregroung")
+                .help("Runs in the foregroung"),
         )
         .arg(
             Arg::with_name("pid-file")
