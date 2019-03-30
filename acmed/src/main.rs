@@ -28,7 +28,7 @@ pub const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 
 fn main() {
     let matches = App::new("acmed")
-        .version("0.3.0-dev")
+        .version("0.2.1")
         .arg(
             Arg::with_name("config")
                 .short("c")
