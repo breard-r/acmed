@@ -1,11 +1,54 @@
-use crate::config::Hook;
-use crate::errors::Error;
+use crate::error::Error;
 use handlebars::Handlebars;
 use log::debug;
 use serde::Serialize;
+use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
+
+#[derive(Serialize)]
+pub struct PostOperationHookData {
+    pub domains: Vec<String>,
+    pub algorithm: String,
+    pub challenge: String,
+    pub status: String,
+}
+
+#[derive(Serialize)]
+pub struct ChallengeHookData {
+    pub domains: Vec<String>,
+    pub algorithm: String,
+    pub challenge: String,
+    pub current_domain: String,
+    pub file_name: String,
+    pub proof: String,
+}
+
+#[derive(Serialize)]
+pub struct FileStorageHookData {
+    // TODO: add the current operation (create/edit)
+    pub file_name: String,
+    pub file_directory: String,
+    pub file_path: PathBuf,
+}
+
+#[derive(Clone, Debug)]
+pub struct Hook {
+    pub name: String,
+    pub cmd: String,
+    pub args: Option<Vec<String>>,
+    pub stdin: Option<String>,
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+}
+
+impl fmt::Display for Hook {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
 
 macro_rules! get_hook_output {
     ($out: expr, $reg: ident, $data: expr) => {{
@@ -18,13 +61,6 @@ macro_rules! get_hook_output {
             None => Stdio::null(),
         }
     }};
-}
-
-pub fn call_multiple<T: Serialize>(data: &T, hooks: &[Hook]) -> Result<(), Error> {
-    for hook in hooks.iter() {
-        call(data, &hook)?;
-    }
-    Ok(())
 }
 
 pub fn call<T: Serialize>(data: &T, hook: &Hook) -> Result<(), Error> {
@@ -64,5 +100,12 @@ pub fn call<T: Serialize>(data: &T, hook: &Hook) -> Result<(), Error> {
         Some(code) => debug!("Hook {}: exited with code {}", hook.name, code),
         None => debug!("Hook {}: exited", hook.name),
     };
+    Ok(())
+}
+
+pub fn call_multiple<T: Serialize>(data: &T, hooks: &[Hook]) -> Result<(), Error> {
+    for hook in hooks.iter() {
+        call(data, &hook)?;
+    }
     Ok(())
 }

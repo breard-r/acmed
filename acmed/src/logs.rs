@@ -1,4 +1,4 @@
-use crate::errors::Error;
+use crate::error::Error;
 use env_logger::Builder;
 use log::LevelFilter;
 use syslog::Facility;
@@ -18,7 +18,7 @@ fn get_loglevel(log_level: Option<&str>) -> Result<LevelFilter, Error> {
             "debug" => LevelFilter::Debug,
             "trace" => LevelFilter::Trace,
             _ => {
-                return Err(Error::new(&format!("{}: invalid log level", v)));
+                return Err(format!("{}: invalid log level", v).into());
             }
         },
         None => crate::DEFAULT_LOG_LEVEL,
@@ -27,7 +27,11 @@ fn get_loglevel(log_level: Option<&str>) -> Result<LevelFilter, Error> {
 }
 
 fn set_log_syslog(log_level: LevelFilter) -> Result<(), Error> {
-    syslog::init(Facility::LOG_DAEMON, log_level, Some(crate::APP_NAME))?;
+    syslog::init(
+        Facility::LOG_DAEMON,
+        log_level,
+        Some(env!("CARGO_PKG_NAME")),
+    )?;
     Ok(())
 }
 

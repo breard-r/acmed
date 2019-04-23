@@ -1,5 +1,7 @@
-use crate::acmed::{Algorithm, Challenge, Format};
-use crate::errors::Error;
+use crate::acme_proto::Challenge;
+use crate::certificate::Algorithm;
+use crate::error::Error;
+use crate::hooks;
 use log::info;
 use serde::Deserialize;
 use std::fs::{self, File};
@@ -27,10 +29,18 @@ impl Config {
         account_dir.to_string()
     }
 
-    pub fn get_hook(&self, name: &str) -> Result<Vec<Hook>, Error> {
+    pub fn get_hook(&self, name: &str) -> Result<Vec<hooks::Hook>, Error> {
         for hook in self.hook.iter() {
             if name == hook.name {
-                return Ok(vec![hook.clone()]);
+                let h = hooks::Hook {
+                    name: hook.name.to_owned(),
+                    cmd: hook.cmd.to_owned(),
+                    args: hook.args.to_owned(),
+                    stdin: hook.stdin.to_owned(),
+                    stdout: hook.stdout.to_owned(),
+                    stderr: hook.stderr.to_owned(),
+                };
+                return Ok(vec![h]);
             }
         }
         for grp in self.group.iter() {
@@ -43,7 +53,7 @@ impl Config {
                 return Ok(ret);
             }
         }
-        Err(Error::new(&format!("{}: hook not found", name)))
+        Err(format!("{}: hook not found", name).into())
     }
 
     pub fn get_cert_file_mode(&self) -> u32 {
@@ -113,7 +123,7 @@ pub struct Endpoint {
     pub url: String,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize)]
 pub struct Hook {
     pub name: String,
     pub cmd: String,
@@ -169,26 +179,6 @@ impl Certificate {
         }
     }
 
-    pub fn get_formats(&self) -> Result<Vec<Format>, Error> {
-        let ret = match &self.formats {
-            Some(fmts) => {
-                let mut lst = Vec::new();
-                for f in fmts.iter() {
-                    lst.push(match f.as_str() {
-                        "der" => Format::Der,
-                        "pem" => Format::Pem,
-                        _ => return Err(Error::new(&format!("{}: unknown format.", f))),
-                    });
-                }
-                lst.sort();
-                lst.dedup();
-                lst
-            }
-            None => vec![crate::DEFAULT_FMT],
-        };
-        Ok(ret)
-    }
-
     pub fn get_crt_name(&self) -> String {
         match &self.name {
             Some(n) => n.to_string(),
@@ -223,42 +213,42 @@ impl Certificate {
                 return Ok(endpoint.url.to_owned());
             }
         }
-        Err(Error::new(&format!("{}: unknown endpoint.", self.endpoint)))
+        Err(format!("{}: unknown endpoint.", self.endpoint).into())
     }
 
-    pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         get_hooks(&self.challenge_hooks, cnf)
     }
 
-    pub fn get_post_operation_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_post_operation_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         match &self.post_operation_hooks {
             Some(hooks) => get_hooks(hooks, cnf),
             None => Ok(vec![]),
         }
     }
 
-    pub fn get_file_pre_create_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_file_pre_create_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         match &self.file_pre_create_hooks {
             Some(hooks) => get_hooks(hooks, cnf),
             None => Ok(vec![]),
         }
     }
 
-    pub fn get_file_post_create_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_file_post_create_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         match &self.file_post_create_hooks {
             Some(hooks) => get_hooks(hooks, cnf),
             None => Ok(vec![]),
         }
     }
 
-    pub fn get_file_pre_edit_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_file_pre_edit_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         match &self.file_pre_edit_hooks {
             Some(hooks) => get_hooks(hooks, cnf),
             None => Ok(vec![]),
         }
     }
 
-    pub fn get_file_post_edit_hooks(&self, cnf: &Config) -> Result<Vec<Hook>, Error> {
+    pub fn get_file_post_edit_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         match &self.file_post_edit_hooks {
             Some(hooks) => get_hooks(hooks, cnf),
             None => Ok(vec![]),
@@ -266,7 +256,7 @@ impl Certificate {
     }
 }
 
-fn get_hooks(lst: &[String], cnf: &Config) -> Result<Vec<Hook>, Error> {
+fn get_hooks(lst: &[String], cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
     let mut res = vec![];
     for name in lst.iter() {
         let mut h = cnf.get_hook(&name)?;

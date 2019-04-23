@@ -1,34 +1,41 @@
+use crate::main_event_loop::MainEventLoop;
 use clap::{App, Arg};
 use daemonize::Daemonize;
 use log::{error, LevelFilter};
 
-mod acmed;
+mod acme_proto;
+mod certificate;
 mod config;
-mod encoding;
-mod errors;
+mod error;
 mod hooks;
+mod keygen;
 mod logs;
+mod main_event_loop;
 mod storage;
 
-pub const APP_NAME: &str = "acmed";
+pub const APP_NAME: &str = "ACMEd";
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
 pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";
 pub const DEFAULT_ACCOUNTS_DIR: &str = "/etc/acmed/accounts";
 pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";
-pub const DEFAULT_CERT_FORMAT: &str = "{name}_{algo}.{kind}.{ext}";
+pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{algo}}.{{file_type}}.{{ext}}";
 pub const DEFAULT_ALGO: &str = "rsa2048";
-pub const DEFAULT_FMT: acmed::Format = acmed::Format::Pem;
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
+pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_KP_REUSE: bool = false;
 pub const DEFAULT_LOG_SYSTEM: logs::LogSystem = logs::LogSystem::SysLog;
 pub const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
+pub const DEFAULT_JWS_SIGN_ALGO: &str = "ES256";
+pub const DEFAULT_POOL_NB_TRIES: usize = 10;
+pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
 
 fn main() {
-    let matches = App::new("acmed")
-        .version("0.2.1")
+    let matches = App::new(APP_NAME)
+        .version(APP_VERSION)
         .arg(
             Arg::with_name("config")
                 .short("c")
@@ -98,7 +105,7 @@ fn main() {
     }
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
-    let mut srv = match acmed::Acmed::new(&config_file) {
+    let mut srv = match MainEventLoop::new(&config_file) {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);
