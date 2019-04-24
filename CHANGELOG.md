@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - An account object has been added in the configuration.
+- Failure recovery: HTTPS requests rejected by the server that are recoverable, like the badNonce error, are now retried several times before being considered a hard failure.
 
 ### Changed
 - In the configuration, the `email` certificate field has been replaced by the `account` field which matches an account object.

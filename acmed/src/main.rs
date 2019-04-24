@@ -30,8 +30,10 @@ pub const DEFAULT_KP_REUSE: bool = false;
 pub const DEFAULT_LOG_SYSTEM: logs::LogSystem = logs::LogSystem::SysLog;
 pub const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 pub const DEFAULT_JWS_SIGN_ALGO: &str = "ES256";
-pub const DEFAULT_POOL_NB_TRIES: usize = 10;
+pub const DEFAULT_POOL_NB_TRIES: usize = 20;
 pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
+pub const DEFAULT_HTTP_FAIL_NB_RETRY: usize = 10;
+pub const DEFAULT_HTTP_FAIL_WAIT_SEC: u64 = 1;
 
 fn main() {
     let matches = App::new(APP_NAME)

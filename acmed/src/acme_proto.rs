@@ -7,13 +7,13 @@ use crate::certificate::Certificate;
 use crate::error::Error;
 use crate::storage;
 use log::info;
-use std::{fmt, thread, time};
+use std::fmt;
 
 mod account;
 mod certificate;
 mod http;
 pub mod jws;
-mod structs;
+pub mod structs;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Challenge {
@@ -51,29 +51,15 @@ impl PartialEq<structs::Challenge> for Challenge {
     }
 }
 
-fn pool<T, F, G>(
-    account: &AccountManager,
-    url: &str,
-    nonce: &str,
-    get_fn: F,
-    break_fn: G,
-) -> Result<(T, String), Error>
-where
-    F: Fn(&str, &[u8]) -> Result<(T, String), Error>,
-    G: Fn(&T) -> bool,
-{
-    let mut nonce: String = nonce.to_string();
-    for _ in 0..crate::DEFAULT_POOL_NB_TRIES {
-        thread::sleep(time::Duration::from_secs(crate::DEFAULT_POOL_WAIT_SEC));
-        let data = encode_kid(&account.priv_key, &account.account_url, b"", url, &nonce)?;
-        let (obj, new_nonce) = get_fn(url, data.as_bytes())?;
-        if break_fn(&obj) {
-            return Ok((obj, new_nonce));
-        }
-        nonce = new_nonce;
-    }
-    let msg = format!("Pooling failed for {}", url);
-    Err(msg.into())
+macro_rules! set_data_builder {
+    ($account: ident, $data: expr, $url: expr) => {
+        |n: &str| encode_kid(&$account.priv_key, &$account.account_url, $data, &$url, n)
+    };
+}
+macro_rules! set_empty_data_builder {
+    ($account: ident, $url: expr) => {
+        set_data_builder!($account, b"", $url)
+    };
 }
 
 pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
@@ -89,26 +75,15 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
     // 4. Create a new order
     let new_order = NewOrder::new(&cert.domains);
     let new_order = serde_json::to_string(&new_order)?;
-    let new_order = encode_kid(
-        &account.priv_key,
-        &account.account_url,
-        new_order.as_bytes(),
-        &directory.new_order,
-        &nonce,
-    )?;
-    let (order, order_url, mut nonce) =
-        http::get_obj_loc::<Order>(&directory.new_order, new_order.as_bytes())?;
+    let data_builder = set_data_builder!(account, new_order.as_bytes(), directory.new_order);
+    let (order, order_url, mut nonce): (Order, String, String) =
+        http::get_obj_loc(&directory.new_order, &data_builder, &nonce)?;
 
     // 5. Get all the required authorizations
     for auth_url in order.authorizations.iter() {
-        let auth_data = encode_kid(
-            &account.priv_key,
-            &account.account_url,
-            b"",
-            &auth_url,
-            &nonce,
-        )?;
-        let (auth, new_nonce) = http::get_obj::<Authorization>(&auth_url, auth_data.as_bytes())?;
+        let data_builder = set_empty_data_builder!(account, auth_url);
+        let (auth, new_nonce): (Authorization, String) =
+            http::get_obj(&auth_url, &data_builder, &nonce)?;
         nonce = new_nonce;
 
         if auth.status == AuthorizationStatus::Valid {
@@ -134,73 +109,44 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
 
                 // 8. Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
-                let chall_resp_data = encode_kid(
-                    &account.priv_key,
-                    &account.account_url,
-                    b"{}",
-                    &chall_url,
-                    &nonce,
-                )?;
-                let new_nonce =
-                    http::post_challenge_response(&chall_url, chall_resp_data.as_bytes())?;
+                let data_builder = set_data_builder!(account, b"{}", chall_url);
+                let new_nonce = http::post_challenge_response(&chall_url, &data_builder, &nonce)?;
                 nonce = new_nonce;
             }
         }
 
         // 9. Pool the authorization in order to see whether or not it is valid
-        let (_, new_nonce) = pool(
-            &account,
-            &auth_url,
-            &nonce,
-            |u, d| http::get_obj::<Authorization>(u, d),
-            |a| a.status == AuthorizationStatus::Valid,
-        )?;
+        let data_builder = set_empty_data_builder!(account, auth_url);
+        let break_fn = |a: &Authorization| a.status == AuthorizationStatus::Valid;
+        let (_, new_nonce): (Authorization, String) =
+            http::pool_obj(&auth_url, &data_builder, &break_fn, &nonce)?;
         nonce = new_nonce;
     }
 
     // 10. Pool the order in order to see whether or not it is ready
-    let (order, nonce) = pool(
-        &account,
-        &order_url,
-        &nonce,
-        |u, d| http::get_obj::<Order>(u, d),
-        |a| a.status == OrderStatus::Ready,
-    )?;
+    let data_builder = set_empty_data_builder!(account, order_url);
+    let break_fn = |o: &Order| o.status == OrderStatus::Ready;
+    let (order, nonce): (Order, String) =
+        http::pool_obj(&order_url, &data_builder, &break_fn, &nonce)?;
 
     // 11. Finalize the order by sending the CSR
     let (priv_key, pub_key) = certificate::get_key_pair(cert)?;
     let csr = certificate::generate_csr(cert, &priv_key, &pub_key)?;
-    let csr_data = encode_kid(
-        &account.priv_key,
-        &account.account_url,
-        csr.as_bytes(),
-        &order.finalize,
-        &nonce,
-    )?;
-    let (_, nonce) = http::get_obj::<Order>(&order.finalize, &csr_data.as_bytes())?;
+    let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
+    let (_, nonce): (Order, String) = http::get_obj(&order.finalize, &data_builder, &nonce)?;
 
     // 12. Pool the order in order to see whether or not it is valid
-    let (order, nonce) = pool(
-        &account,
-        &order_url,
-        &nonce,
-        |u, d| http::get_obj::<Order>(u, d),
-        |a| a.status == OrderStatus::Valid,
-    )?;
+    let data_builder = set_empty_data_builder!(account, order_url);
+    let break_fn = |o: &Order| o.status == OrderStatus::Valid;
+    let (order, nonce): (Order, String) =
+        http::pool_obj(&order_url, &data_builder, &break_fn, &nonce)?;
 
     // 13. Download the certificate
-    // TODO: implement
     let crt_url = order
         .certificate
         .ok_or_else(|| Error::from("No certificate available for download."))?;
-    let crt_data = encode_kid(
-        &account.priv_key,
-        &account.account_url,
-        b"",
-        &crt_url,
-        &nonce,
-    )?;
-    let (crt, _) = http::get_certificate(&crt_url, &crt_data.as_bytes())?;
+    let data_builder = set_empty_data_builder!(account, crt_url);
+    let (crt, _) = http::get_certificate(&crt_url, &data_builder, &nonce)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
 
     info!("Certificate renewed for {}", cert.domains.join(", "));

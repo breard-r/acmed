@@ -39,9 +39,10 @@ impl AccountManager {
         };
         let account = Account::new(cert);
         let account = serde_json::to_string(&account)?;
-        let data = encode_jwk(&priv_key, account.as_bytes(), &directory.new_account, nonce)?;
-        let (acc_rep, account_url, nonce) =
-            http::get_obj_loc::<AccountResponse>(&directory.new_account, data.as_bytes())?;
+        let data_builder =
+            |n: &str| encode_jwk(&priv_key, account.as_bytes(), &directory.new_account, n);
+        let (acc_rep, account_url, nonce): (AccountResponse, String, String) =
+            http::get_obj_loc(&directory.new_account, &data_builder, &nonce)?;
         let ac = AccountManager {
             priv_key,
             pub_key,

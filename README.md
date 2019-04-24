@@ -16,6 +16,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Fully customizable archiving method (yes, you can use git or anything else)
 - Run as a deamon: no need to set-up timers, crontab or other time-triggered process
 - Nice and simple configuration file
+- Retry HTTPS request rejected with a badNonce or other recoverable errors
 
 
 ## Planned features
