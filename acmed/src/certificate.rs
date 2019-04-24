@@ -46,6 +46,7 @@ pub struct Certificate {
     pub algo: Algorithm,
     pub kp_reuse: bool,
     pub remote_url: String,
+    pub tos_agreed: bool,
     pub challenge: Challenge,
     pub challenge_hooks: Vec<Hook>,
     pub post_operation_hooks: Vec<Hook>,

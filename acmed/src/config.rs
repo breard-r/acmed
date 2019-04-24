@@ -118,10 +118,11 @@ pub struct GlobalOptions {
     pub pk_file_group: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Endpoint {
     pub name: String,
     pub url: String,
+    pub tos_agreed: bool,
 }
 
 #[derive(Deserialize)]
@@ -223,13 +224,23 @@ impl Certificate {
         crt_directory.to_string()
     }
 
-    pub fn get_remote_url(&self, cnf: &Config) -> Result<String, Error> {
+    fn get_endpoint(&self, cnf: &Config) -> Result<Endpoint, Error> {
         for endpoint in cnf.endpoint.iter() {
             if endpoint.name == self.endpoint {
-                return Ok(endpoint.url.to_owned());
+                return Ok(endpoint.clone());
             }
         }
         Err(format!("{}: unknown endpoint.", self.endpoint).into())
+    }
+
+    pub fn get_remote_url(&self, cnf: &Config) -> Result<String, Error> {
+        let ep = self.get_endpoint(cnf)?;
+        Ok(ep.url)
+    }
+
+    pub fn get_tos_agreement(&self, cnf: &Config) -> Result<bool, Error> {
+        let ep = self.get_endpoint(cnf)?;
+        Ok(ep.tos_agreed)
     }
 
     pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {

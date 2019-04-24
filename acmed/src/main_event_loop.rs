@@ -22,6 +22,7 @@ impl MainEventLoop {
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
                 remote_url: crt.get_remote_url(&cnf)?,
+                tos_agreed: crt.get_tos_agreement(&cnf)?,
                 challenge: crt.get_challenge()?,
                 challenge_hooks: crt.get_challenge_hooks(&cnf)?,
                 post_operation_hooks: crt.get_post_operation_hooks(&cnf)?,

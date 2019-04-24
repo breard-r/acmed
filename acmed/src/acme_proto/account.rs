@@ -37,7 +37,7 @@ impl AccountManager {
             storage::set_account_pub_key(cert, &pub_key)?;
             (priv_key, pub_key)
         };
-        let account = Account::new(&cert.account);
+        let account = Account::new(cert);
         let account = serde_json::to_string(&account)?;
         let data = encode_jwk(&priv_key, account.as_bytes(), &directory.new_account, nonce)?;
         let (acc_rep, account_url, nonce) =
