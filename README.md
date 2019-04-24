@@ -16,14 +16,14 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Fully customizable archiving method (yes, you can use git or anything else)
 - Run as a deamon: no need to set-up timers, crontab or other time-triggered process
 - Nice and simple configuration file
-- Retry HTTPS request rejected with a badNonce or other recoverable errors
+- Retry of HTTPS request rejected with a badNonce or other recoverable errors
+- Optional private-key reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
 
 
 ## Planned features
 
-- optional private-key reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
-- customizable way to archive old certificates and private keys
-- daemon management via the `acmectl` tool
+- TLS-ALPN challenges
+- daemon and certificates management via the `acmectl` tool
 
 
 ## Build from source
@@ -53,7 +53,9 @@ See [LICENSE-MIT.txt](LICENSE-MIT.txt) and [LICENSE-APACHE-2.0.txt](LICENSE-APAC
 
 ### Can it automatically change my server configuration?
 
-Some ACME client, like certbot, can read some software configuration and automatically edit it so this software will use the issued certificates. ACMEd will never do that since we believe this feature is dangerous. As the proverb says, the road to hell is paved with good intentions. This feature was meant to make the web more secure since system administrators with no knowledge at all about TLS could set-it up in a decent way. However, we think this feature pushed towards a list of "blessed" software and therefore harms the diversity. Some people's ignorance should not be an excuse to recommend some kind uniform set-up. Instead, people should be educated so they can make the best choices. This is achieved through tutorials and courses, not some kind of dark-magic automation.
+Short answer: No.
+
+Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to run any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
 
 ### Why is RSA 2048 the default?
 
@@ -63,9 +65,3 @@ It is not obvious at the first sight, but [RSA 4096](https://gnupg.org/faq/gnupg
 
 
 ECDSA certificates may be a good alternative to RSA since, for the same security level, they are smaller and requires less computation, hence improve performance. Unfortunately, as X.509 certificates may be used in various contexts, some software may not support this not-so-recent technology. To achieve maximal compatibility while using ECC, you usually have to set-up an hybrid configuration with both an ECDSA and a RSA certificate to fall-back to. Therefore, even if you are encouraged to use ECDSA certificates, it should not currently be the default. That said, it may be in a soon future.
-
-### What is the difference between SSL, TLS and X.509?
-
-SSL is an old and now insecure protocol that has been deprecated in favor of TLS. In fact, TLS 1.0 was an upgrade of SSL 3. In order to work, both uses X.509 certificates. Please note that X.509 is only the certificate format, it is not suitable for private keys.
-
-Therefore, do not say "a CA issue SSL certificates". Instead, say "a CA issue X.509 certificates that can be used for TLS". Yes, most CA websites are wrong, mostly because of commercial reasons since most people don't know what X.509 (or TLS) is but have the term SSL anchored in their mind.
