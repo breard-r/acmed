@@ -1,3 +1,4 @@
+use crate::acme_proto::b64_encode;
 use crate::certificate::Certificate;
 use crate::error::Error;
 use crate::hooks::{self, FileStorageHookData};
@@ -44,7 +45,7 @@ fn get_file_full_path(
     let file_name = match file_type {
         FileType::AccountPrivateKey | FileType::AccountPublicKey => format!(
             "{account}.{file_type}.{ext}",
-            account = cert.account.name,
+            account = b64_encode(&cert.account.name),
             file_type = file_type.to_string(),
             ext = "pem"
         ),
