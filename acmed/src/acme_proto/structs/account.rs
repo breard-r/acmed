@@ -72,10 +72,14 @@ mod tests {
     #[test]
     fn test_account_new() {
         let emails = vec![
-            "derp@example.com".to_string(),
-            "derp.derpson@example.com".to_string(),
+            "mailto:derp@example.com".to_string(),
+            "mailto:derp.derpson@example.com".to_string(),
         ];
-        let a = Account::new(&emails);
+        let a = Account {
+            contact: emails,
+            terms_of_service_agreed: true,
+            only_return_existing: false,
+        };
         assert_eq!(a.contact.len(), 2);
         assert_eq!(a.terms_of_service_agreed, true);
         assert_eq!(a.only_return_existing, false);
