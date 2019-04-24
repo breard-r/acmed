@@ -12,7 +12,9 @@ use std::path::Path;
 pub struct Config {
     pub global: Option<GlobalOptions>,
     pub endpoint: Vec<Endpoint>,
+    #[serde(default)]
     pub hook: Vec<Hook>,
+    #[serde(default)]
     pub group: Vec<Group>,
     pub account: Vec<Account>,
     pub certificate: Vec<Certificate>,
