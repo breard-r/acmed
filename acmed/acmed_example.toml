@@ -5,16 +5,18 @@ certificates_directory = "/etc/acmed/certs"
 [[endpoint]]
 name = "letsencrypt v2 prod"
 url = "https://acme-v02.api.letsencrypt.org/directory"
+tos_agreed = false
 
 [[endpoint]]
 name = "letsencrypt v2 staging"
 url = "https://acme-staging-v02.api.letsencrypt.org/directory"
+tos_agreed = false
 
 [[hook]]
 name = "http-echo"
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{token}}"
+stdout = "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "email-report"
@@ -31,15 +33,20 @@ algorithm: {{algorithm}}
 challenge: {{challenge}}
 status: {{status}}"""
 
-[[certificate]]
+[[account]]
+name = "test_account"
 email = "certs@example.org"
+
+[[certificate]]
+account = "test_account"
 endpoint = "letsencrypt v2 staging"
 domains = [
-    "test.example.org"
+    "example.org",
+    "sub-1.example.org",
+    "sub-2.example.org"
 ]
 algorithm = "ecdsa_p384"
-kp_reuse = true
-formats = ["pem"]
+kp_reuse = false
 challenge = "http-01"
 challenge_hooks = ["http-echo"]
 post_operation_hooks = ["email-report"]
