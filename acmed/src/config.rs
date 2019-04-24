@@ -14,6 +14,7 @@ pub struct Config {
     pub endpoint: Vec<Endpoint>,
     pub hook: Vec<Hook>,
     pub group: Vec<Group>,
+    pub account: Vec<Account>,
     pub certificate: Vec<Certificate>,
 }
 
@@ -139,9 +140,15 @@ pub struct Group {
     pub hooks: Vec<String>,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct Account {
+    pub name: String,
+    pub email: String,
+}
+
 #[derive(Deserialize)]
 pub struct Certificate {
-    pub email: String,
+    pub account: String,
     pub endpoint: String,
     pub domains: Vec<String>,
     pub challenge: String,
@@ -160,6 +167,15 @@ pub struct Certificate {
 }
 
 impl Certificate {
+    pub fn get_account(&self, cnf: &Config) -> Result<Account, Error> {
+        for account in cnf.account.iter() {
+            if account.name == self.account {
+                return Ok(account.clone());
+            }
+        }
+        Err(format!("{}: account not found", self.account).into())
+    }
+
     pub fn get_algorithm(&self) -> Result<Algorithm, Error> {
         let algo = match &self.algorithm {
             Some(a) => &a,

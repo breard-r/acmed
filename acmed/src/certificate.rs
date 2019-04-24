@@ -1,4 +1,5 @@
 use crate::acme_proto::Challenge;
+use crate::config::Account;
 use crate::error::Error;
 use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
@@ -40,10 +41,10 @@ impl fmt::Display for Algorithm {
 
 #[derive(Debug)]
 pub struct Certificate {
+    pub account: Account,
     pub domains: Vec<String>,
     pub algo: Algorithm,
     pub kp_reuse: bool,
-    pub email: String,
     pub remote_url: String,
     pub challenge: Challenge,
     pub challenge_hooks: Vec<Hook>,
@@ -83,14 +84,14 @@ impl fmt::Display for Certificate {
             "Certificate information:
 Domains: {domains}
 Algorithm: {algo}
-Contact: {email}
+Account: {account}
 Private key reuse: {kp_reuse}
 Challenge: {challenge}
 Challenge hooks: {challenge_hooks}
 Post operation hooks: {post_operation_hooks}",
             domains = self.domains.join(", "),
             algo = self.algo,
-            email = self.email,
+            account = self.account.name,
             kp_reuse = self.kp_reuse,
             challenge = self.challenge,
             challenge_hooks = challenge_hooks,

@@ -43,8 +43,8 @@ fn get_file_full_path(
     };
     let file_name = match file_type {
         FileType::AccountPrivateKey | FileType::AccountPublicKey => format!(
-            "{email}.{file_type}.{ext}",
-            email = cert.email,
+            "{account}.{file_type}.{ext}",
+            account = cert.account.name,
             file_type = file_type.to_string(),
             ext = "pem"
         ),

@@ -1,3 +1,4 @@
+use crate::config;
 use crate::error::Error;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -11,9 +12,9 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(contact: &[String]) -> Self {
+    pub fn new(cnf_account: &config::Account) -> Self {
         Account {
-            contact: contact.iter().map(|v| format!("mailto:{}", v)).collect(),
+            contact: vec![format!("mailto:{}", cnf_account.email)],
             terms_of_service_agreed: true,
             only_return_existing: false,
         }

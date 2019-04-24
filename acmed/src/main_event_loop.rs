@@ -17,10 +17,10 @@ impl MainEventLoop {
         let mut certs = Vec::new();
         for crt in cnf.certificate.iter() {
             let cert = Certificate {
+                account: crt.get_account(&cnf)?,
                 domains: crt.domains.to_owned(),
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
-                email: crt.email.to_owned(),
                 remote_url: crt.get_remote_url(&cnf)?,
                 challenge: crt.get_challenge()?,
                 challenge_hooks: crt.get_challenge_hooks(&cnf)?,

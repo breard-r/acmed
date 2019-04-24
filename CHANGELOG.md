@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- An account object has been added in the configuration.
+
 ### Changed
+- In the configuration, the `email` certificate field has been replaced by the `account` field which matches an account object.
 - The `token` challenge hook variable has been renamed `file_name`.
 - The logs has been purged from many useless debug and trace entries.
 
