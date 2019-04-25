@@ -23,6 +23,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 ## Planned features
 
 - A standalone server dedicated to the tls-alpn-01 challenge validation
+- A set of hooks that can be used in most circumstances
 - Daemon and certificates management via the `acmectl` tool
 
 
