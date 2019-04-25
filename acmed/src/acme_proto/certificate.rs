@@ -1,6 +1,7 @@
 use crate::certificate::{Algorithm, Certificate};
-use crate::error::Error;
-use crate::{keygen, storage};
+use crate::storage;
+use acme_common::error::Error;
+use acme_common::{b64_encode, gen};
 use openssl::hash::MessageDigest;
 use openssl::pkey::{PKey, Private, Public};
 use openssl::stack::Stack;
@@ -10,10 +11,10 @@ use serde_json::json;
 
 fn gen_key_pair(cert: &Certificate) -> Result<(PKey<Private>, PKey<Public>), Error> {
     let (priv_key, pub_key) = match cert.algo {
-        Algorithm::Rsa2048 => keygen::rsa2048(),
-        Algorithm::Rsa4096 => keygen::rsa4096(),
-        Algorithm::EcdsaP256 => keygen::p256(),
-        Algorithm::EcdsaP384 => keygen::p384(),
+        Algorithm::Rsa2048 => gen::rsa2048(),
+        Algorithm::Rsa4096 => gen::rsa4096(),
+        Algorithm::EcdsaP256 => gen::p256(),
+        Algorithm::EcdsaP384 => gen::p384(),
     }?;
     storage::set_priv_key(cert, &priv_key)?;
     Ok((priv_key, pub_key))
@@ -52,7 +53,7 @@ pub fn generate_csr(
     builder.sign(priv_key, MessageDigest::sha256())?;
     let csr = builder.build();
     let csr = csr.to_der()?;
-    let csr = super::b64_encode(&csr);
+    let csr = b64_encode(&csr);
     let csr = json!({ "csr": csr });
     Ok(csr.to_string())
 }

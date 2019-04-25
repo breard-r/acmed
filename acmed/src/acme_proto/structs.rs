@@ -15,10 +15,12 @@ macro_rules! deserialize_from_str {
 mod account;
 mod authorization;
 mod directory;
+mod error;
 mod order;
 
 pub use account::{Account, AccountDeactivation, AccountResponse, AccountUpdate};
 pub use authorization::{Authorization, AuthorizationStatus, Challenge};
 pub use deserialize_from_str;
 pub use directory::Directory;
+pub use error::{AcmeError, HttpApiError};
 pub use order::{Identifier, IdentifierType, NewOrder, Order, OrderStatus};

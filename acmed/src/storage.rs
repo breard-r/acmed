@@ -1,7 +1,7 @@
-use crate::acme_proto::b64_encode;
 use crate::certificate::Certificate;
-use crate::error::Error;
 use crate::hooks::{self, FileStorageHookData};
+use acme_common::b64_encode;
+use acme_common::error::Error;
 use log::trace;
 use openssl::pkey::{PKey, Private, Public};
 use openssl::x509::X509;

@@ -1,6 +1,6 @@
-use crate::acme_proto::b64_encode;
 use crate::acme_proto::jws::algorithms::{EdDsaVariant, SignatureAlgorithm};
-use crate::error::Error;
+use acme_common::b64_encode;
+use acme_common::error::Error;
 use openssl::ecdsa::EcdsaSig;
 use openssl::pkey::{PKey, Private};
 use openssl::sha::sha256;
@@ -113,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_default_jwk() {
-        let (priv_key, _) = crate::keygen::p256().unwrap();
+        let (priv_key, _) = acme_common::gen::p256().unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
         let s = encode_jwk(&priv_key, payload.as_bytes(), "", "");
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_default_nopad_jwk() {
-        let (priv_key, _) = crate::keygen::p256().unwrap();
+        let (priv_key, _) = acme_common::gen::p256().unwrap();
         let payload = "Dummy payload";
         let payload_b64 = "RHVtbXkgcGF5bG9hZA";
         let payload_b64_pad = "RHVtbXkgcGF5bG9hZA==";
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_default_kid() {
-        let (priv_key, _) = crate::keygen::p256().unwrap();
+        let (priv_key, _) = acme_common::gen::p256().unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
         let key_id = "0x2a";

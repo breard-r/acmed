@@ -1,4 +1,4 @@
-use crate::error::Error;
+use acme_common::error::Error;
 use env_logger::Builder;
 use log::LevelFilter;
 use syslog::Facility;

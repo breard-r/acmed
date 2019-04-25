@@ -1,7 +1,7 @@
-use crate::acme_proto::b64_encode;
 use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
 use crate::acme_proto::structs::Identifier;
-use crate::error::Error;
+use acme_common::b64_encode;
+use acme_common::error::Error;
 use openssl::pkey::{PKey, Private};
 use openssl::sha::sha256;
 use serde::Deserialize;

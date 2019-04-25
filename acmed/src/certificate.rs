@@ -1,8 +1,8 @@
 use crate::acme_proto::Challenge;
 use crate::config::Account;
-use crate::error::Error;
 use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
+use acme_common::error::Error;
 use log::debug;
 use std::fmt;
 use time::{strptime, Duration};

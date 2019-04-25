@@ -4,8 +4,8 @@ use crate::acme_proto::structs::{
     Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
 };
 use crate::certificate::Certificate;
-use crate::error::Error;
 use crate::storage;
+use acme_common::error::Error;
 use log::info;
 use std::fmt;
 
@@ -155,8 +155,4 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
 
     info!("Certificate renewed for {}", cert.domains.join(", "));
     Ok(())
-}
-
-pub fn b64_encode<T: ?Sized + AsRef<[u8]>>(input: &T) -> String {
-    base64::encode_config(input, base64::URL_SAFE_NO_PAD)
 }

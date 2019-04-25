@@ -1,7 +1,6 @@
 use super::jwk::{EdDsaEd25519Jwk, Es256Jwk, Jwk};
-use crate::acme_proto::b64_encode;
-use crate::error::Error;
-use crate::keygen;
+use acme_common::error::Error;
+use acme_common::{b64_encode, gen};
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::EcGroup;
 use openssl::nid::Nid;
@@ -117,7 +116,7 @@ impl SignatureAlgorithm {
 
     pub fn gen_key_pair(&self) -> Result<(PKey<Private>, PKey<Public>), Error> {
         match self {
-            SignatureAlgorithm::Es256 => keygen::p256(),
+            SignatureAlgorithm::Es256 => gen::p256(),
             SignatureAlgorithm::EdDsa(EdDsaVariant::Ed25519) => Err("Not implemented".into()),
         }
     }

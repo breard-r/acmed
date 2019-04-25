@@ -1,7 +1,7 @@
 use crate::acme_proto::Challenge;
 use crate::certificate::Algorithm;
-use crate::error::Error;
 use crate::hooks;
+use acme_common::error::Error;
 use log::info;
 use serde::Deserialize;
 use std::fs::{self, File};

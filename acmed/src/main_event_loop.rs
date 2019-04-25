@@ -1,7 +1,7 @@
 use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
 use crate::config;
-use crate::error::Error;
+use acme_common::error::Error;
 use log::{debug, warn};
 use std::thread;
 use std::time::Duration;

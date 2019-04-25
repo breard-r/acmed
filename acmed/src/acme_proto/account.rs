@@ -3,8 +3,8 @@ use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
 use crate::acme_proto::jws::encode_jwk;
 use crate::acme_proto::structs::{Account, AccountResponse, Directory};
 use crate::certificate::Certificate;
-use crate::error::Error;
 use crate::storage;
+use acme_common::error::Error;
 use openssl::pkey::{PKey, Private, Public};
 use std::str::FromStr;
 

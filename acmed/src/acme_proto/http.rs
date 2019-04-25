@@ -1,5 +1,5 @@
-use crate::acme_proto::structs::Directory;
-use crate::error::{AcmeError, Error, HttpApiError};
+use crate::acme_proto::structs::{AcmeError, Directory, HttpApiError};
+use acme_common::error::Error;
 use http_req::request::{Method, Request};
 use http_req::response::Response;
 use http_req::uri::Uri;

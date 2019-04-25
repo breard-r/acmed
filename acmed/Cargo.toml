@@ -12,7 +12,7 @@ include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 build = "build.rs"
 
 [dependencies]
-base64 = "0.10"
+acme_common = { path = "../acme_common" }
 clap = "2.32"
 daemonize = "0.4"
 env_logger = "0.6"
