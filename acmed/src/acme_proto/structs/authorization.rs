@@ -8,6 +8,11 @@ use serde::Deserialize;
 use std::fmt;
 use std::str::FromStr;
 
+const ACME_OID: &str = "1.3.6.1.5.5.7.1";
+const ID_PE_ACME_ID: usize = 31;
+const DER_OCTET_STRING_ID: usize = 0x04;
+const DER_STRUCT_NAME: &str = "DER";
+
 #[derive(Deserialize)]
 pub struct Authorization {
     pub identifier: Identifier,
@@ -59,7 +64,8 @@ pub enum Challenge {
     Http01(TokenChallenge),
     #[serde(rename = "dns-01")]
     Dns01(TokenChallenge),
-    // TODO: tls-alpn-01
+    #[serde(rename = "tls-alpn-01")]
+    TlsAlpn01(TokenChallenge),
     #[serde(other)]
     Unknown,
 }
@@ -69,7 +75,9 @@ deserialize_from_str!(Challenge);
 impl Challenge {
     pub fn get_url(&self) -> String {
         match self {
-            Challenge::Http01(tc) | Challenge::Dns01(tc) => tc.url.to_owned(),
+            Challenge::Http01(tc) | Challenge::Dns01(tc) | Challenge::TlsAlpn01(tc) => {
+                tc.url.to_owned()
+            }
             Challenge::Unknown => String::new(),
         }
     }
@@ -83,6 +91,25 @@ impl Challenge {
                 let a = b64_encode(&a);
                 Ok(a)
             }
+            Challenge::TlsAlpn01(tc) => {
+                let acme_ext_name = format!("{}.{}", ACME_OID, ID_PE_ACME_ID);
+                let ka = tc.key_authorization(private_key)?;
+                let proof = sha256(ka.as_bytes());
+                let proof_str = proof
+                    .iter()
+                    .map(|e| format!("{:02x}", e))
+                    .collect::<Vec<String>>()
+                    .join(":");
+                let value = format!(
+                    "critical,{}:{:02x}:{:02x}:{}",
+                    DER_STRUCT_NAME,
+                    DER_OCTET_STRING_ID,
+                    proof.len(),
+                    proof_str
+                );
+                let acme_ext = format!("{}={}", acme_ext_name, value);
+                Ok(acme_ext)
+            }
             Challenge::Unknown => Ok(String::new()),
         }
     }
@@ -90,7 +117,7 @@ impl Challenge {
     pub fn get_file_name(&self) -> String {
         match self {
             Challenge::Http01(tc) => tc.token.to_owned(),
-            Challenge::Dns01(_) => String::new(),
+            Challenge::Dns01(_) | Challenge::TlsAlpn01(_) => String::new(),
             Challenge::Unknown => String::new(),
         }
     }

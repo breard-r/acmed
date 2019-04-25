@@ -19,6 +19,7 @@ pub mod structs;
 pub enum Challenge {
     Http01,
     Dns01,
+    TlsAlpn01,
 }
 
 impl Challenge {
@@ -26,6 +27,7 @@ impl Challenge {
         match s.to_lowercase().as_str() {
             "http-01" => Ok(Challenge::Http01),
             "dns-01" => Ok(Challenge::Dns01),
+            "tls-alpn-01" => Ok(Challenge::TlsAlpn01),
             _ => Err(format!("{}: unknown challenge.", s).into()),
         }
     }
@@ -36,6 +38,7 @@ impl fmt::Display for Challenge {
         let s = match self {
             Challenge::Http01 => "http-01",
             Challenge::Dns01 => "dns-01",
+            Challenge::TlsAlpn01 => "tls-alpn-01",
         };
         write!(f, "{}", s)
     }
@@ -46,6 +49,7 @@ impl PartialEq<structs::Challenge> for Challenge {
         match (self, other) {
             (Challenge::Http01, structs::Challenge::Http01(_)) => true,
             (Challenge::Dns01, structs::Challenge::Dns01(_)) => true,
+            (Challenge::TlsAlpn01, structs::Challenge::TlsAlpn01(_)) => true,
             _ => false,
         }
     }
