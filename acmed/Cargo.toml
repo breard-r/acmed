@@ -14,14 +14,12 @@ build = "build.rs"
 [dependencies]
 acme_common = { path = "../acme_common" }
 clap = "2.32"
-env_logger = "0.6"
 handlebars = "2.0.0-beta.1"
 http_req = "0.4"
 log = "0.4"
 openssl = "0.10"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-syslog = "4.0"
 time = "0.1"
 toml = "0.5"
 

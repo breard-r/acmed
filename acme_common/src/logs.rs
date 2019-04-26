@@ -1,7 +1,10 @@
-use acme_common::error::Error;
+use crate::error::Error;
 use env_logger::Builder;
 use log::LevelFilter;
 use syslog::Facility;
+
+const DEFAULT_LOG_SYSTEM: LogSystem = LogSystem::SysLog;
+const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum LogSystem {
@@ -21,7 +24,7 @@ fn get_loglevel(log_level: Option<&str>) -> Result<LevelFilter, Error> {
                 return Err(format!("{}: invalid log level", v).into());
             }
         },
-        None => crate::DEFAULT_LOG_LEVEL,
+        None => DEFAULT_LOG_LEVEL,
     };
     Ok(level)
 }
@@ -53,7 +56,7 @@ pub fn set_log_system(
     } else if has_stderr {
         LogSystem::StdErr
     } else {
-        crate::DEFAULT_LOG_SYSTEM
+        DEFAULT_LOG_SYSTEM
     };
     match logtype {
         LogSystem::SysLog => set_log_syslog(log_level)?,
@@ -64,7 +67,7 @@ pub fn set_log_system(
 
 #[cfg(test)]
 mod tests {
-    use super::set_log_system;
+    use super::{set_log_system, DEFAULT_LOG_LEVEL, DEFAULT_LOG_SYSTEM};
 
     #[test]
     fn test_invalid_level() {
@@ -77,7 +80,7 @@ mod tests {
         let ret = set_log_system(None, false, false);
         assert!(ret.is_ok());
         let (logtype, log_level) = ret.unwrap();
-        assert_eq!(logtype, crate::DEFAULT_LOG_SYSTEM);
-        assert_eq!(log_level, crate::DEFAULT_LOG_LEVEL);
+        assert_eq!(logtype, DEFAULT_LOG_SYSTEM);
+        assert_eq!(log_level, DEFAULT_LOG_LEVEL);
     }
 }

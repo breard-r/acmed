@@ -1,13 +1,12 @@
 use crate::main_event_loop::MainEventLoop;
 use acme_common::init_server;
 use clap::{App, Arg};
-use log::{error, LevelFilter};
+use log::error;
 
 mod acme_proto;
 mod certificate;
 mod config;
 mod hooks;
-mod logs;
 mod main_event_loop;
 mod storage;
 
@@ -25,8 +24,6 @@ pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_KP_REUSE: bool = false;
-pub const DEFAULT_LOG_SYSTEM: logs::LogSystem = logs::LogSystem::SysLog;
-pub const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 pub const DEFAULT_JWS_SIGN_ALGO: &str = "ES256";
 pub const DEFAULT_POOL_NB_TRIES: usize = 20;
 pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
@@ -80,7 +77,7 @@ fn main() {
         )
         .get_matches();
 
-    match logs::set_log_system(
+    match acme_common::logs::set_log_system(
         matches.value_of("log-level"),
         matches.is_present("log-syslog"),
         matches.is_present("to-stderr"),
