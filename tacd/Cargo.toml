@@ -1,0 +1,19 @@
+[package]
+name = "tacd"
+version = "0.1.0"
+authors = ["Rodolphe Breard <rodolphe@what.tf>"]
+edition = "2018"
+description = "TLS-ALPN Challenge Daemon"
+keywords = ["acme", "tls", "alpn", "X.509"]
+repository = "https://github.com/breard-r/acmed"
+readme = "../README.md"
+license = "MIT OR Apache-2.0"
+include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+
+[dependencies]
+acme_common = { path = "../acme_common" }
+clap = "2.32"
+env_logger = "0.6"
+log = "0.4"
+openssl = "0.10"
+syslog = "4.0"

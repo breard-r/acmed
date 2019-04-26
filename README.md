@@ -34,10 +34,12 @@ In order to compile ADMEd, you will need the [Rust](https://www.rust-lang.org/) 
 ACMEd depends on the OpenSSL. The minimal supported versions are those from the [openssl](https://docs.rs/openssl/) crate, currently OpenSSL 1.0.1 through 1.1.1 and LibreSSL 2.5 through 2.8.
 
 ```
-cargo build --release && strip target/release/acmed
+cargo build --release
+strip target/release/acmed
+strip target/release/tacd
 ```
 
-The executable is located in `target/release/acmed`.
+The executable are located in the `target/release` directory.
 
 
 ## Frequently Asked Questions

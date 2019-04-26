@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "acmed",
+    "tacd",
 ]
 
 [profile.release]
