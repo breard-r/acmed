@@ -1,6 +1,6 @@
 use crate::main_event_loop::MainEventLoop;
+use acme_common::init_server;
 use clap::{App, Arg};
-use daemonize::Daemonize;
 use log::{error, LevelFilter};
 
 mod acme_proto;
@@ -92,17 +92,10 @@ fn main() {
         }
     };
 
-    if !matches.is_present("foregroung") {
-        let pid_file = matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE);
-        let daemonize = Daemonize::new().pid_file(pid_file);
-        match daemonize.start() {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                std::process::exit(3);
-            }
-        }
-    }
+    init_server(
+        matches.is_present("foregroung"),
+        matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
+    );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
     let mut srv = match MainEventLoop::new(&config_file) {

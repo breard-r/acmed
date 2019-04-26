@@ -14,7 +14,6 @@ build = "build.rs"
 [dependencies]
 acme_common = { path = "../acme_common" }
 clap = "2.32"
-daemonize = "0.4"
 env_logger = "0.6"
 handlebars = "2.0.0-beta.1"
 http_req = "0.4"
