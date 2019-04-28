@@ -42,11 +42,14 @@ pub fn generate_csr(
     priv_key: &PKey<Private>,
     pub_key: &PKey<Public>,
 ) -> Result<String, Error> {
-    let domains = cert.domains.join(", DNS:");
     let mut builder = X509ReqBuilder::new()?;
     builder.set_pubkey(pub_key)?;
     let ctx = builder.x509v3_context(None);
-    let san = SubjectAlternativeName::new().dns(&domains).build(&ctx)?;
+    let mut san = SubjectAlternativeName::new();
+    for name in cert.domains.iter() {
+        san.dns(&name);
+    }
+    let san = san.build(&ctx)?;
     let mut ext_stack = Stack::new()?;
     ext_stack.push(san)?;
     builder.add_extensions(&ext_stack)?;
