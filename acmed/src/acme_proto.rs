@@ -66,28 +66,28 @@ macro_rules! set_empty_data_builder {
     };
 }
 
-pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
+pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<(), Error> {
     // 1. Get the directory
-    let directory = http::get_directory(&cert.remote_url)?;
+    let directory = http::get_directory(root_certs, &cert.remote_url)?;
 
     // 2. Get a first nonce
-    let nonce = http::get_nonce(&directory.new_nonce)?;
+    let nonce = http::get_nonce(root_certs, &directory.new_nonce)?;
 
     // 3. Get or create the account
-    let (account, nonce) = AccountManager::new(cert, &directory, &nonce)?;
+    let (account, nonce) = AccountManager::new(cert, &directory, &nonce, root_certs)?;
 
     // 4. Create a new order
     let new_order = NewOrder::new(&cert.domains);
     let new_order = serde_json::to_string(&new_order)?;
     let data_builder = set_data_builder!(account, new_order.as_bytes(), directory.new_order);
     let (order, order_url, mut nonce): (Order, String, String) =
-        http::get_obj_loc(&directory.new_order, &data_builder, &nonce)?;
+        http::get_obj_loc(root_certs, &directory.new_order, &data_builder, &nonce)?;
 
     // 5. Get all the required authorizations
     for auth_url in order.authorizations.iter() {
         let data_builder = set_empty_data_builder!(account, auth_url);
         let (auth, new_nonce): (Authorization, String) =
-            http::get_obj(&auth_url, &data_builder, &nonce)?;
+            http::get_obj(root_certs, &auth_url, &data_builder, &nonce)?;
         nonce = new_nonce;
 
         if auth.status == AuthorizationStatus::Valid {
@@ -114,7 +114,7 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
                 // 8. Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
                 let data_builder = set_data_builder!(account, b"{}", chall_url);
-                let new_nonce = http::post_challenge_response(&chall_url, &data_builder, &nonce)?;
+                let new_nonce = http::post_challenge_response(root_certs, &chall_url, &data_builder, &nonce)?;
                 nonce = new_nonce;
             }
         }
@@ -123,7 +123,7 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
         let data_builder = set_empty_data_builder!(account, auth_url);
         let break_fn = |a: &Authorization| a.status == AuthorizationStatus::Valid;
         let (_, new_nonce): (Authorization, String) =
-            http::pool_obj(&auth_url, &data_builder, &break_fn, &nonce)?;
+            http::pool_obj(root_certs, &auth_url, &data_builder, &break_fn, &nonce)?;
         nonce = new_nonce;
     }
 
@@ -131,26 +131,26 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
     let data_builder = set_empty_data_builder!(account, order_url);
     let break_fn = |o: &Order| o.status == OrderStatus::Ready;
     let (order, nonce): (Order, String) =
-        http::pool_obj(&order_url, &data_builder, &break_fn, &nonce)?;
+        http::pool_obj(root_certs, &order_url, &data_builder, &break_fn, &nonce)?;
 
     // 11. Finalize the order by sending the CSR
     let (priv_key, pub_key) = certificate::get_key_pair(cert)?;
     let csr = certificate::generate_csr(cert, &priv_key, &pub_key)?;
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
-    let (_, nonce): (Order, String) = http::get_obj(&order.finalize, &data_builder, &nonce)?;
+    let (_, nonce): (Order, String) = http::get_obj(root_certs, &order.finalize, &data_builder, &nonce)?;
 
     // 12. Pool the order in order to see whether or not it is valid
     let data_builder = set_empty_data_builder!(account, order_url);
     let break_fn = |o: &Order| o.status == OrderStatus::Valid;
     let (order, nonce): (Order, String) =
-        http::pool_obj(&order_url, &data_builder, &break_fn, &nonce)?;
+        http::pool_obj(root_certs, &order_url, &data_builder, &break_fn, &nonce)?;
 
     // 13. Download the certificate
     let crt_url = order
         .certificate
         .ok_or_else(|| Error::from("No certificate available for download."))?;
     let data_builder = set_empty_data_builder!(account, crt_url);
-    let (crt, _) = http::get_certificate(&crt_url, &data_builder, &nonce)?;
+    let (crt, _) = http::get_certificate(root_certs, &crt_url, &data_builder, &nonce)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
 
     info!("Certificate renewed for {}", cert.domains.join(", "));

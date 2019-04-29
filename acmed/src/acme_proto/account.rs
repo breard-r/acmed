@@ -20,6 +20,7 @@ impl AccountManager {
         cert: &Certificate,
         directory: &Directory,
         nonce: &str,
+        root_certs: &[String],
     ) -> Result<(Self, String), Error> {
         // TODO: store the key id (account url)
         let (priv_key, pub_key) = if storage::account_files_exists(cert) {
@@ -42,7 +43,7 @@ impl AccountManager {
         let data_builder =
             |n: &str| encode_jwk(&priv_key, account.as_bytes(), &directory.new_account, n);
         let (acc_rep, account_url, nonce): (AccountResponse, String, String) =
-            http::get_obj_loc(&directory.new_account, &data_builder, &nonce)?;
+            http::get_obj_loc(root_certs, &directory.new_account, &data_builder, &nonce)?;
         let ac = AccountManager {
             priv_key,
             pub_key,

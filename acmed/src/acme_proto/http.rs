@@ -6,6 +6,7 @@ use http_req::uri::Uri;
 use log::{debug, trace, warn};
 use std::str::FromStr;
 use std::{thread, time};
+use std::path::Path;
 
 const CONTENT_TYPE_JOSE: &str = "application/jose+json";
 const CONTENT_TYPE_JSON: &str = "application/json";
@@ -24,7 +25,7 @@ impl FromStr for DummyString {
     }
 }
 
-fn new_request(uri: &Uri, method: Method) -> Request {
+fn new_request<'a>(root_certs: &'a [String], uri: &'a Uri, method: Method) -> Request<'a> {
     debug!("{}: {}", method, uri);
     let useragent = format!(
         "{}/{} ({}) {}",
@@ -34,6 +35,9 @@ fn new_request(uri: &Uri, method: Method) -> Request {
         env!("ACMED_HTTP_LIB_AGENT")
     );
     let mut rb = Request::new(uri);
+    for file_name in root_certs.iter() {
+        rb.root_cert_file_pem(&Path::new(file_name));
+    }
     rb.method(method);
     rb.header("User-Agent", &useragent);
     // TODO: allow to configure the language
@@ -93,9 +97,9 @@ fn nonce_from_response(res: &Response) -> Result<String, Error> {
     }
 }
 
-fn post_jose_type(url: &str, data: &[u8], accept_type: &str) -> Result<(Response, String), Error> {
+fn post_jose_type(root_certs: &[String], url: &str, data: &[u8], accept_type: &str) -> Result<(Response, String), Error> {
     let uri = url.parse::<Uri>()?;
-    let mut request = new_request(&uri, Method::POST);
+    let mut request = new_request(root_certs, &uri, Method::POST);
     request.header("Content-Type", CONTENT_TYPE_JOSE);
     request.header("Content-Length", &data.len().to_string());
     request.header("Accept", accept_type);
@@ -116,6 +120,7 @@ fn check_response(res: &Response, body: &str) -> Result<(), AcmeError> {
 }
 
 fn fetch_obj_type<T, G>(
+    root_certs: &[String],
     url: &str,
     data_builder: &G,
     nonce: &str,
@@ -128,7 +133,7 @@ where
     let mut nonce = nonce.to_string();
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let data = data_builder(&nonce)?;
-        let (res, res_body) = post_jose_type(url, data.as_bytes(), accept_type)?;
+        let (res, res_body) = post_jose_type(root_certs, url, data.as_bytes(), accept_type)?;
         nonce = nonce_from_response(&res)?;
 
         match check_response(&res, &res_body) {
@@ -150,15 +155,16 @@ where
     Err("Too much errors, will not retry".into())
 }
 
-fn fetch_obj<T, G>(url: &str, data_builder: &G, nonce: &str) -> Result<(T, String, String), Error>
+fn fetch_obj<T, G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<(T, String, String), Error>
 where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    fetch_obj_type(url, data_builder, nonce, CONTENT_TYPE_JSON)
+    fetch_obj_type(root_certs, url, data_builder, nonce, CONTENT_TYPE_JSON)
 }
 
 pub fn get_obj_loc<T, G>(
+    root_certs: &[String],
     url: &str,
     data_builder: &G,
     nonce: &str,
@@ -167,7 +173,7 @@ where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (obj, location, nonce) = fetch_obj(url, data_builder, nonce)?;
+    let (obj, location, nonce) = fetch_obj(root_certs, url, data_builder, nonce)?;
     if location.is_empty() {
         Err("Location header not found.".into())
     } else {
@@ -175,16 +181,17 @@ where
     }
 }
 
-pub fn get_obj<T, G>(url: &str, data_builder: &G, nonce: &str) -> Result<(T, String), Error>
+pub fn get_obj<T, G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<(T, String), Error>
 where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (obj, _, nonce) = fetch_obj(url, data_builder, nonce)?;
+    let (obj, _, nonce) = fetch_obj(root_certs, url, data_builder, nonce)?;
     Ok((obj, nonce))
 }
 
 pub fn pool_obj<T, G, S>(
+    root_certs: &[String],
     url: &str,
     data_builder: &G,
     break_fn: &S,
@@ -198,7 +205,7 @@ where
     let mut nonce: String = nonce.to_string();
     for _ in 0..crate::DEFAULT_POOL_NB_TRIES {
         thread::sleep(time::Duration::from_secs(crate::DEFAULT_POOL_WAIT_SEC));
-        let (obj, _, new_nonce) = fetch_obj(url, data_builder, &nonce)?;
+        let (obj, _, new_nonce) = fetch_obj(root_certs, url, data_builder, &nonce)?;
         if break_fn(&obj) {
             return Ok((obj, new_nonce));
         }
@@ -208,15 +215,16 @@ where
     Err(msg.into())
 }
 
-pub fn post_challenge_response<G>(url: &str, data_builder: &G, nonce: &str) -> Result<String, Error>
+pub fn post_challenge_response<G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<String, Error>
 where
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (_, _, nonce): (DummyString, String, String) = fetch_obj(url, data_builder, nonce)?;
+    let (_, _, nonce): (DummyString, String, String) = fetch_obj(root_certs, url, data_builder, nonce)?;
     Ok(nonce)
 }
 
 pub fn get_certificate<G>(
+    root_certs: &[String],
     url: &str,
     data_builder: &G,
     nonce: &str,
@@ -224,22 +232,22 @@ pub fn get_certificate<G>(
 where
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (res_body, _, nonce): (DummyString, String, String) = fetch_obj(url, data_builder, nonce)?;
+    let (res_body, _, nonce): (DummyString, String, String) = fetch_obj(root_certs, url, data_builder, nonce)?;
     Ok((res_body.content, nonce))
 }
 
-pub fn get_directory(url: &str) -> Result<Directory, Error> {
+pub fn get_directory(root_certs: &[String], url: &str) -> Result<Directory, Error> {
     let uri = url.parse::<Uri>()?;
-    let mut request = new_request(&uri, Method::GET);
+    let mut request = new_request(root_certs, &uri, Method::GET);
     request.header("Accept", CONTENT_TYPE_JSON);
     let (r, s) = send_request_retry(&request)?;
     check_response(&r, &s)?;
     Directory::from_str(&s)
 }
 
-pub fn get_nonce(url: &str) -> Result<String, Error> {
+pub fn get_nonce(root_certs: &[String], url: &str) -> Result<String, Error> {
     let uri = url.parse::<Uri>()?;
-    let request = new_request(&uri, Method::HEAD);
+    let request = new_request(root_certs, &uri, Method::HEAD);
     let (res, res_body) = send_request_retry(&request)?;
     check_response(&res, &res_body)?;
     nonce_from_response(&res)

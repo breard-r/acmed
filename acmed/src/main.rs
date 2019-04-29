@@ -75,6 +75,14 @@ fn main() {
                 .value_name("FILE")
                 .conflicts_with("foregroung"),
         )
+        .arg(
+            Arg::with_name("root-cert")
+            .long("root-cert")
+            .help("Add a root certificate to the trust store")
+            .takes_value(true)
+            .multiple(true)
+            .value_name("FILE")
+        )
         .get_matches();
 
     match acme_common::logs::set_log_system(
@@ -89,13 +97,18 @@ fn main() {
         }
     };
 
+    let root_certs = match matches.values_of("root-cert") {
+        Some(v) => v.collect(),
+        None => vec![],
+    };
+
     init_server(
         matches.is_present("foregroung"),
         matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
-    let mut srv = match MainEventLoop::new(&config_file) {
+    let mut srv = match MainEventLoop::new(&config_file, &root_certs) {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);
