@@ -45,7 +45,6 @@ stdin = """Subject: Certificate renewal alert for {{domains.[0]}}
 The following certificate is being renewed.
 domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}
 algorithm: {{algorithm}}
-challenge: {{challenge}}
 status: {{status}}"""
 
 [[account]]
