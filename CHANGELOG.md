@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- tacd, the TLS-ALPN-01 validation daemon.
 - An account object has been added in the configuration.
 - In the configuration, hooks now have a mandatory `type` variable.
 - It is now possible to declare hooks to clean after the challenge validation hooks.
