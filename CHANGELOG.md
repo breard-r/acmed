@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An account object has been added in the configuration.
 - In the configuration, hooks now have a mandatory `type` variable.
 - It is now possible to declare hooks to clean after the challenge validation hooks.
+- The CLI `--root-cert` option has been added.
 - Failure recovery: HTTPS requests rejected by the server that are recoverable, like the badNonce error, are now retried several times before being considered a hard failure.
 - The TLS-ALPN-01 challenge is now supported. The proof is a string representation of the acmeIdentifier extension. The self-signed certificate itself has to be built by a hook.
 
