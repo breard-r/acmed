@@ -57,7 +57,7 @@ account = "test_account"
 endpoint = "letsencrypt v2 staging"
 domains = [
     { dns = "example.org", challenge = "http-01"},
-    { dns = "sub-1.example.org", challenge = "http-01" }
+    { dns = "sub-1.example.org", challenge = "http-01" },
     { dns = "sub-2.example.org", challenge = "http-01" }
 ]
 algorithm = "ecdsa_p384"
