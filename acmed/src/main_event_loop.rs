@@ -9,10 +9,11 @@ use std::time::Duration;
 
 pub struct MainEventLoop {
     certs: Vec<Certificate>,
+    root_certs: Vec<String>,
 }
 
 impl MainEventLoop {
-    pub fn new(config_file: &str) -> Result<Self, Error> {
+    pub fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
         let cnf = config::from_file(config_file)?;
 
         let mut certs = Vec::new();
@@ -43,7 +44,10 @@ impl MainEventLoop {
             certs.push(cert);
         }
 
-        Ok(MainEventLoop { certs })
+        Ok(MainEventLoop {
+            certs,
+            root_certs: root_certs.iter().map(|v| v.to_string()).collect(),
+        })
     }
 
     pub fn run(&mut self) {
@@ -53,7 +57,7 @@ impl MainEventLoop {
                 match crt.should_renew() {
                     Ok(sr) => {
                         if sr {
-                            let status = match request_certificate(crt) {
+                            let status = match request_certificate(crt, &self.root_certs) {
                                 Ok(_) => "Success.".to_string(),
                                 Err(e) => {
                                     let msg = format!(
