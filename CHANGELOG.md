@@ -9,16 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - An account object has been added in the configuration.
+- In the configuration, hooks now have a mandatory `type` variable.
+- It is now possible to declare hooks to clean after the challenge validation hooks.
 - Failure recovery: HTTPS requests rejected by the server that are recoverable, like the badNonce error, are now retried several times before being considered a hard failure.
 - The TLS-ALPN-01 challenge is now supported. The proof is a string representation of the acmeIdentifier extension. The self-signed certificate itself has to be built by a hook.
 
 ### Changed
 - In the configuration, the `email` certificate field has been replaced by the `account` field which matches an account object.
+- The format of the `domain` configuration variable has changed and now includes the challenge type.
 - The `token` challenge hook variable has been renamed `file_name`.
+- The `challenge_hooks`, `post_operation_hooks`, `file_pre_create_hooks`, `file_post_create_hooks`, `file_pre_edit_hooks` and `file_post_edit_hooks` certificate variables has been replaced by `hooks`.
 - The logs has been purged from many useless debug and trace entries.
 
 ### Removed
 - The DER storage format has been removed.
+- The `challenge` certificate variables has been removed.
 
 
 ## [0.2.1] - 2019-03-30

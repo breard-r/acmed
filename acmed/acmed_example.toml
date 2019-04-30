@@ -13,13 +13,28 @@ url = "https://acme-staging-v02.api.letsencrypt.org/directory"
 tos_agreed = false
 
 [[hook]]
-name = "http-echo"
+name = "http-echo-create"
+type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
 stdout = "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
+name = "http-echo-clean"
+type = ["challenge-http-01-clean"]
+cmd = "rm"
+args = [
+    "-f",
+    "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{file_name}}"
+]
+
+[[group]]
+name = "http-echo"
+hooks = ["http-echo-create", "http-echo-clean"]
+
+[[hook]]
 name = "email-report"
+type = ["post-operation"]
 cmd = "sendmail"
 args = [
     "-f", "noreply@example.org",
@@ -41,12 +56,10 @@ email = "certs@example.org"
 account = "test_account"
 endpoint = "letsencrypt v2 staging"
 domains = [
-    "example.org",
-    "sub-1.example.org",
-    "sub-2.example.org"
+    { dns = "example.org", challenge = "http-01"},
+    { dns = "sub-1.example.org", challenge = "http-01" }
+    { dns = "sub-2.example.org", challenge = "http-01" }
 ]
 algorithm = "ecdsa_p384"
 kp_reuse = false
-challenge = "http-01"
-challenge_hooks = ["http-echo"]
-post_operation_hooks = ["email-report"]
+hooks = ["http-echo", "email-report"]

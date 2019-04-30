@@ -20,8 +20,7 @@ pub fn start(
     let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
     acceptor.set_alpn_select_callback(|_, client| {
         debug!("ALPN negociation");
-        ssl::select_next_proto(crate::ALPN_ACME_PROTO_NAME, client)
-            .ok_or(ALPN_ERROR)
+        ssl::select_next_proto(crate::ALPN_ACME_PROTO_NAME, client).ok_or(ALPN_ERROR)
     });
     acceptor.set_private_key(private_key)?;
     acceptor.set_certificate(certificate)?;

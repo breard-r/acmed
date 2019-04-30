@@ -67,6 +67,13 @@ macro_rules! set_empty_data_builder {
 }
 
 pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
+    let domains = cert
+        .domains
+        .iter()
+        .map(|d| d.0.to_owned())
+        .collect::<Vec<String>>();
+    let mut hook_datas = vec![];
+
     // 1. Get the directory
     let directory = http::get_directory(&cert.remote_url)?;
 
@@ -77,7 +84,7 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
     let (account, nonce) = AccountManager::new(cert, &directory, &nonce)?;
 
     // 4. Create a new order
-    let new_order = NewOrder::new(&cert.domains);
+    let new_order = NewOrder::new(&domains);
     let new_order = serde_json::to_string(&new_order)?;
     let data_builder = set_data_builder!(account, new_order.as_bytes(), directory.new_order);
     let (order, order_url, mut nonce): (Order, String, String) =
@@ -102,14 +109,16 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
         }
 
         // 6. For each authorization, fetch the associated challenges
+        let current_challenge = cert.get_domain_challenge(&auth.identifier.value)?;
         for challenge in auth.challenges.iter() {
-            if cert.challenge == *challenge {
+            if current_challenge == *challenge {
                 let proof = challenge.get_proof(&account.priv_key)?;
                 let file_name = challenge.get_file_name();
                 let domain = auth.identifier.value.to_owned();
 
                 // 7. Call the challenge hook in order to complete it
-                cert.call_challenge_hooks(&file_name, &proof, &domain)?;
+                let data = cert.call_challenge_hooks(&file_name, &proof, &domain)?;
+                hook_datas.push(data);
 
                 // 8. Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
@@ -153,6 +162,10 @@ pub fn request_certificate(cert: &Certificate) -> Result<(), Error> {
     let (crt, _) = http::get_certificate(&crt_url, &data_builder, &nonce)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
 
-    info!("Certificate renewed for {}", cert.domains.join(", "));
+    for (data, hook_type) in hook_datas.iter() {
+        cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
+    }
+
+    info!("Certificate renewed for {}", domains.join(", "));
     Ok(())
 }

@@ -46,7 +46,7 @@ pub fn generate_csr(
     builder.set_pubkey(pub_key)?;
     let ctx = builder.x509v3_context(None);
     let mut san = SubjectAlternativeName::new();
-    for name in cert.domains.iter() {
+    for name in cert.domains.iter().map(|d| d.0.to_owned()) {
         san.dns(&name);
     }
     let san = san.build(&ctx)?;

@@ -1,4 +1,5 @@
 use crate::acme_proto::request_certificate;
+use crate::acme_proto::Challenge;
 use crate::certificate::Certificate;
 use crate::config;
 use acme_common::error::Error;
@@ -18,14 +19,16 @@ impl MainEventLoop {
         for crt in cnf.certificate.iter() {
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
-                domains: crt.domains.to_owned(),
+                domains: crt
+                    .domains
+                    .iter()
+                    .map(|d| (d.dns.to_owned(), Challenge::from_str(&d.challenge).unwrap()))
+                    .collect(),
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
                 remote_url: crt.get_remote_url(&cnf)?,
                 tos_agreed: crt.get_tos_agreement(&cnf)?,
-                challenge: crt.get_challenge()?,
-                challenge_hooks: crt.get_challenge_hooks(&cnf)?,
-                post_operation_hooks: crt.get_post_operation_hooks(&cnf)?,
+                hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),
                 crt_name: crt.get_crt_name(),
@@ -36,10 +39,6 @@ impl MainEventLoop {
                 pk_file_mode: cnf.get_pk_file_mode(),
                 pk_file_owner: cnf.get_pk_file_user(),
                 pk_file_group: cnf.get_pk_file_group(),
-                file_pre_create_hooks: crt.get_file_pre_create_hooks(&cnf)?,
-                file_post_create_hooks: crt.get_file_post_create_hooks(&cnf)?,
-                file_pre_edit_hooks: crt.get_file_pre_edit_hooks(&cnf)?,
-                file_post_edit_hooks: crt.get_file_post_edit_hooks(&cnf)?,
             };
             certs.push(cert);
         }
@@ -60,7 +59,7 @@ impl MainEventLoop {
                                     let msg = format!(
                                         "Unable to renew the {} certificate for {}: {}",
                                         crt.algo,
-                                        crt.domains.first().unwrap(),
+                                        crt.domains.first().unwrap().0,
                                         e
                                     );
                                     warn!("{}", msg);
@@ -73,7 +72,7 @@ impl MainEventLoop {
                                     let msg = format!(
                                         "{} certificate for {}: post-operation hook error: {}",
                                         crt.algo,
-                                        crt.domains.first().unwrap(),
+                                        crt.domains.first().unwrap().0,
                                         e
                                     );
                                     warn!("{}", msg);

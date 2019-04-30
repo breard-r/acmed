@@ -18,6 +18,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Nice and simple configuration file
 - Retry of HTTPS request rejected with a badNonce or other recoverable errors
 - Optional private-key reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
+- For a given certificate, each domain names may be validated using a different challenge.
 
 
 ## Planned features

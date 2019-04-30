@@ -1,5 +1,5 @@
 use crate::acme_proto::Challenge;
-use crate::config::Account;
+use crate::config::{Account, HookType};
 use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
@@ -42,14 +42,12 @@ impl fmt::Display for Algorithm {
 #[derive(Debug)]
 pub struct Certificate {
     pub account: Account,
-    pub domains: Vec<String>,
+    pub domains: Vec<(String, Challenge)>,
     pub algo: Algorithm,
     pub kp_reuse: bool,
     pub remote_url: String,
     pub tos_agreed: bool,
-    pub challenge: Challenge,
-    pub challenge_hooks: Vec<Hook>,
-    pub post_operation_hooks: Vec<Hook>,
+    pub hooks: Vec<Hook>,
     pub account_directory: String,
     pub crt_directory: String,
     pub crt_name: String,
@@ -60,24 +58,20 @@ pub struct Certificate {
     pub pk_file_mode: u32,
     pub pk_file_owner: Option<String>,
     pub pk_file_group: Option<String>,
-    pub file_pre_create_hooks: Vec<Hook>,
-    pub file_post_create_hooks: Vec<Hook>,
-    pub file_pre_edit_hooks: Vec<Hook>,
-    pub file_post_edit_hooks: Vec<Hook>,
 }
 
 impl fmt::Display for Certificate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let challenge_hooks = self
-            .challenge_hooks
+        let hooks = self
+            .hooks
             .iter()
             .map(std::string::ToString::to_string)
             .collect::<Vec<String>>()
             .join(", ");
-        let post_operation_hooks = self
-            .post_operation_hooks
+        let domains = self
+            .domains
             .iter()
-            .map(std::string::ToString::to_string)
+            .map(|d| format!("{} ({})", d.0, d.1))
             .collect::<Vec<String>>()
             .join(", ");
         write!(
@@ -87,21 +81,28 @@ Domains: {domains}
 Algorithm: {algo}
 Account: {account}
 Private key reuse: {kp_reuse}
-Challenge: {challenge}
-Challenge hooks: {challenge_hooks}
-Post operation hooks: {post_operation_hooks}",
-            domains = self.domains.join(", "),
+Hooks: {hooks}",
+            domains = domains,
             algo = self.algo,
             account = self.account.name,
             kp_reuse = self.kp_reuse,
-            challenge = self.challenge,
-            challenge_hooks = challenge_hooks,
-            post_operation_hooks = post_operation_hooks,
+            hooks = hooks,
         )
     }
 }
 
 impl Certificate {
+    pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
+        let domain_name = domain_name.to_string();
+        for (domain, challenge) in self.domains.iter() {
+            if *domain == domain_name {
+                return Ok((*challenge).to_owned());
+            }
+        }
+        let msg = format!("{}: domain name not found", domain_name);
+        Err(msg.into())
+    }
+
     pub fn should_renew(&self) -> Result<bool, Error> {
         if !certificate_files_exists(&self) {
             debug!("certificate does not exist: requesting one");
@@ -135,27 +136,47 @@ impl Certificate {
         file_name: &str,
         proof: &str,
         domain: &str,
-    ) -> Result<(), Error> {
+    ) -> Result<(ChallengeHookData, HookType), Error> {
+        let challenge = self.get_domain_challenge(domain)?;
         let hook_data = ChallengeHookData {
-            domains: self.domains.to_owned(),
             algorithm: self.algo.to_string(),
-            challenge: self.challenge.to_string(),
-            current_domain: domain.to_string(),
+            challenge: challenge.to_string(),
+            domain: domain.to_string(),
             file_name: file_name.to_string(),
             proof: proof.to_string(),
         };
-        hooks::call_multiple(&hook_data, &self.challenge_hooks)?;
-        Ok(())
+        let hook_type = match challenge {
+            Challenge::Http01 => (HookType::ChallengeHttp01, HookType::ChallengeHttp01Clean),
+            Challenge::Dns01 => (HookType::ChallengeDns01, HookType::ChallengeDns01Clean),
+            Challenge::TlsAlpn01 => (
+                HookType::ChallengeTlsAlpn01,
+                HookType::ChallengeTlsAlpn01Clean,
+            ),
+        };
+        hooks::call(&hook_data, &self.hooks, hook_type.0)?;
+        Ok((hook_data, hook_type.1))
+    }
+
+    pub fn call_challenge_hooks_clean(
+        &self,
+        data: &ChallengeHookData,
+        hook_type: HookType,
+    ) -> Result<(), Error> {
+        hooks::call(data, &self.hooks, hook_type)
     }
 
     pub fn call_post_operation_hooks(&self, status: &str) -> Result<(), Error> {
+        let domains = self
+            .domains
+            .iter()
+            .map(|d| format!("{} ({})", d.0, d.1))
+            .collect::<Vec<String>>();
         let hook_data = PostOperationHookData {
-            domains: self.domains.to_owned(),
+            domains,
             algorithm: self.algo.to_string(),
-            challenge: self.challenge.to_string(),
             status: status.to_string(),
         };
-        hooks::call_multiple(&hook_data, &self.post_operation_hooks)?;
+        hooks::call(&hook_data, &self.hooks, HookType::PostOperation)?;
         Ok(())
     }
 }

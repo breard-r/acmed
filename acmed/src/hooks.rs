@@ -1,3 +1,4 @@
+use crate::config::HookType;
 use acme_common::error::Error;
 use handlebars::Handlebars;
 use log::debug;
@@ -12,16 +13,14 @@ use std::process::{Command, Stdio};
 pub struct PostOperationHookData {
     pub domains: Vec<String>,
     pub algorithm: String,
-    pub challenge: String,
     pub status: String,
 }
 
 #[derive(Serialize)]
 pub struct ChallengeHookData {
-    pub domains: Vec<String>,
+    pub domain: String,
     pub algorithm: String,
     pub challenge: String,
-    pub current_domain: String,
     pub file_name: String,
     pub proof: String,
 }
@@ -37,6 +36,7 @@ pub struct FileStorageHookData {
 #[derive(Clone, Debug)]
 pub struct Hook {
     pub name: String,
+    pub hook_type: Vec<HookType>,
     pub cmd: String,
     pub args: Option<Vec<String>>,
     pub stdin: Option<String>,
@@ -63,7 +63,7 @@ macro_rules! get_hook_output {
     }};
 }
 
-pub fn call<T: Serialize>(data: &T, hook: &Hook) -> Result<(), Error> {
+fn call_single<T: Serialize>(data: &T, hook: &Hook) -> Result<(), Error> {
     debug!("Calling hook: {}", hook.name);
     let reg = Handlebars::new();
     let mut v = vec![];
@@ -103,9 +103,9 @@ pub fn call<T: Serialize>(data: &T, hook: &Hook) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn call_multiple<T: Serialize>(data: &T, hooks: &[Hook]) -> Result<(), Error> {
-    for hook in hooks.iter() {
-        call(data, &hook)?;
+pub fn call<T: Serialize>(data: &T, hooks: &[Hook], hook_type: HookType) -> Result<(), Error> {
+    for hook in hooks.iter().filter(|h| h.hook_type.contains(&hook_type)) {
+        call_single(data, &hook)?;
     }
     Ok(())
 }

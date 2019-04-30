@@ -1,9 +1,9 @@
-use crate::acme_proto::Challenge;
 use crate::certificate::Algorithm;
 use crate::hooks;
 use acme_common::error::Error;
 use log::info;
 use serde::Deserialize;
+use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::Path;
@@ -37,6 +37,7 @@ impl Config {
             if name == hook.name {
                 let h = hooks::Hook {
                     name: hook.name.to_owned(),
+                    hook_type: hook.hook_type.to_owned(),
                     cmd: hook.cmd.to_owned(),
                     args: hook.args.to_owned(),
                     stdin: hook.stdin.to_owned(),
@@ -130,11 +131,35 @@ pub struct Endpoint {
 #[derive(Deserialize)]
 pub struct Hook {
     pub name: String,
+    #[serde(rename = "type")]
+    pub hook_type: Vec<HookType>,
     pub cmd: String,
     pub args: Option<Vec<String>>,
     pub stdin: Option<String>,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum HookType {
+    FilePreCreate,
+    FilePostCreate,
+    FilePreEdit,
+    FilePostEdit,
+    #[serde(rename = "challenge-http-01")]
+    ChallengeHttp01,
+    #[serde(rename = "challenge-http-01-clean")]
+    ChallengeHttp01Clean,
+    #[serde(rename = "challenge-dns-01")]
+    ChallengeDns01,
+    #[serde(rename = "challenge-dns-01-clean")]
+    ChallengeDns01Clean,
+    #[serde(rename = "challenge-tls-alpn-01")]
+    ChallengeTlsAlpn01,
+    #[serde(rename = "challenge-tls-alpn-01-clean")]
+    ChallengeTlsAlpn01Clean,
+    PostOperation,
 }
 
 #[derive(Deserialize)]
@@ -153,20 +178,14 @@ pub struct Account {
 pub struct Certificate {
     pub account: String,
     pub endpoint: String,
-    pub domains: Vec<String>,
-    pub challenge: String,
+    pub domains: Vec<Domain>,
     pub algorithm: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
     pub name: Option<String>,
     pub name_format: Option<String>,
     pub formats: Option<Vec<String>>,
-    pub challenge_hooks: Vec<String>,
-    pub post_operation_hooks: Option<Vec<String>>,
-    pub file_pre_create_hooks: Option<Vec<String>>,
-    pub file_post_create_hooks: Option<Vec<String>>,
-    pub file_pre_edit_hooks: Option<Vec<String>>,
-    pub file_post_edit_hooks: Option<Vec<String>>,
+    pub hooks: Vec<String>,
 }
 
 impl Certificate {
@@ -187,10 +206,6 @@ impl Certificate {
         Algorithm::from_str(algo)
     }
 
-    pub fn get_challenge(&self) -> Result<Challenge, Error> {
-        Challenge::from_str(&self.challenge)
-    }
-
     pub fn get_kp_reuse(&self) -> bool {
         match self.kp_reuse {
             Some(b) => b,
@@ -201,7 +216,7 @@ impl Certificate {
     pub fn get_crt_name(&self) -> String {
         match &self.name {
             Some(n) => n.to_string(),
-            None => self.domains.first().unwrap().to_string(),
+            None => self.domains.first().unwrap().dns.to_owned(),
         }
     }
 
@@ -245,53 +260,26 @@ impl Certificate {
         Ok(ep.tos_agreed)
     }
 
-    pub fn get_challenge_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        get_hooks(&self.challenge_hooks, cnf)
-    }
-
-    pub fn get_post_operation_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        match &self.post_operation_hooks {
-            Some(hooks) => get_hooks(hooks, cnf),
-            None => Ok(vec![]),
+    pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
+        let mut res = vec![];
+        for name in self.hooks.iter() {
+            let mut h = cnf.get_hook(&name)?;
+            res.append(&mut h);
         }
-    }
-
-    pub fn get_file_pre_create_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        match &self.file_pre_create_hooks {
-            Some(hooks) => get_hooks(hooks, cnf),
-            None => Ok(vec![]),
-        }
-    }
-
-    pub fn get_file_post_create_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        match &self.file_post_create_hooks {
-            Some(hooks) => get_hooks(hooks, cnf),
-            None => Ok(vec![]),
-        }
-    }
-
-    pub fn get_file_pre_edit_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        match &self.file_pre_edit_hooks {
-            Some(hooks) => get_hooks(hooks, cnf),
-            None => Ok(vec![]),
-        }
-    }
-
-    pub fn get_file_post_edit_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        match &self.file_post_edit_hooks {
-            Some(hooks) => get_hooks(hooks, cnf),
-            None => Ok(vec![]),
-        }
+        Ok(res)
     }
 }
 
-fn get_hooks(lst: &[String], cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-    let mut res = vec![];
-    for name in lst.iter() {
-        let mut h = cnf.get_hook(&name)?;
-        res.append(&mut h);
+#[derive(Clone, Debug, Deserialize)]
+pub struct Domain {
+    pub challenge: String,
+    pub dns: String,
+}
+
+impl fmt::Display for Domain {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.dns)
     }
-    Ok(res)
 }
 
 fn create_dir(path: &str) -> Result<(), Error> {

@@ -1,4 +1,5 @@
 use crate::certificate::Certificate;
+use crate::config::HookType;
 use crate::hooks::{self, FileStorageHookData};
 use acme_common::b64_encode;
 use acme_common::error::Error;
@@ -141,9 +142,9 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     let is_new = !path.is_file();
 
     if is_new {
-        hooks::call_multiple(&hook_data, &cert.file_pre_create_hooks)?;
+        hooks::call(&hook_data, &cert.hooks, HookType::FilePreCreate)?;
     } else {
-        hooks::call_multiple(&hook_data, &cert.file_pre_edit_hooks)?;
+        hooks::call(&hook_data, &cert.hooks, HookType::FilePreEdit)?;
     }
 
     trace!("Writing file {:?}", path);
@@ -165,9 +166,9 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     }
 
     if is_new {
-        hooks::call_multiple(&hook_data, &cert.file_post_create_hooks)?;
+        hooks::call(&hook_data, &cert.hooks, HookType::FilePostCreate)?;
     } else {
-        hooks::call_multiple(&hook_data, &cert.file_post_edit_hooks)?;
+        hooks::call(&hook_data, &cert.hooks, HookType::FilePostEdit)?;
     }
     Ok(())
 }
