@@ -17,7 +17,7 @@ name = "http-echo-create"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{file_name}}"
+stdout = "/srv/http/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "http-echo-clean"
@@ -25,7 +25,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "/srv/http/{{current_domain}}/.well-known/acme-challenge/{{file_name}}"
+    "/srv/http/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
 
 [[group]]
