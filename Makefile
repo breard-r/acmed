@@ -1,3 +1,9 @@
+PREFIX = /usr/local
+EXEC_PREFIX = $(PREFIX)
+BINDIR = $(EXEC_PREFIX)/bin
+DATAROOTDIR = $(PREFIX)/share
+DATADIR = $(DATAROOTDIR)
+SYSCONFDIR = /etc
 TARGET_DIR = ./target/release
 EXE_NAMES =	acmed \
 		tacd
@@ -26,14 +32,14 @@ $(MAN_DST_DIR)/%.gz: $(MAN_SRC_DIR)/%
 	gzip <$< >$@
 
 install:
-	install -D --mode=0755 $(TARGET_DIR)/acmed $(DESTDIR)/usr/bin/acmed
-	install -D --mode=0755 $(TARGET_DIR)/tacd $(DESTDIR)/usr/bin/tacd
-	install -D --mode=0644 $(TARGET_DIR)/man/acmed.8.gz $(DESTDIR)/usr/share/man/man8/acmed.8.gz
-	install -D --mode=0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)/usr/share/man/man5/acmed.toml.5.gz
-	install -D --mode=0644 $(TARGET_DIR)/man/tacd.8.gz $(DESTDIR)/usr/share/man/man8/tacd.8.gz
-	install -D --mode=0644 acmed/acmed_example.toml $(DESTDIR)/etc/acmed/acmed.toml
-	install -d --mode=0700 $(DESTDIR)/etc/acmed/accounts
-	install -d --mode=0755 $(DESTDIR)/etc/acmed/certs
+	install -D --mode=0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed
+	install -D --mode=0755 $(TARGET_DIR)/tacd $(DESTDIR)$(BINDIR)/tacd
+	install -D --mode=0644 $(TARGET_DIR)/man/acmed.8.gz $(DESTDIR)$(DATADIR)/man/man8/acmed.8.gz
+	install -D --mode=0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)$(DATADIR)/man/man5/acmed.toml.5.gz
+	install -D --mode=0644 $(TARGET_DIR)/man/tacd.8.gz $(DESTDIR)$(DATADIR)/man/man8/tacd.8.gz
+	install -D --mode=0644 acmed/acmed_example.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml
+	install -d --mode=0700 $(DESTDIR)$(SYSCONFDIR)/acmed/accounts
+	install -d --mode=0755 $(DESTDIR)$(SYSCONFDIR)/etc/acmed/certs
 
 clean:
 	cargo clean
