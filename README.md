@@ -54,12 +54,9 @@ ACMEd depends on the OpenSSL. The minimal supported versions are those from the 
 On systems based on Debian/Ubuntu, you may need to install the `libssl-dev`, `build-essential` and `pkg-config` packages.
 
 ```
-cargo build --release
-strip target/release/acmed
-strip target/release/tacd
+$ make
+$ make install
 ```
-
-The executables are located in the `target/release` directory.
 
 
 ## Frequently Asked Questions
