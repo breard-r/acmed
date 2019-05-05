@@ -38,7 +38,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 ## Documentation
 
-This projects provides the following man pages:
+This project provides the following man pages:
 
 - acmed (8)
 - acmed.toml (5)
