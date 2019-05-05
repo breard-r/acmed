@@ -9,6 +9,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     pub global: Option<GlobalOptions>,
     pub endpoint: Vec<Endpoint>,
@@ -110,6 +111,7 @@ impl Config {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GlobalOptions {
     pub accounts_directory: Option<String>,
     pub certificates_directory: Option<String>,
@@ -122,6 +124,7 @@ pub struct GlobalOptions {
 }
 
 #[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Endpoint {
     pub name: String,
     pub url: String,
@@ -129,6 +132,7 @@ pub struct Endpoint {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Hook {
     pub name: String,
     #[serde(rename = "type")]
@@ -163,18 +167,21 @@ pub enum HookType {
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Group {
     pub name: String,
     pub hooks: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Account {
     pub name: String,
     pub email: String,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Certificate {
     pub account: String,
     pub endpoint: String,
@@ -271,6 +278,7 @@ impl Certificate {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Domain {
     pub challenge: String,
     pub dns: String,
