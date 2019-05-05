@@ -363,16 +363,38 @@ to solve the
 challenge and
 .Xr rm 1
 to clean it.
+.Xr mkdir 1
+and
+.Xr chmod 1
+are used to prevent issues related to file access.
 .Bd -literal -offset indent
 [[hook]]
-name = "echo"
+name = "http-01-echo-mkdir"
+type = ["challenge-http-01"]
+cmd = "mkdir"
+args = [
+    "-m", "0755",
+    "-p", "/var/www/{{domain}}/.well-known/acme-challenge"
+]
+
+[[hook]]
+name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
 stdout = "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
-name = "echo-clean"
+name = "http-01-echo-chmod"
+type = ["challenge-http-01-clean"]
+cmd = "chmod"
+args = [
+    "a+r",
+    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+]
+
+[[hook]]
+name = "http-01-echo-clean"
 type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
@@ -381,15 +403,20 @@ args = [
 ]
 .Ed
 .Pp
-The two above hooks can be grouped in order to reduce the number of hooks to define in the certificate.
+The hooks from the previous example can be grouped in order to reduce the number of hooks to define in the certificate.
 .Bd -literal -offset indent
 [[group]]
-name = "http-echo"
-hooks = ["echo", "echo-clean"]
+name = "http-01-echo-var-www"
+hooks = [
+    "http-01-echo-mkdir",
+    "http-01-echo-echo",
+    "http-01-echo-chmod",
+    "http-01-echo-clean"
+]
 
 [[certificate]]
 # Some fields omitted
-hooks = ["http-echo"]
+hooks = ["http-01-echo-var-www"]
 .Ed
 .Pp
 
