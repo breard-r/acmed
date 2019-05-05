@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Man pages.
+- The project can now be built and installed using `make`.
+
+### Changed
+- Unknown configuration fields are no longer tolerated.
+
+### Removed
+- In challenge hooks, the `algorithm` template variable has been removed.
 
 
 ## [0.3.0] - 2019-04-30
