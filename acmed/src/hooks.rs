@@ -19,7 +19,6 @@ pub struct PostOperationHookData {
 #[derive(Serialize)]
 pub struct ChallengeHookData {
     pub domain: String,
-    pub algorithm: String,
     pub challenge: String,
     pub file_name: String,
     pub proof: String,

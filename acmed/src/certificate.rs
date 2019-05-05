@@ -139,7 +139,6 @@ impl Certificate {
     ) -> Result<(ChallengeHookData, HookType), Error> {
         let challenge = self.get_domain_challenge(domain)?;
         let hook_data = ChallengeHookData {
-            algorithm: self.algo.to_string(),
             challenge: challenge.to_string(),
             domain: domain.to_string(),
             file_name: file_name.to_string(),
