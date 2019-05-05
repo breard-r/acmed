@@ -1,0 +1,436 @@
+.\" Copyright (c) 2019 Rodolphe Bréard <rodolphe@breard.tf>
+.\"
+.\" Copying and distribution of this file, with or without modification,
+.\" are permitted in any medium without royalty provided the copyright
+.\" notice and this notice are preserved.  This file is offered as-is,
+.\" without any warranty.
+.Dd May 3, 2019
+.Dt ACMED.TOML 5
+.Os
+.Sh NAME
+.Nm acmed.toml
+.Nd ACMEd configuration file
+.Sh DESCRIPTION
+.Nm
+is the configuration file for
+.Xr acmed 8 .
+It is written in the
+.Em TOML
+format. The allowed elements are described below.
+.Bl -tag
+.It Ic global
+Table containing the global configuration options.
+.Bl -tag
+.It Cm accounts_directory Ar string
+Specify the directory where the accounts private and public keys are stored.
+.It Cm certificates_directory Ar string
+Specify the directory where the certificates and their associated private keys are stored.
+.It Cm cert_file_mode Ar integer
+Specify the permissions to use for newly-created certificates files. See
+.Xr chmod 2
+for more details.
+.It Cm cert_file_user Ar user_id Ft string
+Specify the user who will own newly-created certificates files. See
+.Xr chown 2
+for more details.
+.It Cm cert_file_group Ar group_id Ft string
+Specify the group who will own newly-created certificates files. See
+.Xr chown 2
+for more details.
+.It Cm pk_file_mode Ar integer
+Specify the permissions to use for newly-created private-key files. See
+.Xr chmod 2
+for more details.
+.It Cm pk_file_user Ar user_id Ft string
+Specify the user who will own newly-created private-key files. See
+.Xr chown 2
+for more details.
+.It Cm pk_file_group Ar group_id Ft string
+Specify the group who will own newly-created private-key files. See
+.Xr chown 2
+for more details.
+.El
+.It Ic endpoint
+Array of table where each element defines a Certificate Authority
+.Pq CA
+which may be used to request certificates.
+.Bl -tag
+.It Cm name Ar string
+The name the endpoint is registered under. Must be unique.
+.It Cm url Ar string
+The endpoint's directory URL.
+.It Cm tos_agreed Ar boolean
+Set whether or not the user agrees to the Terms Of Service
+.Pq TOS .
+.El
+.It Ic hook
+Array of table where each element defines a command that will be launched at a defined point. See section
+.Sx WRITING A HOOK
+for more details.
+.Bl -tag
+.It Cm name Ar string
+The name the hook is registered under. Must be unique.
+.It Cm hook_type Ar array
+Array of strings. Possible types are:
+.Bl -dash -compact
+.It
+challenge-http-01
+.It
+challenge-http-01-clean
+.It
+challenge-dns-01
+.It
+challenge-dns-01-clean
+.It
+challenge-tls-alpn-01
+.It
+challenge-tls-alpn-01-clean
+.It
+file-pre-create
+.It
+file-pre-edit
+.It
+file-post-create
+.It
+file-post-edit
+.It
+post-operation
+.El
+.It Ic cmd Ar string
+The name of the command that will be launched.
+.It Ic args Ar array
+Array of strings representing the command's arguments.
+.It Ic stdin Ar string
+String that will be written into the command's standard input.
+.It Ic stdout Ar string
+Path to the file where the command's standard output if written.
+.It Ic stderr Ar string
+Path to the file where the command's standard error output if written.
+.El
+.It Ic group
+Array of table allowing to group several hooks as one. A group is considered as new hook.
+.Bl -tag
+.It Cm name Ar string
+The name the group is registered under. This name is considered as a hook name. Must be unique.
+.It Cm hooks Ar array
+Array containing the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
+.El
+.It Ic account
+Array of table representing an account on one or several CA.
+.Bl -tag
+.It Ic name Ar string
+The name the account is registered under. Must be unique.
+.It Ic email Ar string
+The email address used to contact the account's holder.
+.El
+.It Ic certificate
+Array of table representing a certificate that will be requested to a CA.
+.Bl -tag
+.It Ic account Ar string
+Name of the account to use.
+.It Ic endpoint Ar string
+Name of the endpoint to use.
+.It Ic domains Ar array
+Array of tables listing the domains that should be included in the certificate along with the challenge to use for each one.
+.Bl -tag
+.It Ic dns
+The domain name.
+.It Ic challenge
+The name of the challenge to use to prove the domain's ownership. Possible values are:
+.Bl -dash -compact
+.It
+http-01
+.It
+dns-01
+.It
+tls-alpn-01
+.El
+.El
+.It Ic algorithm Ar string
+Name of the asymetric cryptography algorithm used to generate the certificate's key pair. Possible values are :
+.Bl -dash -compact
+.It
+rsa2048
+.Aq default
+.It
+rsa4096
+.It
+ecdsa_p256
+.It
+ecdsa_p384
+.El
+.It Ic kp_reuse Ar boolean
+Set whether or not the private key should be reused when renewing the certificate. Default is false.
+.It Ic directory Ar string
+Path to the directory where certificates and their associated private keys are stored.
+.It Ic hooks Ar array
+Names of hooks that will be called when requesting a new certificate. The hooks are guaranteed to be called sequentially in the declaration order.
+.El
+.Sh WRITING A HOOK
+When requesting a certificate to a CA using ACME, there is three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every domains to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that uses a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
+.Pp
+In order to allow a full automation of the three above steps without imposing arbitrary restrictions or methods,
+.Xr acmed 8
+uses hooks. Fundamentally, a hook is a command line template that will be called at a specific time of the process. Such approach allows admins to use any executable script or program located on the machine to customize the process.
+.Pp
+For a given certificate, hooks are guaranteed to be called sequentially in the declaration order. It is therefore possible to have a hook that depends on another one. Nevertheless, several certificates may be renewed at the same time. Hence, hooks shall not use globing or any other action that may disrupt hooks called by a different certificate.
+.Pp
+A hook have a type that will influence both the moment it is called and the available template variables. It is possible to declare several types. In such a case, the hook will be invoked whenever one of its type request it. When called, the hook only have access to template variable for the current type. If a hook uses a template variable that does not exists for the current type it is invoked for, the variable is empty.
+.Pp
+When writing a hook, the values of
+.Em args ,
+.Em stdin ,
+.Em stdout
+and
+.Em stderr
+are considered as template strings whereas
+.Em cmd
+is not. The template syntax is
+.Em Handlebars .
+See the
+.Sx STANDARDS
+section for a link to the
+.Em Handlebars
+specifications.
+.Pp
+The available types and the associated template variable are described below.
+.Bl -tag
+.It Ic challenge-http-01
+Invoked when the ownership of a domain must be proved using the
+.Em http-01
+challenge. The available template variables are:
+.Bl -tag -compact
+.It Cm domain Ar string
+The domain name whom ownership is currently being validated.
+.It Cm challenge Ar string
+The name of the challenge type
+.Aq http-01 .
+Mostly used in hooks with multiple types.
+.It Cm file_name Ar string
+Name of the file containing the proof. This is not a full path and does not include the
+.Ql .well-known/acme-challenge/
+prefix.
+.It Cm proof Ar string
+The content of the proof that must be written to
+.Em file_name .
+.El
+.It Ic challenge-http-01-clean
+Invoked once a domain ownership has been proven using the
+.Em http-01
+challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
+.Em challenge-http-01
+hook.
+.It Ic challenge-dns-01
+Invoked when the ownership of a domain must be proved using the
+.Em dns-01
+challenge. The available template variables are:
+.Bl -tag -compact
+.It Cm domain Ar string
+The domain name whom ownership is currently being validated.
+.It Cm challenge Ar string
+The name of the challenge type
+.Aq dns-01 .
+Mostly used in hooks with multiple types.
+.It Cm proof Ar string
+The content of the proof that must be written to a
+.Ql TXT
+entry of the DNS zone for the
+.Ql _acme-challenge
+subdomain.
+.El
+.It Ic challenge-dns-01-clean
+Invoked once a domain ownership has been proven using the
+.Em dns-01
+challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
+.Em challenge-dns-01
+hook.
+.It Ic challenge-tls-alpn-01
+Invoked when the ownership of a domain must be proved using the
+.Em tls-alpn-01
+challenge. The available template variables are:
+.Bl -tag -compact
+.It Cm domain Ar string
+The domain name whom ownership is currently being validated.
+.It Cm challenge Ar string
+The name of the challenge type
+.Aq tls-alpn-01 .
+Mostly used in hooks with multiple types.
+.It Cm proof Ar string
+Plain-text representation of the
+.Em acmeIdentifier
+extension that should be used in the self-signed certificate presented when a TLS connection is initiated with the
+.Qd acme-tls/1
+ALPN extension value.
+.Xr acmed 8
+will not generate the certificate itself since it can be done using
+.Xr tacd 8 .
+.El
+.It Ic challenge-tls-alpn-01-clean
+Invoked once a domain ownership has been proven using the
+.Em tls-alpn-01
+challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
+.Em challenge-tls-alpn-01
+hook.
+.It Ic file-pre-create
+Invoked
+.Em before
+a non-existent file
+.Em created .
+The available template variables are:
+.Bl -tag -compact
+.It Cm file_name Ar string
+Name of the impacted file.
+.It Cm file_directory Ar string
+Name of the directory where the impacted file is located.
+.It Cm file_path Ar string
+Full path to the impacted file.
+.El
+.It Ic file-pre-edit
+Invoked
+.Em before
+an existent file
+.Em modified .
+The available template variables are the same as those available for the
+.Em file-pre-create
+type.
+.It Ic file-post-create
+Invoked
+.Em after
+a non-existent file
+.Em created .
+The available template variables are the same as those available for the
+.Em file-pre-create
+type.
+.It Ic file-post-edit
+Invoked
+.Em after
+an existent file
+.Em modified .
+The available template variables are the same as those available for the
+.Em file-pre-create
+type.
+.It Ic post-operation
+Invoked at the end of the certificate request process. The available template variables are:
+.Bl -tag -compact
+.It Cm domains Ar string
+Array containing the domain names included in the requested certificate.
+.It Cm algorithm Ar string
+Name of the algorithm used in the certificate.
+.It Cm status Ar string
+Status of request. Is set to
+.Dq Success.
+in case the operation succeeded, in an error description otherwise.
+.El
+.El
+.Sh FILES
+.Bl -tag
+.It Pa /etc/acmed/acmed.toml
+Default
+.Xr acmed 8
+configuration file.
+.It Pa /etc/acmed/accounts
+Default accounts private and public keys directory.
+.It Pa /etc/acmed/certs
+Default certificates and associated private keys directory.
+.Sh EXAMPLES
+The following example defines a typical endpoint, account and certificate for a domain and several subdomains.
+.Bd -literal -offset indent
+[[endpoint]]
+name = "example name"
+url = "https://acme.example.org/directory"
+tos_agreed = true
+
+[[account]]
+name = "my test account"
+email = "certs@exemple.net"
+
+[[certificate]]
+endpoint = "example name"
+account = "my test account"
+domains = [
+    { dns = "exemple.net", challenge = "http-01"},
+    { dns = "1.exemple.net", challenge = "http-01"},
+    { dns = "2.exemple.net", challenge = "dns-01"},
+    { dns = "3.exemple.net", challenge = "tls-alpn-01"},
+]
+hooks = ["example-hook-1", "example-hook-2", "example-hook-3"]
+.Ed
+.Pp
+It is possible to use
+.Xr echo 1
+to solve the
+.Em http-01
+challenge and
+.Xr rm 1
+to clean it.
+.Bd -literal -offset indent
+[[hook]]
+name = "echo"
+type = ["challenge-http-01"]
+cmd = "echo"
+args = ["{{proof}}"]
+stdout = "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+
+[[hook]]
+name = "echo-clean"
+type = ["challenge-http-01-clean"]
+cmd = "rm"
+args = [
+    "-f",
+    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+]
+.Ed
+.Pp
+The two above hooks can be grouped in order to reduce the number of hooks to define in the certificate.
+.Bd -literal -offset indent
+[[group]]
+name = "http-echo"
+hooks = ["echo", "echo-clean"]
+
+[[certificate]]
+# Some fields omitted
+hooks = ["http-echo"]
+.Ed
+.Pp
+
+It is also possible to use
+.Xr sendmail 8
+in a hook in order to notif someone when the certificate request process is done.
+.Bd -literal -offset indent
+[[hook]]
+name = "email-report"
+type = ["post-operation"]
+cmd = "sendmail"
+args = [
+    "-f", "noreply.certs@example.net",
+    "contact@example.net"
+]
+stdin = """Subject: Certificate renewal alert for {{domains.[0]}}
+
+The following certificate has been renewed.
+domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}
+algorithm: {{algorithm}}
+status: {{status}}"""
+.Ed
+.Sh SEE ALSO
+.Xr acmed 8 ,
+.Xr tacd 8
+.Sh STANDARDS
+.Bl
+.It
+.Rs
+.%A Tom Preston-Werner
+.%D July 2018
+.%T TOML v0.5.0
+.%U https://github.com/toml-lang/toml
+.Re
+.It
+.Rs
+.%A Yehuda Katz
+.%T Handlebars
+.%U https://handlebarsjs.com/
+.Re
+.El
+.Sh AUTHORS
+.An Rodolphe Bréard
+.Aq rodolphe@breard.tf

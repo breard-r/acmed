@@ -1,0 +1,81 @@
+.\" Copyright (c) 2019 Rodolphe Bréard <rodolphe@breard.tf>
+.\"
+.\" Copying and distribution of this file, with or without modification,
+.\" are permitted in any medium without royalty provided the copyright
+.\" notice and this notice are preserved.  This file is offered as-is,
+.\" without any warranty.
+.Dd May 3, 2019
+.Dt ACMED 8
+.Os
+.Sh NAME
+.Nm acmed
+.Nd ACME client daemon
+.Sh SYNOPSIS
+.Nm
+.Op Fl c|--config Ar FILE
+.Op Fl f|--foregroung
+.Op Fl h|--help
+.Op Fl -log-stderr
+.Op Fl -log-syslog
+.Op Fl -log-level Ar LEVEL
+.Op Fl -pid-file Ar FILE
+.Op Fl -root-cert Ar FILE
+.Op Fl V|--version
+.Sh DESCRIPTION
+.Nm
+is an Automatic Certificate Management Environment
+.Pq ACME
+client daemon which can automatically request and renew X.509 security certificates from various Certification Authorities
+.Pq CA .
+.Pp
+The options are as follows:
+.Bl -tag
+.It Fl c, -config Ar FILE
+Specify an alternative configuration file.
+.It Fl f, -foregroung
+Runs in the foregroung
+.It Fl h, -help
+Prints help information
+.It Fl -log-stderr
+Prints log messages to the standard error output
+.It Fl -log-syslog
+Sends log messages via syslog
+.It Fl -log-level Ar LEVEL
+Specify the log level. Possible values: error, warn, info, debug and trace.
+.It Fl -pid-file Ar FILE
+Specifies the location of the PID file
+.It Fl -root-cert Ar FILE
+Add a root certificate to the trust store. This option can be used multiple times.
+.It Fl V, -version
+Prints version information
+.Sh FILES
+.Bl -tag
+.It Pa /etc/acmed/acmed.toml
+Default
+.Nm
+configuration file.
+.Sh SEE ALSO
+.Xr acmed.toml 5 ,
+.Xr tacd 8
+.Sh STANDARDS
+.Bl
+.It
+.Rs
+.%A R. Barnes
+.%A J. Hoffman-Andrews
+.%A D. McCarney
+.%A J. Kasten
+.%D March 2019
+.%R RFC 8555
+.%T Automatic Certificate Management Environment (ACME)
+.Re
+.It
+.Rs
+.%A R. Shoemaker
+.%D August 2018
+.%R draft-ietf-acme-tls-alpn-05
+.%T ACME TLS ALPN Challenge Extension
+.Re
+.Sh AUTHORS
+.An Rodolphe Bréard
+.Aq rodolphe@breard.tf

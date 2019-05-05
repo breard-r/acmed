@@ -1,3 +1,11 @@
+
+[//]: # (Copyright 2019 Rodolphe Bréard <rodolphe@breard.tf>)
+
+[//]: # (Copying and distribution of this file, with or without modification,)
+[//]: # (are permitted in any medium without royalty provided the copyright)
+[//]: # (notice and this notice are preserved.  This file is offered as-is,)
+[//]: # (without any warranty.)
+
 # ACMEd
 
 [![Build Status](https://api.travis-ci.org/breard-r/acmed.svg?branch=master)](https://travis-ci.org/breard-r/acmed)
@@ -28,6 +36,15 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Daemon and certificates management via the `acmectl` tool
 
 
+## Documentation
+
+This projects provides the following man pages:
+
+- acmed (8)
+- acmed.toml (5)
+- tacd (8)
+
+
 ## Build from source
 
 In order to compile ADMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.32.0, although it is recommended to use the latest stable one.
@@ -53,9 +70,9 @@ After testing multiple ACME clients, I found out none supported all the features
 
 ### Is it free and open-source software?
 
-Yes, ACMEd is dual-licensed under the MIT and Apache 2.0 terms.
+Yes, ACMEd is dual-licensed under the MIT and Apache 2.0 terms. See [LICENSE-MIT.txt](LICENSE-MIT.txt) and [LICENSE-APACHE-2.0.txt](LICENSE-APACHE-2.0.txt) for details.
 
-See [LICENSE-MIT.txt](LICENSE-MIT.txt) and [LICENSE-APACHE-2.0.txt](LICENSE-APACHE-2.0.txt) for details.
+The man pages, the `CHANGELOG.md` and the `README.md` files are released under the [GNU All-Permissive License](https://www.gnu.org/prep/maintain/html_node/License-Notices-for-Other-Files.html).
 
 ### Can it automatically change my server configuration?
 
