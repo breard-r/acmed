@@ -15,7 +15,7 @@ MAN_SRC =	acmed.8 \
 		tacd.8
 MAN_FILES = $(foreach name,$(MAN_SRC),$(MAN_DST_DIR)/$(name).gz)
 
-all: $(EXE_FILES) $(MAN_NAME)
+all: $(EXE_FILES) man
 
 man: $(MAN_DST_DIR) $(MAN_FILES)
 
@@ -29,7 +29,7 @@ $(MAN_DST_DIR):
 	@mkdir -p $(MAN_DST_DIR)
 
 $(MAN_DST_DIR)/%.gz: $(MAN_SRC_DIR)/%
-	gzip <$< >$@
+	gzip <"$<" >"$@"
 
 install:
 	install -D --mode=0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed
