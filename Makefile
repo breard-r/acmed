@@ -1,4 +1,4 @@
-PREFIX = /usr/local
+PREFIX = /usr
 EXEC_PREFIX = $(PREFIX)
 BINDIR = $(EXEC_PREFIX)/bin
 DATAROOTDIR = $(PREFIX)/share
@@ -39,7 +39,7 @@ install:
 	install -D --mode=0644 $(TARGET_DIR)/man/tacd.8.gz $(DESTDIR)$(DATADIR)/man/man8/tacd.8.gz
 	install -D --mode=0644 acmed/acmed_example.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml
 	install -d --mode=0700 $(DESTDIR)$(SYSCONFDIR)/acmed/accounts
-	install -d --mode=0755 $(DESTDIR)$(SYSCONFDIR)/etc/acmed/certs
+	install -d --mode=0755 $(DESTDIR)$(SYSCONFDIR)/acmed/certs
 
 clean:
 	cargo clean
