@@ -213,13 +213,18 @@ prefix.
 .It Cm proof Ar string
 The content of the proof that must be written to
 .Em file_name .
+.It Cm is_clean_hook Ar bool
+False
 .El
 .It Ic challenge-http-01-clean
 Invoked once a domain ownership has been proven using the
 .Em http-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-http-01
-hook.
+hook, excepted
+.Em is_clean_hook
+which is set to
+.Em true .
 .It Ic challenge-dns-01
 Invoked when the ownership of a domain must be proved using the
 .Em dns-01
@@ -237,13 +242,18 @@ The content of the proof that must be written to a
 entry of the DNS zone for the
 .Ql _acme-challenge
 subdomain.
+.It Cm is_clean_hook Ar bool
+False
 .El
 .It Ic challenge-dns-01-clean
 Invoked once a domain ownership has been proven using the
 .Em dns-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-dns-01
-hook.
+hook, excepted
+.Em is_clean_hook
+which is set to
+.Em true .
 .It Ic challenge-tls-alpn-01
 Invoked when the ownership of a domain must be proved using the
 .Em tls-alpn-01
@@ -264,13 +274,18 @@ ALPN extension value.
 .Xr acmed 8
 will not generate the certificate itself since it can be done using
 .Xr tacd 8 .
+.It Cm is_clean_hook Ar bool
+False
 .El
 .It Ic challenge-tls-alpn-01-clean
 Invoked once a domain ownership has been proven using the
 .Em tls-alpn-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-tls-alpn-01
-hook.
+hook, excepted
+.Em is_clean_hook
+which is set to
+.Em true .
 .It Ic file-pre-create
 Invoked
 .Em before

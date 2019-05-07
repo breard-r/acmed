@@ -117,7 +117,8 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
                 let domain = auth.identifier.value.to_owned();
 
                 // 7. Call the challenge hook in order to complete it
-                let data = cert.call_challenge_hooks(&file_name, &proof, &domain)?;
+                let mut data = cert.call_challenge_hooks(&file_name, &proof, &domain)?;
+                data.0.is_clean_hook = true;
                 hook_datas.push(data);
 
                 // 8. Tell the server the challenge has been completed

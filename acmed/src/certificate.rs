@@ -143,6 +143,7 @@ impl Certificate {
             domain: domain.to_string(),
             file_name: file_name.to_string(),
             proof: proof.to_string(),
+            is_clean_hook: false,
         };
         let hook_type = match challenge {
             Challenge::Http01 => (HookType::ChallengeHttp01, HookType::ChallengeHttp01Clean),

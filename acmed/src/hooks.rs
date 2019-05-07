@@ -23,6 +23,7 @@ pub struct ChallengeHookData {
     pub challenge: String,
     pub file_name: String,
     pub proof: String,
+    pub is_clean_hook: bool,
 }
 
 #[derive(Serialize)]
