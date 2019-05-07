@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The project can now be built and installed using `make`.
 - The post-operation hooks now have access to the `is_success` template variable.
 - Challenge hooks now have the `is_clean_hook` template variable.
+- An existing certificate will be renewed if more domains have been added in the configuration.
 
 ### Changed
 - Unknown configuration fields are no longer tolerated.

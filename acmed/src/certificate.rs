@@ -4,8 +4,21 @@ use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
 use log::debug;
+use openssl::x509::X509;
+use std::collections::HashSet;
 use std::fmt;
 use time::{strptime, Duration};
+
+fn parse_openssl_time_string(time: &str) -> Result<time::Tm, Error> {
+    let formats = ["%b %d %T %Y", "%b  %d %T %Y", "%b   %d %T %Y"];
+    for fmt in formats.iter() {
+        if let Ok(t) = strptime(time, fmt) {
+            return Ok(t);
+        }
+    }
+    let msg = format!("invalid time string: {}", time);
+    Err(msg.into())
+}
 
 #[derive(Clone, Debug)]
 pub enum Algorithm {
@@ -103,26 +116,55 @@ impl Certificate {
         Err(msg.into())
     }
 
+    fn is_expiring(&self, cert: &X509) -> Result<bool, Error> {
+        let not_after = cert.not_after().to_string();
+        let not_after = parse_openssl_time_string(&not_after)?;
+        debug!("not after: {}", not_after.asctime());
+        // TODO: allow a custom duration (using time-parse ?)
+        let renewal_time = not_after - Duration::weeks(3);
+        debug!("renew on: {}", renewal_time.asctime());
+        Ok(time::now_utc() > renewal_time)
+    }
+
+    fn has_missing_domains(&self, cert: &X509) -> bool {
+        let cert_names = match cert.subject_alt_names() {
+            Some(s) => s
+                .iter()
+                .filter(|v| v.dnsname().is_some())
+                .map(|v| v.dnsname().unwrap().to_string())
+                .collect(),
+            None => HashSet::new(),
+        };
+        let req_names = self
+            .domains
+            .iter()
+            .map(|v| v.0.to_owned())
+            .collect::<HashSet<String>>();
+        let has_miss = req_names.difference(&cert_names).count() != 0;
+        if has_miss {
+            let domains = req_names
+                .difference(&cert_names)
+                .map(std::borrow::ToOwned::to_owned)
+                .collect::<Vec<String>>()
+                .join(", ");
+            debug!(
+                "The certificate does not include the following domains: {}",
+                domains
+            );
+        }
+        has_miss
+    }
+
     pub fn should_renew(&self) -> Result<bool, Error> {
         if !certificate_files_exists(&self) {
             debug!("certificate does not exist: requesting one");
             return Ok(true);
         }
         let cert = get_certificate(&self)?;
-        let not_after = cert.not_after().to_string();
-        // TODO: check the time format and put it in a const
-        let not_after = match strptime(&not_after, "%b %d %T %Y") {
-            Ok(t) => t,
-            Err(_) => {
-                let msg = format!("invalid time string: {}", not_after);
-                return Err(msg.into());
-            }
-        };
-        debug!("not after: {}", not_after.asctime());
-        // TODO: allow a custom duration (using time-parse ?)
-        let renewal_time = not_after - Duration::weeks(3);
-        debug!("renew on: {}", renewal_time.asctime());
-        let renew = time::now_utc() > renewal_time;
+
+        let renew = self.has_missing_domains(&cert);
+        let renew = renew || self.is_expiring(&cert)?;
+
         if renew {
             debug!("The certificate will be renewed now.");
         } else {
