@@ -77,11 +77,11 @@ fn main() {
         )
         .arg(
             Arg::with_name("root-cert")
-            .long("root-cert")
-            .help("Add a root certificate to the trust store")
-            .takes_value(true)
-            .multiple(true)
-            .value_name("FILE")
+                .long("root-cert")
+                .help("Add a root certificate to the trust store")
+                .takes_value(true)
+                .multiple(true)
+                .value_name("FILE"),
         )
         .get_matches();
 

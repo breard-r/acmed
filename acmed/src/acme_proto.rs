@@ -124,7 +124,8 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
                 // 8. Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
                 let data_builder = set_data_builder!(account, b"{}", chall_url);
-                let new_nonce = http::post_challenge_response(root_certs, &chall_url, &data_builder, &nonce)?;
+                let new_nonce =
+                    http::post_challenge_response(root_certs, &chall_url, &data_builder, &nonce)?;
                 nonce = new_nonce;
             }
         }
@@ -147,7 +148,8 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let (priv_key, pub_key) = certificate::get_key_pair(cert)?;
     let csr = certificate::generate_csr(cert, &priv_key, &pub_key)?;
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
-    let (_, nonce): (Order, String) = http::get_obj(root_certs, &order.finalize, &data_builder, &nonce)?;
+    let (_, nonce): (Order, String) =
+        http::get_obj(root_certs, &order.finalize, &data_builder, &nonce)?;
 
     // 12. Pool the order in order to see whether or not it is valid
     let data_builder = set_empty_data_builder!(account, order_url);

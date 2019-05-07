@@ -4,9 +4,9 @@ use http_req::request::{Method, Request};
 use http_req::response::Response;
 use http_req::uri::Uri;
 use log::{debug, trace, warn};
+use std::path::Path;
 use std::str::FromStr;
 use std::{thread, time};
-use std::path::Path;
 
 const CONTENT_TYPE_JOSE: &str = "application/jose+json";
 const CONTENT_TYPE_JSON: &str = "application/json";
@@ -97,7 +97,12 @@ fn nonce_from_response(res: &Response) -> Result<String, Error> {
     }
 }
 
-fn post_jose_type(root_certs: &[String], url: &str, data: &[u8], accept_type: &str) -> Result<(Response, String), Error> {
+fn post_jose_type(
+    root_certs: &[String],
+    url: &str,
+    data: &[u8],
+    accept_type: &str,
+) -> Result<(Response, String), Error> {
     let uri = url.parse::<Uri>()?;
     let mut request = new_request(root_certs, &uri, Method::POST);
     request.header("Content-Type", CONTENT_TYPE_JOSE);
@@ -155,7 +160,12 @@ where
     Err("Too much errors, will not retry".into())
 }
 
-fn fetch_obj<T, G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<(T, String, String), Error>
+fn fetch_obj<T, G>(
+    root_certs: &[String],
+    url: &str,
+    data_builder: &G,
+    nonce: &str,
+) -> Result<(T, String, String), Error>
 where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
@@ -181,7 +191,12 @@ where
     }
 }
 
-pub fn get_obj<T, G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<(T, String), Error>
+pub fn get_obj<T, G>(
+    root_certs: &[String],
+    url: &str,
+    data_builder: &G,
+    nonce: &str,
+) -> Result<(T, String), Error>
 where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
@@ -215,11 +230,17 @@ where
     Err(msg.into())
 }
 
-pub fn post_challenge_response<G>(root_certs: &[String], url: &str, data_builder: &G, nonce: &str) -> Result<String, Error>
+pub fn post_challenge_response<G>(
+    root_certs: &[String],
+    url: &str,
+    data_builder: &G,
+    nonce: &str,
+) -> Result<String, Error>
 where
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (_, _, nonce): (DummyString, String, String) = fetch_obj(root_certs, url, data_builder, nonce)?;
+    let (_, _, nonce): (DummyString, String, String) =
+        fetch_obj(root_certs, url, data_builder, nonce)?;
     Ok(nonce)
 }
 
@@ -232,7 +253,8 @@ pub fn get_certificate<G>(
 where
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (res_body, _, nonce): (DummyString, String, String) = fetch_obj(root_certs, url, data_builder, nonce)?;
+    let (res_body, _, nonce): (DummyString, String, String) =
+        fetch_obj(root_certs, url, data_builder, nonce)?;
     Ok((res_body.content, nonce))
 }
 
