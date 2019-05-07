@@ -14,6 +14,7 @@ pub struct PostOperationHookData {
     pub domains: Vec<String>,
     pub algorithm: String,
     pub status: String,
+    pub is_success: bool,
 }
 
 #[derive(Serialize)]

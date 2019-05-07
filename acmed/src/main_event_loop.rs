@@ -57,20 +57,21 @@ impl MainEventLoop {
                 match crt.should_renew() {
                     Ok(sr) => {
                         if sr {
-                            let status = match request_certificate(crt, &self.root_certs) {
-                                Ok(_) => "Success.".to_string(),
-                                Err(e) => {
-                                    let msg = format!(
-                                        "Unable to renew the {} certificate for {}: {}",
-                                        crt.algo,
-                                        crt.domains.first().unwrap().0,
-                                        e
-                                    );
-                                    warn!("{}", msg);
-                                    format!("Failed: {}", msg)
-                                }
-                            };
-                            match crt.call_post_operation_hooks(&status) {
+                            let (status, is_success) =
+                                match request_certificate(crt, &self.root_certs) {
+                                    Ok(_) => ("Success.".to_string(), true),
+                                    Err(e) => {
+                                        let msg = format!(
+                                            "Unable to renew the {} certificate for {}: {}",
+                                            crt.algo,
+                                            crt.domains.first().unwrap().0,
+                                            e
+                                        );
+                                        warn!("{}", msg);
+                                        (format!("Failed: {}", msg), false)
+                                    }
+                                };
+                            match crt.call_post_operation_hooks(&status, is_success) {
                                 Ok(_) => {}
                                 Err(e) => {
                                     let msg = format!(

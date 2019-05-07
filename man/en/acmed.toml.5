@@ -317,9 +317,9 @@ Array containing the domain names included in the requested certificate.
 .It Cm algorithm Ar string
 Name of the algorithm used in the certificate.
 .It Cm status Ar string
-Status of request. Is set to
-.Dq Success.
-in case the operation succeeded, in an error description otherwise.
+Human-readable status. If the certificate request failed, it contains the error description.
+.It Cm is_success Ar boolean
+True if the certificate request is successful.
 .El
 .El
 .Sh FILES
@@ -432,9 +432,9 @@ args = [
     "-f", "noreply.certs@example.net",
     "contact@example.net"
 ]
-stdin = """Subject: Certificate renewal alert for {{domains.[0]}}
+stdin = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{domains.[0]}}
 
-The following certificate has been renewed.
+The following certificate has {{#unless is_success}}*not* {{/if}}been renewed.
 domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}
 algorithm: {{algorithm}}
 status: {{status}}"""

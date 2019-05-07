@@ -164,7 +164,7 @@ impl Certificate {
         hooks::call(data, &self.hooks, hook_type)
     }
 
-    pub fn call_post_operation_hooks(&self, status: &str) -> Result<(), Error> {
+    pub fn call_post_operation_hooks(&self, status: &str, is_success: bool) -> Result<(), Error> {
         let domains = self
             .domains
             .iter()
@@ -174,6 +174,7 @@ impl Certificate {
             domains,
             algorithm: self.algo.to_string(),
             status: status.to_string(),
+            is_success,
         };
         hooks::call(&hook_data, &self.hooks, HookType::PostOperation)?;
         Ok(())
