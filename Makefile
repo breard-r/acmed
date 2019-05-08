@@ -15,7 +15,7 @@ MAN_SRC =	acmed.8 \
 		tacd.8
 MAN_FILES = $(foreach name,$(MAN_SRC),$(MAN_DST_DIR)/$(name).gz)
 
-all: $(EXE_FILES) man
+all: update $(EXE_FILES) man
 
 man: $(MAN_DST_DIR) $(MAN_FILES)
 
@@ -31,6 +31,9 @@ $(MAN_DST_DIR):
 $(MAN_DST_DIR)/%.gz: $(MAN_SRC_DIR)/%
 	gzip <"$<" >"$@"
 
+update:
+	cargo update
+
 install:
 	install -D --mode=0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed
 	install -D --mode=0755 $(TARGET_DIR)/tacd $(DESTDIR)$(BINDIR)/tacd
@@ -44,4 +47,4 @@ install:
 clean:
 	cargo clean
 
-.PHONY: $(EXE_NAMES) all clean install man
+.PHONY: $(EXE_NAMES) all clean install man update
