@@ -3,6 +3,10 @@ use serde::Deserialize;
 use std::fmt;
 use std::str::FromStr;
 
+pub trait ApiError {
+    fn get_error(&self) -> Option<Error>;
+}
+
 #[derive(PartialEq)]
 pub enum AcmeError {
     AccountDoesNotExist,
@@ -123,12 +127,12 @@ impl From<AcmeError> for Error {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, PartialEq, Deserialize)]
 pub struct HttpApiError {
     #[serde(rename = "type")]
     error_type: Option<String>,
     // title: Option<String>,
-    // status: Option<usize>,
+    status: Option<usize>,
     detail: Option<String>,
     // instance: Option<String>,
     // TODO: implement subproblems
@@ -142,6 +146,10 @@ impl fmt::Display for HttpApiError {
             .detail
             .to_owned()
             .unwrap_or_else(|| self.get_acme_type().to_string());
+        let msg = match self.status {
+            Some(s) => format!("Status {}: {}", s, msg),
+            None => msg,
+        };
         write!(f, "{}", msg)
     }
 }
@@ -155,5 +163,11 @@ impl HttpApiError {
 
     pub fn get_acme_type(&self) -> AcmeError {
         self.get_type().into()
+    }
+}
+
+impl From<HttpApiError> for Error {
+    fn from(error: HttpApiError) -> Self {
+        error.to_string().into()
     }
 }

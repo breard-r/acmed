@@ -1,4 +1,4 @@
-use crate::acme_proto::structs::{AcmeError, Directory, HttpApiError};
+use crate::acme_proto::structs::{AcmeError, ApiError, Directory, HttpApiError};
 use acme_common::error::Error;
 use http_req::request::{Method, Request};
 use http_req::response::Response;
@@ -213,7 +213,7 @@ pub fn pool_obj<T, G, S>(
     nonce: &str,
 ) -> Result<(T, String), Error>
 where
-    T: std::str::FromStr<Err = Error>,
+    T: std::str::FromStr<Err = Error> + ApiError,
     G: Fn(&str) -> Result<String, Error>,
     S: Fn(&T) -> bool,
 {
@@ -223,6 +223,9 @@ where
         let (obj, _, new_nonce) = fetch_obj(root_certs, url, data_builder, &nonce)?;
         if break_fn(&obj) {
             return Ok((obj, new_nonce));
+        }
+        if let Some(e) = obj.get_error() {
+            warn!("Error: {}", e);
         }
         nonce = new_nonce;
     }

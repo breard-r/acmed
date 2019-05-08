@@ -1,12 +1,12 @@
 use crate::acme_proto::account::AccountManager;
 use crate::acme_proto::jws::encode_kid;
 use crate::acme_proto::structs::{
-    Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
+    ApiError, Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
 };
 use crate::certificate::Certificate;
 use crate::storage;
 use acme_common::error::Error;
-use log::info;
+use log::{info, warn};
 use std::fmt;
 
 mod account;
@@ -89,6 +89,9 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let data_builder = set_data_builder!(account, new_order.as_bytes(), directory.new_order);
     let (order, order_url, mut nonce): (Order, String, String) =
         http::get_obj_loc(root_certs, &directory.new_order, &data_builder, &nonce)?;
+    if let Some(e) = order.get_error() {
+        warn!("Error: {}", e);
+    }
 
     // 5. Get all the required authorizations
     for auth_url in order.authorizations.iter() {
@@ -97,6 +100,9 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
             http::get_obj(root_certs, &auth_url, &data_builder, &nonce)?;
         nonce = new_nonce;
 
+        if let Some(e) = auth.get_error() {
+            warn!("Error: {}", e);
+        }
         if auth.status == AuthorizationStatus::Valid {
             continue;
         }
@@ -148,8 +154,11 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let (priv_key, pub_key) = certificate::get_key_pair(cert)?;
     let csr = certificate::generate_csr(cert, &priv_key, &pub_key)?;
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
-    let (_, nonce): (Order, String) =
+    let (order, nonce): (Order, String) =
         http::get_obj(root_certs, &order.finalize, &data_builder, &nonce)?;
+    if let Some(e) = order.get_error() {
+        warn!("Error: {}", e);
+    }
 
     // 12. Pool the order in order to see whether or not it is valid
     let data_builder = set_empty_data_builder!(account, order_url);

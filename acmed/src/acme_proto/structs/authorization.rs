@@ -1,5 +1,5 @@
 use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
-use crate::acme_proto::structs::Identifier;
+use crate::acme_proto::structs::{ApiError, HttpApiError, Identifier};
 use acme_common::b64_encode;
 use acme_common::error::Error;
 use openssl::pkey::{PKey, Private};
@@ -29,6 +29,18 @@ impl FromStr for Authorization {
         let mut res: Self = serde_json::from_str(data)?;
         res.challenges.retain(|c| *c != Challenge::Unknown);
         Ok(res)
+    }
+}
+
+impl ApiError for Authorization {
+    fn get_error(&self) -> Option<Error> {
+        for challenge in self.challenges.iter() {
+            let err = challenge.get_error();
+            if err.is_some() {
+                return err;
+            }
+        }
+        None
     }
 }
 
@@ -123,12 +135,23 @@ impl Challenge {
     }
 }
 
+impl ApiError for Challenge {
+    fn get_error(&self) -> Option<Error> {
+        match self {
+            Challenge::Http01(tc) | Challenge::Dns01(tc) | Challenge::TlsAlpn01(tc) => {
+                tc.error.to_owned().map(Error::from)
+            }
+            Challenge::Unknown => None,
+        }
+    }
+}
+
 #[derive(PartialEq, Deserialize)]
 pub struct TokenChallenge {
     pub url: String,
     pub status: Option<ChallengeStatus>,
     pub validated: Option<String>,
-    pub error: Option<String>, // TODO: set the correct object
+    pub error: Option<HttpApiError>,
     pub token: String,
 }
 

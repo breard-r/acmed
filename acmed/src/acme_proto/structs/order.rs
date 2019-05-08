@@ -1,3 +1,4 @@
+use crate::acme_proto::structs::{ApiError, HttpApiError};
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -28,10 +29,16 @@ pub struct Order {
     pub identifiers: Vec<Identifier>,
     pub not_before: Option<String>,
     pub not_after: Option<String>,
-    pub error: Option<String>, // TODO: set the correct structure
+    pub error: Option<HttpApiError>,
     pub authorizations: Vec<String>,
     pub finalize: String,
     pub certificate: Option<String>,
+}
+
+impl ApiError for Order {
+    fn get_error(&self) -> Option<Error> {
+        self.error.to_owned().map(Error::from)
+    }
 }
 
 deserialize_from_str!(Order);
