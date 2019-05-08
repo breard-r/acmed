@@ -40,7 +40,8 @@ install:
 	install -D --mode=0644 $(TARGET_DIR)/man/acmed.8.gz $(DESTDIR)$(DATADIR)/man/man8/acmed.8.gz
 	install -D --mode=0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)$(DATADIR)/man/man5/acmed.toml.5.gz
 	install -D --mode=0644 $(TARGET_DIR)/man/tacd.8.gz $(DESTDIR)$(DATADIR)/man/man8/tacd.8.gz
-	install -D --mode=0644 acmed/acmed_example.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml
+	install -D --mode=0644 acmed/config/acmed.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml
+	install -D --mode=0644 acmed/config/default_hooks.toml $(DESTDIR)$(SYSCONFDIR)/acmed/default_hooks.toml
 	install -d --mode=0700 $(DESTDIR)$(SYSCONFDIR)/acmed/accounts
 	install -d --mode=0755 $(DESTDIR)$(SYSCONFDIR)/acmed/certs
 

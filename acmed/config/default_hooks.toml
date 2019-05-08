@@ -1,0 +1,150 @@
+# Copyright (c) 2019 Rodolphe Bréard <rodolphe@breard.tf>
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# ------------------------------------------------------------------------
+# Default hooks for ACMEd
+# You should not edit this file since it may be overridden by a newer one.
+# ------------------------------------------------------------------------
+
+
+#
+# http-01 challenge in "/var/www/{{domain}}/"
+#
+
+[[hook]]
+name = "http-01-echo-mkdir"
+type = ["challenge-http-01"]
+cmd = "mkdir"
+args = [
+    "-m", "0755",
+    "-p", "/var/www/{{domain}}/.well-known/acme-challenge"
+]
+
+[[hook]]
+name = "http-01-echo-echo"
+type = ["challenge-http-01"]
+cmd = "echo"
+args = ["{{proof}}"]
+stdout = "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+
+[[hook]]
+name = "http-01-echo-chmod"
+type = ["challenge-http-01-clean"]
+cmd = "chmod"
+args = [
+    "a+r",
+    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+]
+
+[[hook]]
+name = "http-01-echo-clean"
+type = ["challenge-http-01-clean"]
+cmd = "rm"
+args = [
+    "-f",
+    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+]
+
+[[group]]
+name = "http-01-echo-var-www"
+hooks = [
+    "http-01-echo-mkdir",
+    "http-01-echo-echo",
+    "http-01-echo-chmod",
+    "http-01-echo-clean"
+]
+
+
+#
+# tls-alpn-01 challenge with tacd
+#
+
+[[hook]]
+name = "tls-alpn-01-tacd-start-tcp"
+type = ["challenge-tls-alpn-01"]
+cmd = "tacd"
+args = [
+    "--pid-file", "/tmp/tacd_{{domain}}.pid",
+    "--domain", "{{domain}}",
+    "--acme-ext", "{{proof}}",
+    "--listen", "{{domain}}:5001"
+]
+
+[[hook]]
+name = "tls-alpn-01-tacd-start-unix"
+type = ["challenge-tls-alpn-01"]
+cmd = "tacd"
+args = [
+    "--pid-file", "/tmp/tacd_{{domain}}.pid",
+    "--domain", "{{domain}}",
+    "--acme-ext", "{{proof}}",
+    "--listen", "unix:/tmp/tacd_{{domain}}.sock"
+]
+
+[[hook]]
+name = "tls-alpn-01-tacd-kill"
+type = ["challenge-tls-alpn-01-clean"]
+cmd = "pkill"
+args = [
+    "-F", "/tmp/tacd_{{domain}}.pid"
+]
+
+[[hook]]
+name = "tls-alpn-01-tacd-rm"
+type = ["challenge-tls-alpn-01-clean"]
+cmd = "rm"
+args = [
+    "-f", "/tmp/tacd_{{domain}}.pid"
+]
+
+[[group]]
+name = "tls-alpn-01-tacd-tcp"
+hooks = ["tls-alpn-01-tacd-start-tcp", "tls-alpn-01-tacd-kill", "tls-alpn-01-tacd-rm"]
+
+[[group]]
+name = "tls-alpn-01-tacd-tcp-unix"
+hooks = ["tls-alpn-01-tacd-start-unix", "tls-alpn-01-tacd-kill", "tls-alpn-01-tacd-rm"]
+
+
+#
+# Git storage hook
+#
+
+[[hook]]
+name = "git-init"
+type = ["file-pre-create", "file-pre-edit"]
+cmd = "git"
+args = [
+    "init",
+    "{{file_directory}}"
+]
+
+[[hook]]
+name = "git-add"
+type = ["file-post-create", "file-post-edit"]
+cmd = "git"
+args = [
+    "-C", "{{file_directory}}",
+    "add", "{{file_name}}"
+]
+
+[[hook]]
+name = "git-commit"
+type = ["file-post-create", "file-post-edit"]
+cmd = "git"
+args = [
+    "-C", "{{file_directory}}",
+    "-c", "user.name=ACMEd",
+    "-c", "user.email=acmed@localhost",
+    "commit",
+    "-m", "{{file_name}}",
+    "--only", "{{file_name}}"
+]
+
+[[group]]
+name = "git"
+hooks = ["git-init", "git-add", "git-commit"]

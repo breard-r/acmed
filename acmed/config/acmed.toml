@@ -1,0 +1,17 @@
+include = [
+    "default_hooks.toml"
+]
+
+[global]
+accounts_directory = "/etc/acmed/accounts"
+certificates_directory = "/etc/acmed/certs"
+
+[[endpoint]]
+name = "letsencrypt v2 prod"
+url = "https://acme-v02.api.letsencrypt.org/directory"
+tos_agreed = false
+
+[[endpoint]]
+name = "letsencrypt v2 staging"
+url = "https://acme-staging-v02.api.letsencrypt.org/directory"
+tos_agreed = false
