@@ -3,18 +3,35 @@ use crate::config::{Account, HookType};
 use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
-use log::debug;
+use log::{debug, trace};
 use openssl::x509::X509;
 use std::collections::HashSet;
 use std::fmt;
 use time::{strptime, Duration};
 
+// OpenSSL ASN1_TIME_print madness
+// The real fix would be to add Asn1TimeRef access in the openssl crate.
+//
+// https://github.com/sfackler/rust-openssl/issues/687
+// https://github.com/sfackler/rust-openssl/pull/673
 fn parse_openssl_time_string(time: &str) -> Result<time::Tm, Error> {
-    let formats = ["%b %d %T %Y", "%b  %d %T %Y", "%b   %d %T %Y"];
+    debug!("Parsing OpenSSL time: \"{}\"", time);
+    let formats = [
+        "%b %d %T %Y %Z",
+        "%b  %d %T %Y %Z",
+        "%b %d %T %Y",
+        "%b  %d %T %Y",
+        "%b %d %T.%f %Y %Z",
+        "%b  %d %T.%f %Y %Z",
+        "%b %d %T.%f %Y",
+        "%b  %d %T.%f %Y",
+    ];
     for fmt in formats.iter() {
         if let Ok(t) = strptime(time, fmt) {
+            trace!("Format \"{}\" matches", fmt);
             return Ok(t);
         }
+        trace!("Format \"{}\" does not match", fmt);
     }
     let msg = format!("invalid time string: {}", time);
     Err(msg.into())
@@ -221,5 +238,28 @@ impl Certificate {
         };
         hooks::call(&hook_data, &self.hooks, HookType::PostOperation)?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_openssl_time_string;
+
+    #[test]
+    fn test_parse_openssl_time() {
+        let time_str_lst = [
+            "May  7 18:34:07 2024",
+            "May  7 18:34:07 2024 GMT",
+            "May 17 18:34:07 2024",
+            "May 17 18:34:07 2024 GMT",
+            "May  7 18:34:07.922661874 2024",
+            "May  7 18:34:07.922661874 2024 GMT",
+            "May 17 18:34:07.922661874 2024",
+            "May 17 18:34:07.922661874 2024 GMT",
+        ];
+        for time_str in time_str_lst.iter() {
+            let time_res = parse_openssl_time_string(time_str);
+            assert!(time_res.is_ok());
+        }
     }
 }

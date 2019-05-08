@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - In challenge hooks, the `algorithm` template variable has been removed.
 
+### Fixed
+- In some cases, ACMEd was unable to parse a certificate's expiration date.
+
 
 ## [0.3.0] - 2019-04-30
 
