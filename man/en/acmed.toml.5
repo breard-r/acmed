@@ -18,6 +18,17 @@ It is written in the
 .Em TOML
 format. The allowed elements are described below.
 .Bl -tag
+.It Ic include
+Array containing the path to configuration file to include. The path can be either relative or absolute. If relative, it is relative to the configuration file which included it.
+.Pp
+In case or overlapping global option definition, the one of the last included file will be used. For example, if a file
+.Em A
+includes files
+.Em B
+and
+.Em C
+and all three defines the same global option, the final value will be the one defined in file
+.Em C .
 .It Ic global
 Table containing the global configuration options.
 .Bl -tag

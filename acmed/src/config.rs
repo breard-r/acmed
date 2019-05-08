@@ -6,19 +6,32 @@ use serde::Deserialize;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+macro_rules! set_cfg_attr {
+    ($to: expr, $from: expr) => {
+        if let Some(v) = $from {
+            $to = Some(v);
+        };
+    };
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub global: Option<GlobalOptions>,
+    #[serde(default)]
     pub endpoint: Vec<Endpoint>,
     #[serde(default)]
     pub hook: Vec<Hook>,
     #[serde(default)]
     pub group: Vec<Group>,
+    #[serde(default)]
     pub account: Vec<Account>,
+    #[serde(default)]
     pub certificate: Vec<Certificate>,
+    #[serde(default)]
+    pub include: Vec<String>,
 }
 
 impl Config {
@@ -110,7 +123,7 @@ impl Config {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GlobalOptions {
     pub accounts_directory: Option<String>,
@@ -307,12 +320,51 @@ fn init_directories(config: &Config) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn from_file(file: &str) -> Result<Config, Error> {
-    info!("Loading configuration file: {}", file);
-    let mut file = File::open(file)?;
+fn get_cnf_path(from: &PathBuf, file: &str) -> PathBuf {
+    let mut path = from.clone();
+    path.pop();
+    path.push(file);
+    path
+}
+
+fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
+    info!("Loading configuration file: {}", path.display());
+    let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    let config: Config = toml::from_str(&contents)?;
+    let mut config: Config = toml::from_str(&contents)?;
+    for cnf_name in config.include.iter() {
+        let cnf_path = get_cnf_path(path, cnf_name);
+        let mut add_cnf = read_cnf(&cnf_path)?;
+        config.endpoint.append(&mut add_cnf.endpoint);
+        config.hook.append(&mut add_cnf.hook);
+        config.group.append(&mut add_cnf.group);
+        config.account.append(&mut add_cnf.account);
+        config.certificate.append(&mut add_cnf.certificate);
+        if config.global.is_none() {
+            config.global = add_cnf.global;
+        } else if let Some(new_glob) = add_cnf.global {
+            let mut tmp_glob = config.global.clone().unwrap();
+            set_cfg_attr!(tmp_glob.accounts_directory, new_glob.accounts_directory);
+            set_cfg_attr!(
+                tmp_glob.certificates_directory,
+                new_glob.certificates_directory
+            );
+            set_cfg_attr!(tmp_glob.cert_file_mode, new_glob.cert_file_mode);
+            set_cfg_attr!(tmp_glob.cert_file_user, new_glob.cert_file_user);
+            set_cfg_attr!(tmp_glob.cert_file_group, new_glob.cert_file_group);
+            set_cfg_attr!(tmp_glob.pk_file_mode, new_glob.pk_file_mode);
+            set_cfg_attr!(tmp_glob.pk_file_user, new_glob.pk_file_user);
+            set_cfg_attr!(tmp_glob.pk_file_group, new_glob.pk_file_group);
+            config.global = Some(tmp_glob);
+        }
+    }
+    Ok(config)
+}
+
+pub fn from_file(file_name: &str) -> Result<Config, Error> {
+    let path = PathBuf::from(file_name);
+    let config = read_cnf(&path)?;
     init_directories(&config)?;
     Ok(config)
 }
