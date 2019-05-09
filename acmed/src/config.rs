@@ -135,6 +135,8 @@ pub struct GlobalOptions {
     pub pk_file_mode: Option<u32>,
     pub pk_file_user: Option<String>,
     pub pk_file_group: Option<String>,
+    #[serde(default)]
+    pub env: HashMap<String, String>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -367,9 +369,24 @@ fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
     Ok(config)
 }
 
+fn dispatch_global_env_vars(config: &mut Config) {
+    if let Some(glob) = &config.global {
+        if !glob.env.is_empty() {
+            for mut cert in config.certificate.iter_mut() {
+                let mut new_vars = glob.env.clone();
+                for (k, v) in cert.env.iter() {
+                    new_vars.insert(k.to_string(), v.to_string());
+                }
+                cert.env = new_vars;
+            }
+        }
+    }
+}
+
 pub fn from_file(file_name: &str) -> Result<Config, Error> {
     let path = PathBuf::from(file_name);
-    let config = read_cnf(&path)?;
+    let mut config = read_cnf(&path)?;
+    dispatch_global_env_vars(&mut config);
     init_directories(&config)?;
     Ok(config)
 }

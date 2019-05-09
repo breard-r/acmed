@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ACMEd now displays a warning when the server indicates an error in an order or an authorization.
 - A configuration file can now include several other files.
 - Hooks have access to environment variables.
-- In the configuration, certificates and domains can define environment variables for the hooks.
+- In the configuration, the global section, certificates and domains can define environment variables for the hooks.
 - tacd is now able to listen on a unix socket.
 
 
