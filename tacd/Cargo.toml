@@ -1,6 +1,6 @@
 [package]
 name = "tacd"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 description = "TLS-ALPN Challenge Daemon"
