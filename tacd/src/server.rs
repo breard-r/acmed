@@ -7,10 +7,28 @@ use std::net::TcpListener;
 use std::sync::Arc;
 use std::thread;
 
+#[cfg(target_family = "unix")]
+use std::os::unix::net::UnixListener;
+
 #[cfg(ossl110)]
 const ALPN_ERROR: AlpnError = AlpnError::ALERT_FATAL;
 #[cfg(not(ossl110))]
 const ALPN_ERROR: AlpnError = AlpnError::NOACK;
+
+macro_rules! listen_and_accept {
+    ($lt: ident, $addr: ident, $acceptor: ident) => {
+        let listener = $lt::bind($addr)?;
+        for stream in listener.incoming() {
+            if let Ok(stream) = stream {
+                let acceptor = $acceptor.clone();
+                thread::spawn(move || {
+                    debug!("New client");
+                    let _ = acceptor.accept(stream).unwrap();
+                });
+            };
+        }
+    };
+}
 
 pub fn start(
     listen_addr: &str,
@@ -26,15 +44,13 @@ pub fn start(
     acceptor.set_certificate(certificate)?;
     acceptor.check_private_key()?;
     let acceptor = Arc::new(acceptor.build());
-    let listener = TcpListener::bind(listen_addr)?;
-    for stream in listener.incoming() {
-        if let Ok(stream) = stream {
-            let acceptor = acceptor.clone();
-            thread::spawn(move || {
-                debug!("New client");
-                let _ = acceptor.accept(stream).unwrap();
-            });
-        };
+    if cfg!(unix) && listen_addr.starts_with("unix:") {
+        let listen_addr = &listen_addr[5..];
+        debug!("Listening on unix socket {}", listen_addr);
+        listen_and_accept!(UnixListener, listen_addr, acceptor);
+    } else {
+        debug!("Listening on {}", listen_addr);
+        listen_and_accept!(TcpListener, listen_addr, acceptor);
     }
     Err("Main thread loop unexpectedly exited".into())
 }

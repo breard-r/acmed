@@ -61,7 +61,7 @@ fn main() {
                 .short("l")
                 .help("Specifies the host and port to listen on")
                 .takes_value(true)
-                .value_name("host:port"),
+                .value_name("host:port|unix:path"),
         )
         .arg(
             Arg::with_name("domain")
