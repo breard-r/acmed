@@ -298,6 +298,8 @@ impl Certificate {
 pub struct Domain {
     pub challenge: String,
     pub dns: String,
+    #[serde(default)]
+    pub env: HashMap<String, String>,
 }
 
 impl fmt::Display for Domain {

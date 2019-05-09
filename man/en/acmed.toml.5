@@ -146,9 +146,7 @@ Table of environment variables that will be accessible from hooks.
 .It Ic domains Ar array
 Array of tables listing the domains that should be included in the certificate along with the challenge to use for each one.
 .Bl -tag
-.It Ic dns
-The domain name.
-.It Ic challenge
+.It Ic challenge Ar string
 The name of the challenge to use to prove the domain's ownership. Possible values are:
 .Bl -dash -compact
 .It
@@ -158,6 +156,10 @@ dns-01
 .It
 tls-alpn-01
 .El
+.It Ic dns Ar string
+The domain name.
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
 .El
 .It Ic algorithm Ar string
 Name of the asymetric cryptography algorithm used to generate the certificate's key pair. Possible values are :

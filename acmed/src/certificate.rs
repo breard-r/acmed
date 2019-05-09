@@ -1,6 +1,6 @@
 use crate::acme_proto::Challenge;
-use crate::config::{Account, HookType};
-use crate::hooks::{self, ChallengeHookData, Hook, PostOperationHookData};
+use crate::config::{Account, Domain, HookType};
+use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
 use log::{debug, trace};
@@ -72,7 +72,7 @@ impl fmt::Display for Algorithm {
 #[derive(Debug)]
 pub struct Certificate {
     pub account: Account,
-    pub domains: Vec<(String, Challenge)>,
+    pub domains: Vec<Domain>,
     pub algo: Algorithm,
     pub kp_reuse: bool,
     pub remote_url: String,
@@ -102,7 +102,7 @@ impl fmt::Display for Certificate {
         let domains = self
             .domains
             .iter()
-            .map(|d| format!("{} ({})", d.0, d.1))
+            .map(|d| format!("{} ({})", d.dns, d.challenge))
             .collect::<Vec<String>>()
             .join(", ");
         write!(
@@ -125,9 +125,10 @@ Hooks: {hooks}",
 impl Certificate {
     pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
         let domain_name = domain_name.to_string();
-        for (domain, challenge) in self.domains.iter() {
-            if *domain == domain_name {
-                return Ok((*challenge).to_owned());
+        for d in self.domains.iter() {
+            if d.dns == domain_name {
+                let c = Challenge::from_str(&d.challenge)?;
+                return Ok(c);
             }
         }
         let msg = format!("{}: domain name not found", domain_name);
@@ -156,7 +157,7 @@ impl Certificate {
         let req_names = self
             .domains
             .iter()
-            .map(|v| v.0.to_owned())
+            .map(|v| v.dns.to_owned())
             .collect::<HashSet<String>>();
         let has_miss = req_names.difference(&cert_names).count() != 0;
         if has_miss {
@@ -198,7 +199,7 @@ impl Certificate {
         domain: &str,
     ) -> Result<(ChallengeHookData, HookType), Error> {
         let challenge = self.get_domain_challenge(domain)?;
-        let hook_data = ChallengeHookData {
+        let mut hook_data = ChallengeHookData {
             challenge: challenge.to_string(),
             domain: domain.to_string(),
             file_name: file_name.to_string(),
@@ -206,6 +207,10 @@ impl Certificate {
             is_clean_hook: false,
             env: HashMap::new(),
         };
+        hook_data.set_env(&self.env);
+        for d in self.domains.iter().filter(|d| d.dns == domain) {
+            hook_data.set_env(&d.env);
+        }
         let hook_type = match challenge {
             Challenge::Http01 => (HookType::ChallengeHttp01, HookType::ChallengeHttp01Clean),
             Challenge::Dns01 => (HookType::ChallengeDns01, HookType::ChallengeDns01Clean),
@@ -230,15 +235,16 @@ impl Certificate {
         let domains = self
             .domains
             .iter()
-            .map(|d| format!("{} ({})", d.0, d.1))
+            .map(|d| format!("{} ({})", d.dns, d.challenge))
             .collect::<Vec<String>>();
-        let hook_data = PostOperationHookData {
+        let mut hook_data = PostOperationHookData {
             domains,
             algorithm: self.algo.to_string(),
             status: status.to_string(),
             is_success,
             env: HashMap::new(),
         };
+        hook_data.set_env(&self.env);
         hooks::call(self, &hook_data, HookType::PostOperation)?;
         Ok(())
     }

@@ -4,6 +4,7 @@ use acme_common::error::Error;
 use handlebars::Handlebars;
 use log::debug;
 use serde::Serialize;
+use std::collections::hash_map::Iter;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
@@ -12,7 +13,8 @@ use std::process::{Command, Stdio};
 use std::{env, fmt};
 
 pub trait HookEnvData {
-    fn set_env(&mut self, cert: &Certificate);
+    fn set_env(&mut self, env: &HashMap<String, String>);
+    fn get_env(&self) -> Iter<String, String>;
 }
 
 fn deref<F, G>(t: (&F, &G)) -> (F, G)
@@ -26,10 +28,14 @@ where
 macro_rules! imple_hook_data_env {
     ($t: ty) => {
         impl HookEnvData for $t {
-            fn set_env(&mut self, cert: &Certificate) {
-                for (key, value) in env::vars().chain(cert.env.iter().map(deref)) {
+            fn set_env(&mut self, env: &HashMap<String, String>) {
+                for (key, value) in env::vars().chain(env.iter().map(deref)) {
                     self.env.insert(key, value);
                 }
+            }
+
+            fn get_env(&self) -> Iter<String, String> {
+                self.env.iter()
             }
         }
     };
@@ -99,13 +105,11 @@ macro_rules! get_hook_output {
     }};
 }
 
-fn call_single<T>(cert: &Certificate, data: &T, hook: &Hook) -> Result<(), Error>
+fn call_single<T>(data: &T, hook: &Hook) -> Result<(), Error>
 where
     T: Clone + HookEnvData + Serialize,
 {
     debug!("Calling hook: {}", hook.name);
-    let mut data = (*data).clone();
-    data.set_env(cert);
     let reg = Handlebars::new();
     let mut v = vec![];
     let args = match &hook.args {
@@ -121,7 +125,7 @@ where
     debug!("Hook {}: cmd: {}", hook.name, hook.cmd);
     debug!("Hook {}: args: {:?}", hook.name, args);
     let mut cmd = Command::new(&hook.cmd)
-        .envs(cert.env.iter())
+        .envs(data.get_env())
         .args(args)
         .stdout(get_hook_output!(&hook.stdout, reg, &data))
         .stderr(get_hook_output!(&hook.stderr, reg, &data))
@@ -154,7 +158,7 @@ where
         .iter()
         .filter(|h| h.hook_type.contains(&hook_type))
     {
-        call_single(cert, data, &hook)?;
+        call_single(data, &hook)?;
     }
     Ok(())
 }

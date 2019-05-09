@@ -1,6 +1,6 @@
 use crate::certificate::Certificate;
 use crate::config::HookType;
-use crate::hooks::{self, FileStorageHookData};
+use crate::hooks::{self, FileStorageHookData, HookEnvData};
 use acme_common::b64_encode;
 use acme_common::error::Error;
 use log::trace;
@@ -135,12 +135,13 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
 
 fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<(), Error> {
     let (file_directory, file_name, path) = get_file_full_path(cert, file_type.clone())?;
-    let hook_data = FileStorageHookData {
+    let mut hook_data = FileStorageHookData {
         file_name,
         file_directory,
         file_path: path.to_path_buf(),
         env: HashMap::new(),
     };
+    hook_data.set_env(&cert.env);
     let is_new = !path.is_file();
 
     if is_new {

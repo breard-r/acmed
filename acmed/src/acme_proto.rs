@@ -70,7 +70,7 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let domains = cert
         .domains
         .iter()
-        .map(|d| d.0.to_owned())
+        .map(|d| d.dns.to_owned())
         .collect::<Vec<String>>();
     let mut hook_datas = vec![];
 
