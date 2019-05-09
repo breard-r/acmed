@@ -360,6 +360,77 @@ True if the certificate request is successful.
 Human-readable status. If the certificate request failed, it contains the error description.
 .El
 .El
+.Sh DEFAULT HOOKS
+Because many people have the same needs, ACMEd comes with a set of hooks that should serve most situations. Hook names being unique, the following names and any other name starting by those is reserved and should not be used.
+.Bl -tag
+.It Pa git
+This hook uses
+.Xr git 1
+to archive private keys, public keys and certificates. It is possible to customize the commit username and email by using respectively the
+.Ev GIT_USERNAME
+and
+.Ev GIT_EMAIL
+environment variables.
+.It Pa http-01-echo
+This hook is designed to solve the http-01 challenge. For this purpose, it will write the proof into
+.Pa {{env.HTTP_ROOT}}/{{domain}}/.well-known/acme-challenge/{{file_name}} .
+.Pp
+The web server must be configured so the file
+.Pa http://{{domain}}/.well-known/acme-challenge/{{file_name}}
+can be accessed from the CA.
+.Pp
+If
+.Ev HTTP_ROOT
+is not specified, it will be set to
+.Pa /var/www .
+.It Pa tls-alpn-01-tacd-tcp
+This hook is designed to solve the tls-alpn-01 challenge using
+.Xr tacd 8 .
+It requires
+.Xr pkill 1
+to support the
+.Em Ar -F
+option.
+.Pp
+.Xr tacd 8
+will listen on the host defined by the
+.Ev TACD_HOST
+environment variable (default is the domain to be validated) and on the port defined by the
+.Ev TACD_PORT
+environment variable (default is 5001).
+.Pp
+.Xr tacd 8
+will store its pid into
+.Pa {{TACD_PID_ROOT}}/tacd_{{domain}}.pid .
+If
+.Ev TACD_PID_ROOT
+is not specified, it will be set to
+.Pa /run .
+.It Pa tls-alpn-01-tacd-unix
+This hook is designed to solve the tls-alpn-01 challenge using
+.Xr tacd 8 .
+It requires
+.Xr pkill 1
+to support the
+.Em Ar -F
+option.
+.Pp
+.Xr tacd 8
+will listen on the unix socket
+.Pa {{env.TACD_SOCK_ROOT}}/tacd_{{domain}}.sock .
+If
+.Ev TACD_SOCK_ROOT
+is not specified, it will be set to
+.Pa /run .
+.Pp
+.Xr tacd 8
+will store its pid into
+.Pa {{TACD_PID_ROOT}}/tacd_{{domain}}.pid .
+If
+.Ev TACD_PID_ROOT
+is not specified, it will be set to
+.Pa /run .
+.El
 .Sh FILES
 .Bl -tag
 .It Pa /etc/acmed/acmed.toml
