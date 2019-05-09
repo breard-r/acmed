@@ -106,7 +106,7 @@ name = "tls-alpn-01-tacd-tcp"
 hooks = ["tls-alpn-01-tacd-start-tcp", "tls-alpn-01-tacd-kill", "tls-alpn-01-tacd-rm"]
 
 [[group]]
-name = "tls-alpn-01-tacd-tcp-unix"
+name = "tls-alpn-01-tacd-unix"
 hooks = ["tls-alpn-01-tacd-start-unix", "tls-alpn-01-tacd-kill", "tls-alpn-01-tacd-rm"]
 
 
