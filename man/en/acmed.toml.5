@@ -460,11 +460,12 @@ endpoint = "example name"
 account = "my test account"
 domains = [
     { dns = "exemple.net", challenge = "http-01"},
-    { dns = "1.exemple.net", challenge = "http-01"},
-    { dns = "2.exemple.net", challenge = "dns-01"},
-    { dns = "3.exemple.net", challenge = "tls-alpn-01"},
+    { dns = "1.exemple.net", challenge = "dns-01"},
+    { dns = "2.exemple.net", challenge = "tls-alpn-01", env.TACD_PORT="5010"},
+    { dns = "3.exemple.net", challenge = "tls-alpn-01", env.TACD_PORT="5011"},
 ]
-hooks = ["example-hook-1", "example-hook-2", "example-hook-3"]
+hooks = ["git", "http-01-echo", "tls-alpn-01-tacd-tcp", "some-dns-01-hook"]
+env.HTTP_ROOT = "/srv/http"
 .Ed
 .Pp
 It is possible to use
