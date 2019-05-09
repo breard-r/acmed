@@ -5,7 +5,7 @@ use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
 use log::{debug, trace};
 use openssl::x509::X509;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use time::{strptime, Duration};
 
@@ -203,6 +203,7 @@ impl Certificate {
             file_name: file_name.to_string(),
             proof: proof.to_string(),
             is_clean_hook: false,
+            env: HashMap::new(),
         };
         let hook_type = match challenge {
             Challenge::Http01 => (HookType::ChallengeHttp01, HookType::ChallengeHttp01Clean),
@@ -235,6 +236,7 @@ impl Certificate {
             algorithm: self.algo.to_string(),
             status: status.to_string(),
             is_success,
+            env: HashMap::new(),
         };
         hooks::call(&hook_data, &self.hooks, HookType::PostOperation)?;
         Ok(())

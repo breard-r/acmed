@@ -6,6 +6,7 @@ use acme_common::error::Error;
 use log::trace;
 use openssl::pkey::{PKey, Private, Public};
 use openssl::x509::X509;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -138,6 +139,7 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
         file_name,
         file_directory,
         file_path: path.to_path_buf(),
+        env: HashMap::new(),
     };
     let is_new = !path.is_file();
 
