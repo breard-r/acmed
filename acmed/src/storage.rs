@@ -144,9 +144,9 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     let is_new = !path.is_file();
 
     if is_new {
-        hooks::call(&hook_data, &cert.hooks, HookType::FilePreCreate)?;
+        hooks::call(cert, &hook_data, HookType::FilePreCreate)?;
     } else {
-        hooks::call(&hook_data, &cert.hooks, HookType::FilePreEdit)?;
+        hooks::call(cert, &hook_data, HookType::FilePreEdit)?;
     }
 
     trace!("Writing file {:?}", path);
@@ -168,9 +168,9 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     }
 
     if is_new {
-        hooks::call(&hook_data, &cert.hooks, HookType::FilePostCreate)?;
+        hooks::call(cert, &hook_data, HookType::FilePostCreate)?;
     } else {
-        hooks::call(&hook_data, &cert.hooks, HookType::FilePostEdit)?;
+        hooks::call(cert, &hook_data, HookType::FilePostEdit)?;
     }
     Ok(())
 }

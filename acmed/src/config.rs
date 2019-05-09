@@ -3,6 +3,7 @@ use crate::hooks;
 use acme_common::error::Error;
 use log::info;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
@@ -206,6 +207,8 @@ pub struct Certificate {
     pub name_format: Option<String>,
     pub formats: Option<Vec<String>>,
     pub hooks: Vec<String>,
+    #[serde(default)]
+    pub env: HashMap<String, String>,
 }
 
 impl Certificate {

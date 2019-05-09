@@ -21,7 +21,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "/var/www/{{domain}}/.well-known/acme-challenge"
+    "-p", "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge"
 ]
 
 [[hook]]
@@ -29,7 +29,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+stdout = "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -37,7 +37,7 @@ type = ["challenge-http-01-clean"]
 cmd = "chmod"
 args = [
     "a+r",
-    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
 
 [[hook]]
@@ -46,11 +46,11 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
 
 [[group]]
-name = "http-01-echo-var-www"
+name = "http-01-echo"
 hooks = [
     "http-01-echo-mkdir",
     "http-01-echo-echo",
@@ -68,10 +68,10 @@ name = "tls-alpn-01-tacd-start-tcp"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "/tmp/tacd_{{domain}}.pid",
+    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
     "--domain", "{{domain}}",
     "--acme-ext", "{{proof}}",
-    "--listen", "{{domain}}:5001"
+    "--listen", "{{#if env.TACD_HOST}}{{env.TACD_HOST}}{{else}}{{domain}}{{/if}}:{{#if env.TACD_PORT}}{{env.TACD_PORT}}{{else}}5001{{/if}}"
 ]
 
 [[hook]]
@@ -79,10 +79,10 @@ name = "tls-alpn-01-tacd-start-unix"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "/tmp/tacd_{{domain}}.pid",
+    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
     "--domain", "{{domain}}",
     "--acme-ext", "{{proof}}",
-    "--listen", "unix:/tmp/tacd_{{domain}}.sock"
+    "--listen", "unix:{{#if env.TACD_SOCK_ROOT}}{{env.TACD_SOCK_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.sock"
 ]
 
 [[hook]]
@@ -90,7 +90,7 @@ name = "tls-alpn-01-tacd-kill"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "pkill"
 args = [
-    "-F", "/tmp/tacd_{{domain}}.pid"
+    "-F", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
 ]
 
 [[hook]]
@@ -98,7 +98,7 @@ name = "tls-alpn-01-tacd-rm"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "rm"
 args = [
-    "-f", "/tmp/tacd_{{domain}}.pid"
+    "-f", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
 ]
 
 [[group]]
@@ -138,8 +138,8 @@ type = ["file-post-create", "file-post-edit"]
 cmd = "git"
 args = [
     "-C", "{{file_directory}}",
-    "-c", "user.name=ACMEd",
-    "-c", "user.email=acmed@localhost",
+    "-c", "user.name='{{#if env.GIT_USERNAME}}{{env.GIT_USERNAME}}{{else}}ACMEd{{/if}}'",
+    "-c", "user.email='{{#if env.GIT_EMAIL}}{{env.GIT_EMAIL}}{{else}}acmed@localhost{{/if}}'",
     "commit",
     "-m", "{{file_name}}",
     "--only", "{{file_name}}"

@@ -88,6 +88,7 @@ pub struct Certificate {
     pub pk_file_mode: u32,
     pub pk_file_owner: Option<String>,
     pub pk_file_group: Option<String>,
+    pub env: HashMap<String, String>,
 }
 
 impl fmt::Display for Certificate {
@@ -213,7 +214,7 @@ impl Certificate {
                 HookType::ChallengeTlsAlpn01Clean,
             ),
         };
-        hooks::call(&hook_data, &self.hooks, hook_type.0)?;
+        hooks::call(self, &hook_data, hook_type.0)?;
         Ok((hook_data, hook_type.1))
     }
 
@@ -222,7 +223,7 @@ impl Certificate {
         data: &ChallengeHookData,
         hook_type: HookType,
     ) -> Result<(), Error> {
-        hooks::call(data, &self.hooks, hook_type)
+        hooks::call(self, data, hook_type)
     }
 
     pub fn call_post_operation_hooks(&self, status: &str, is_success: bool) -> Result<(), Error> {
@@ -238,7 +239,7 @@ impl Certificate {
             is_success,
             env: HashMap::new(),
         };
-        hooks::call(&hook_data, &self.hooks, HookType::PostOperation)?;
+        hooks::call(self, &hook_data, HookType::PostOperation)?;
         Ok(())
     }
 }

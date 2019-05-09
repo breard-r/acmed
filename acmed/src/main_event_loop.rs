@@ -40,6 +40,7 @@ impl MainEventLoop {
                 pk_file_mode: cnf.get_pk_file_mode(),
                 pk_file_owner: cnf.get_pk_file_user(),
                 pk_file_group: cnf.get_pk_file_group(),
+                env: crt.env.to_owned(),
             };
             certs.push(cert);
         }

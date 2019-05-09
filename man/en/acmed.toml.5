@@ -141,6 +141,8 @@ Array of table representing a certificate that will be requested to a CA.
 Name of the account to use.
 .It Ic endpoint Ar string
 Name of the endpoint to use.
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
 .It Ic domains Ar array
 Array of tables listing the domains that should be included in the certificate along with the challenge to use for each one.
 .Bl -tag
@@ -410,7 +412,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "/var/www/{{domain}}/.well-known/acme-challenge"
+    "-p", "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge"
 ]
 
 [[hook]]
@@ -418,7 +420,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+stdout = "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -426,7 +428,7 @@ type = ["challenge-http-01-clean"]
 cmd = "chmod"
 args = [
     "a+r",
-    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
 
 [[hook]]
@@ -435,7 +437,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "/var/www/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
 .Ed
 .Pp
@@ -452,7 +454,8 @@ hooks = [
 
 [[certificate]]
 # Some fields omitted
-hooks = ["http-01-echo-var-www"]
+hooks = ["http-01-echo"]
+env.HTTP_ROOT = "/srv/http"
 .Ed
 .Pp
 
