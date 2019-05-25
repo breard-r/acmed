@@ -34,7 +34,7 @@ stdout = "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain
 
 [[hook]]
 name = "http-01-echo-chmod"
-type = ["challenge-http-01-clean"]
+type = ["challenge-http-01"]
 cmd = "chmod"
 args = [
     "a+r",
