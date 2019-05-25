@@ -32,8 +32,18 @@ pub const DEFAULT_HTTP_FAIL_WAIT_SEC: u64 = 1;
 pub const DEFAULT_HOOK_ALLOW_FAILURE: bool = false;
 
 fn main() {
+    let full_version = format!(
+        "{} {}\n\nCompiled with:\n  {} {}\n  {} {}",
+        APP_VERSION,
+        env!("ACMED_TARGET"),
+        env!("ACMED_TLS_LIB_NAME"),
+        env!("ACMED_TLS_LIB_VERSION"),
+        env!("ACMED_HTTP_LIB_NAME"),
+        env!("ACMED_HTTP_LIB_VERSION")
+    );
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
+        .long_version(full_version.as_str())
         .arg(
             Arg::with_name("config")
                 .short("c")
