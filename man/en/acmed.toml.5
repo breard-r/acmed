@@ -81,6 +81,8 @@ Array of table where each element defines a command that will be launched at a d
 .Sx WRITING A HOOK
 for more details.
 .Bl -tag
+.It Cm allow_failure Ar boolean
+Defines if an error return value for this hook is allowed or not. If not allowed, a failure in this hook will fail the whole certificate request process. Default is false.
 .It Cm name Ar string
 The name the hook is registered under. Must be unique.
 .It Cm hook_type Ar array

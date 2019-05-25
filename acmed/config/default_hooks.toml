@@ -23,6 +23,7 @@ args = [
     "-m", "0755",
     "-p", "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge"
 ]
+allow_failure = true
 
 [[hook]]
 name = "http-01-echo-echo"
@@ -39,6 +40,7 @@ args = [
     "a+r",
     "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
+allow_failure = true
 
 [[hook]]
 name = "http-01-echo-clean"
@@ -48,6 +50,7 @@ args = [
     "-f",
     "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
 ]
+allow_failure = true
 
 [[group]]
 name = "http-01-echo"
@@ -92,6 +95,7 @@ cmd = "pkill"
 args = [
     "-F", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
 ]
+allow_failure = true
 
 [[hook]]
 name = "tls-alpn-01-tacd-rm"
@@ -100,6 +104,7 @@ cmd = "rm"
 args = [
     "-f", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
 ]
+allow_failure = true
 
 [[group]]
 name = "tls-alpn-01-tacd-tcp"

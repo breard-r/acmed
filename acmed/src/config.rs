@@ -58,6 +58,9 @@ impl Config {
                     stdin: hook.stdin.to_owned(),
                     stdout: hook.stdout.to_owned(),
                     stderr: hook.stderr.to_owned(),
+                    allow_failure: hook
+                        .allow_failure
+                        .unwrap_or(crate::DEFAULT_HOOK_ALLOW_FAILURE),
                 };
                 return Ok(vec![h]);
             }
@@ -158,6 +161,7 @@ pub struct Hook {
     pub stdin: Option<String>,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+    pub allow_failure: Option<bool>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]

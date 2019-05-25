@@ -84,6 +84,7 @@ pub struct Hook {
     pub stdin: Option<String>,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
+    pub allow_failure: bool,
 }
 
 impl fmt::Display for Hook {
@@ -142,8 +143,15 @@ where
     }
     // TODO: add a timeout
     let status = cmd.wait()?;
+    if !status.success() && !hook.allow_failure {
+        let msg = match status.code() {
+            Some(code) => format!("Hook {}: unrecoverable failure: code {}", hook.name, code),
+            None => format!("Hook {}: unrecoverable failure", hook.name),
+        };
+        return Err(msg.into());
+    }
     match status.code() {
-        Some(code) => debug!("Hook {}: exited with code {}", hook.name, code),
+        Some(code) => debug!("Hook {}: exited: code {}", hook.name, code),
         None => debug!("Hook {}: exited", hook.name),
     };
     Ok(())
