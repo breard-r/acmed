@@ -142,6 +142,10 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
         let (_, new_nonce): (Authorization, String) =
             http::pool_obj(root_certs, &auth_url, &data_builder, &break_fn, &nonce)?;
         nonce = new_nonce;
+        for (data, hook_type) in hook_datas.iter() {
+            cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
+        }
+        hook_datas.clear();
     }
 
     // 10. Pool the order in order to see whether or not it is ready
@@ -173,10 +177,6 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let data_builder = set_empty_data_builder!(account, crt_url);
     let (crt, _) = http::get_certificate(root_certs, &crt_url, &data_builder, &nonce)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
-
-    for (data, hook_type) in hook_datas.iter() {
-        cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
-    }
 
     info!("Certificate renewed for {}", domains.join(", "));
     Ok(())

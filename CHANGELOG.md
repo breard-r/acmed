@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Hooks now have the optional `allow_failure` field.
 
+### Changed
+- Hooks are now cleaned right after the current challenge has been validated instead of after the certificate's retrieval.
+
 ### Fixed
 - The http-01-echo hook now correctly sets the file's access rights
 
