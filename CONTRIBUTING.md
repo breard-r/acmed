@@ -6,6 +6,11 @@
 The first way to help is to actually use the software and [report any bug you encounter](https://github.com/breard-r/acmed/issues). Do not hesitate to test the limits.
 
 
+## Improving the language
+
+Since the author is not a native English speaker, some of the texts used in this project should be fixed.
+
+
 ## Fix issues in dependencies
 
 ### nix
