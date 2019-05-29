@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Hooks now have the optional `allow_failure` field.
+- In hooks, the `stdin_str` has been added in replacement of the previous `stdin` behavior.
 
 ### Changed
 - Hooks are now cleaned right after the current challenge has been validated instead of after the certificate's retrieval.
+- In hooks, the `stdin` field now refers to the path of the file that should be written into the hook's standard input.
 
 ### Fixed
 - The http-01-echo hook now correctly sets the file's access rights

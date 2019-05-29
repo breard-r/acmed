@@ -8,6 +8,7 @@ use std::collections::hash_map::Iter;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::{env, fmt};
@@ -76,12 +77,19 @@ pub struct FileStorageHookData {
 imple_hook_data_env!(FileStorageHookData);
 
 #[derive(Clone, Debug)]
+pub enum HookStdin {
+    File(String),
+    Str(String),
+    None,
+}
+
+#[derive(Clone, Debug)]
 pub struct Hook {
     pub name: String,
     pub hook_type: Vec<HookType>,
     pub cmd: String,
     pub args: Option<Vec<String>>,
-    pub stdin: Option<String>,
+    pub stdin: HookStdin,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
     pub allow_failure: bool,
@@ -131,15 +139,29 @@ where
         .stdout(get_hook_output!(&hook.stdout, reg, &data))
         .stderr(get_hook_output!(&hook.stderr, reg, &data))
         .stdin(match &hook.stdin {
-            Some(_) => Stdio::piped(),
-            None => Stdio::null(),
+            HookStdin::Str(_) | HookStdin::File(_) => Stdio::piped(),
+            HookStdin::None => Stdio::null(),
         })
         .spawn()?;
-    if hook.stdin.is_some() {
-        let data_in = reg.render_template(&hook.stdin.to_owned().unwrap(), &data)?;
-        debug!("Hook {}: stdin: {}", hook.name, data_in);
-        let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
-        stdin.write_all(data_in.as_bytes())?;
+    match &hook.stdin {
+        HookStdin::Str(s) => {
+            let data_in = reg.render_template(&s, &data)?;
+            debug!("Hook {}: string stdin: {}", hook.name, &data_in);
+            let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
+            stdin.write_all(data_in.as_bytes())?;
+        }
+        HookStdin::File(f) => {
+            let file_name = reg.render_template(&f, &data)?;
+            debug!("Hook {}: file stdin: {}", hook.name, &file_name);
+            let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
+            let file = File::open(&file_name)?;
+            let buf_reader = BufReader::new(file);
+            for line in buf_reader.lines() {
+                let line = format!("{}\n", line?);
+                stdin.write_all(line.as_bytes())?;
+            }
+        }
+        HookStdin::None => {}
     }
     // TODO: add a timeout
     let status = cmd.wait()?;

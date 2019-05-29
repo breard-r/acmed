@@ -116,7 +116,11 @@ The name of the command that will be launched.
 .It Ic args Ar array
 Array of strings representing the command's arguments.
 .It Ic stdin Ar string
-String that will be written into the command's standard input.
+Path to the file that will be written into the command's standard intput. Mutually exclusive with
+.Em stdin_str .
+.It Ic stdin_str Ar string
+String that will be written into the command's standard input. Mutually exclusive with
+.Em stdin .
 .It Ic stdout Ar string
 Path to the file where the command's standard output if written.
 .It Ic stderr Ar string
@@ -199,6 +203,7 @@ A hook have a type that will influence both the moment it is called and the avai
 When writing a hook, the values of
 .Em args ,
 .Em stdin ,
+.Em stdin_str ,
 .Em stdout
 and
 .Em stderr
@@ -549,7 +554,7 @@ args = [
     "-f", "noreply.certs@example.net",
     "contact@example.net"
 ]
-stdin = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{domains.[0]}}
+stdin_str = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{domains.[0]}}
 
 The following certificate has {{#unless is_success}}*not* {{/unless}}been renewed.
 domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}

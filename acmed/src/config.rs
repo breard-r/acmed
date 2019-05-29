@@ -17,6 +17,25 @@ macro_rules! set_cfg_attr {
     };
 }
 
+fn get_stdin(hook: &Hook) -> Result<hooks::HookStdin, Error> {
+    match &hook.stdin {
+        Some(file) => match &hook.stdin_str {
+            Some(_) => {
+                let msg = format!(
+                    "{}: A hook cannot have both stdin and stdin_str",
+                    &hook.name
+                );
+                Err(msg.into())
+            }
+            None => Ok(hooks::HookStdin::File(file.to_string())),
+        },
+        None => match &hook.stdin_str {
+            Some(s) => Ok(hooks::HookStdin::Str(s.to_string())),
+            None => Ok(hooks::HookStdin::None),
+        },
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -55,7 +74,7 @@ impl Config {
                     hook_type: hook.hook_type.to_owned(),
                     cmd: hook.cmd.to_owned(),
                     args: hook.args.to_owned(),
-                    stdin: hook.stdin.to_owned(),
+                    stdin: get_stdin(&hook)?,
                     stdout: hook.stdout.to_owned(),
                     stderr: hook.stderr.to_owned(),
                     allow_failure: hook
@@ -159,6 +178,7 @@ pub struct Hook {
     pub cmd: String,
     pub args: Option<Vec<String>>,
     pub stdin: Option<String>,
+    pub stdin_str: Option<String>,
     pub stdout: Option<String>,
     pub stderr: Option<String>,
     pub allow_failure: Option<bool>,
