@@ -119,7 +119,7 @@ fn main() {
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
-    let mut srv = match MainEventLoop::new(&config_file, &root_certs) {
+    let srv = match MainEventLoop::new(&config_file, &root_certs) {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);

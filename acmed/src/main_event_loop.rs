@@ -5,6 +5,24 @@ use acme_common::error::Error;
 use std::thread;
 use std::time::Duration;
 
+fn renew_certificate(crt: &Certificate, root_certs: &[String]) {
+    let (status, is_success) = match request_certificate(crt, root_certs) {
+        Ok(_) => ("Success.".to_string(), true),
+        Err(e) => {
+            let e = e.prefix("Unable to renew the certificate");
+            crt.warn(&e.message);
+            (e.message, false)
+        }
+    };
+    match crt.call_post_operation_hooks(&status, is_success) {
+        Ok(_) => {}
+        Err(e) => {
+            let e = e.prefix("Post-operation hook error");
+            crt.warn(&e.message);
+        }
+    };
+}
+
 pub struct MainEventLoop {
     certs: Vec<Certificate>,
     root_certs: Vec<String>,
@@ -46,37 +64,33 @@ impl MainEventLoop {
         })
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&self) {
         loop {
-            for crt in self.certs.iter_mut() {
-                match crt.should_renew() {
-                    Ok(sr) => {
-                        if sr {
-                            let (status, is_success) =
-                                match request_certificate(crt, &self.root_certs) {
-                                    Ok(_) => ("Success.".to_string(), true),
-                                    Err(e) => {
-                                        let e = e.prefix("Unable to renew the certificate");
-                                        crt.warn(&e.message);
-                                        (e.message, false)
-                                    }
-                                };
-                            match crt.call_post_operation_hooks(&status, is_success) {
-                                Ok(_) => {}
-                                Err(e) => {
-                                    let e = e.prefix("Post-operation hook error");
-                                    crt.warn(&e.message);
-                                }
-                            };
-                        }
-                    }
-                    Err(e) => {
-                        crt.warn(&e.message);
-                    }
-                };
-            }
-
+            self.renew_certificates();
             thread::sleep(Duration::from_secs(crate::DEFAULT_SLEEP_TIME));
+        }
+    }
+
+    fn renew_certificates(&self) {
+        let mut handles = vec![];
+        for crt in self.certs.iter() {
+            match crt.should_renew() {
+                Ok(true) => {
+                    let root_certs = self.root_certs.clone();
+                    let cert = (*crt).clone();
+                    let handler = thread::spawn(move || {
+                        renew_certificate(&cert, &root_certs);
+                    });
+                    handles.push(handler);
+                }
+                Ok(false) => {}
+                Err(e) => {
+                    crt.warn(&e.message);
+                }
+            };
+        }
+        for handler in handles {
+            let _ = handler.join();
         }
     }
 }

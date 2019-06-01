@@ -41,7 +41,7 @@ impl fmt::Display for Algorithm {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Certificate {
     pub account: Account,
     pub domains: Vec<Domain>,
