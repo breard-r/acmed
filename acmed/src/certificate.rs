@@ -3,39 +3,11 @@ use crate::config::{Account, Domain, HookType};
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::error::Error;
-use log::{debug, trace};
+use log::{debug, info, trace, warn};
 use openssl::x509::X509;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use time::{strptime, Duration};
-
-// OpenSSL ASN1_TIME_print madness
-// The real fix would be to add Asn1TimeRef access in the openssl crate.
-//
-// https://github.com/sfackler/rust-openssl/issues/687
-// https://github.com/sfackler/rust-openssl/pull/673
-fn parse_openssl_time_string(time: &str) -> Result<time::Tm, Error> {
-    debug!("Parsing OpenSSL time: \"{}\"", time);
-    let formats = [
-        "%b %d %T %Y %Z",
-        "%b  %d %T %Y %Z",
-        "%b %d %T %Y",
-        "%b  %d %T %Y",
-        "%b %d %T.%f %Y %Z",
-        "%b  %d %T.%f %Y %Z",
-        "%b %d %T.%f %Y",
-        "%b  %d %T.%f %Y",
-    ];
-    for fmt in formats.iter() {
-        if let Ok(t) = strptime(time, fmt) {
-            trace!("Format \"{}\" matches", fmt);
-            return Ok(t);
-        }
-        trace!("Format \"{}\" does not match", fmt);
-    }
-    let msg = format!("invalid time string: {}", time);
-    Err(msg.into())
-}
 
 #[derive(Clone, Debug)]
 pub enum Algorithm {
@@ -89,40 +61,60 @@ pub struct Certificate {
     pub pk_file_owner: Option<String>,
     pub pk_file_group: Option<String>,
     pub env: HashMap<String, String>,
+    pub id: usize,
 }
 
 impl fmt::Display for Certificate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let hooks = self
-            .hooks
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect::<Vec<String>>()
-            .join(", ");
-        let domains = self
-            .domains
-            .iter()
-            .map(|d| format!("{} ({})", d.dns, d.challenge))
-            .collect::<Vec<String>>()
-            .join(", ");
-        write!(
-            f,
-            "Certificate information:
-Domains: {domains}
-Algorithm: {algo}
-Account: {account}
-Private key reuse: {kp_reuse}
-Hooks: {hooks}",
-            domains = domains,
-            algo = self.algo,
-            account = self.account.name,
-            kp_reuse = self.kp_reuse,
-            hooks = hooks,
-        )
+        // TODO: set a more "funky" id
+        write!(f, "crt-{:x}", self.id)
     }
 }
 
 impl Certificate {
+    pub fn warn(&self, msg: &str) {
+        warn!("{}: {}", &self, msg);
+    }
+
+    pub fn info(&self, msg: &str) {
+        info!("{}: {}", &self, msg);
+    }
+
+    pub fn debug(&self, msg: &str) {
+        debug!("{}: {}", &self, msg);
+    }
+
+    pub fn trace(&self, msg: &str) {
+        trace!("{}: {}", &self, msg);
+    }
+
+    // OpenSSL ASN1_TIME_print madness
+    // The real fix would be to add Asn1TimeRef access in the openssl crate.
+    //
+    // https://github.com/sfackler/rust-openssl/issues/687
+    // https://github.com/sfackler/rust-openssl/pull/673
+    fn parse_openssl_time_string(&self, time: &str) -> Result<time::Tm, Error> {
+        self.debug(&format!("Parsing OpenSSL time: \"{}\"", time));
+        let formats = [
+            "%b %d %T %Y %Z",
+            "%b  %d %T %Y %Z",
+            "%b %d %T %Y",
+            "%b  %d %T %Y",
+            "%b %d %T.%f %Y %Z",
+            "%b  %d %T.%f %Y %Z",
+            "%b %d %T.%f %Y",
+            "%b  %d %T.%f %Y",
+        ];
+        for fmt in formats.iter() {
+            if let Ok(t) = strptime(time, fmt) {
+                self.trace(&format!("Format \"{}\" matches", fmt));
+                return Ok(t);
+            }
+            self.trace(&format!("Format \"{}\" does not match", fmt));
+        }
+        Err(format!("invalid time string: {}", time).into())
+    }
+
     pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
         let domain_name = domain_name.to_string();
         for d in self.domains.iter() {
@@ -131,17 +123,16 @@ impl Certificate {
                 return Ok(c);
             }
         }
-        let msg = format!("{}: domain name not found", domain_name);
-        Err(msg.into())
+        Err(format!("{}: domain name not found", domain_name).into())
     }
 
     fn is_expiring(&self, cert: &X509) -> Result<bool, Error> {
         let not_after = cert.not_after().to_string();
-        let not_after = parse_openssl_time_string(&not_after)?;
-        debug!("not after: {}", not_after.asctime());
+        let not_after = self.parse_openssl_time_string(&not_after)?;
+        self.debug(&format!("not after: {}", not_after.asctime()));
         // TODO: allow a custom duration (using time-parse ?)
         let renewal_time = not_after - Duration::weeks(3);
-        debug!("renew on: {}", renewal_time.asctime());
+        self.debug(&format!("renew on: {}", renewal_time.asctime()));
         Ok(time::now_utc() > renewal_time)
     }
 
@@ -166,17 +157,17 @@ impl Certificate {
                 .map(std::borrow::ToOwned::to_owned)
                 .collect::<Vec<String>>()
                 .join(", ");
-            debug!(
+            self.debug(&format!(
                 "The certificate does not include the following domains: {}",
                 domains
-            );
+            ));
         }
         has_miss
     }
 
     pub fn should_renew(&self) -> Result<bool, Error> {
         if !certificate_files_exists(&self) {
-            debug!("certificate does not exist: requesting one");
+            self.debug("certificate does not exist: requesting one");
             return Ok(true);
         }
         let cert = get_certificate(&self)?;
@@ -185,9 +176,9 @@ impl Certificate {
         let renew = renew || self.is_expiring(&cert)?;
 
         if renew {
-            debug!("The certificate will be renewed now.");
+            self.debug("The certificate will be renewed now.");
         } else {
-            debug!("The certificate will not be renewed now.");
+            self.debug("The certificate will not be renewed now.");
         }
         Ok(renew)
     }
@@ -252,7 +243,35 @@ impl Certificate {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_openssl_time_string;
+    use super::{Algorithm, Certificate};
+    use std::collections::HashMap;
+
+    fn get_dummy_certificate() -> Certificate {
+        Certificate {
+            account: crate::config::Account {
+                name: String::new(),
+                email: String::new(),
+            },
+            domains: Vec::new(),
+            algo: Algorithm::Rsa2048,
+            kp_reuse: false,
+            remote_url: String::new(),
+            tos_agreed: false,
+            hooks: Vec::new(),
+            account_directory: String::new(),
+            crt_directory: String::new(),
+            crt_name: String::new(),
+            crt_name_format: String::new(),
+            cert_file_mode: 0,
+            cert_file_owner: None,
+            cert_file_group: None,
+            pk_file_mode: 0,
+            pk_file_owner: None,
+            pk_file_group: None,
+            env: HashMap::new(),
+            id: 0,
+        }
+    }
 
     #[test]
     fn test_parse_openssl_time() {
@@ -266,8 +285,9 @@ mod tests {
             "May 17 18:34:07.922661874 2024",
             "May 17 18:34:07.922661874 2024 GMT",
         ];
+        let crt = get_dummy_certificate();
         for time_str in time_str_lst.iter() {
-            let time_res = parse_openssl_time_string(time_str);
+            let time_res = crt.parse_openssl_time_string(time_str);
             assert!(time_res.is_ok());
         }
     }

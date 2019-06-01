@@ -3,7 +3,6 @@ use crate::config::HookType;
 use crate::hooks::{self, FileStorageHookData, HookEnvData};
 use acme_common::b64_encode;
 use acme_common::error::Error;
-use log::trace;
 use openssl::pkey::{PKey, Private, Public};
 use openssl::x509::X509;
 use std::collections::HashMap;
@@ -72,8 +71,8 @@ fn get_file_path(cert: &Certificate, file_type: FileType) -> Result<PathBuf, Err
     Ok(path)
 }
 
-fn read_file(path: &PathBuf) -> Result<Vec<u8>, Error> {
-    trace!("Reading file {:?}", path);
+fn read_file(cert: &Certificate, path: &PathBuf) -> Result<Vec<u8>, Error> {
+    cert.trace(&format!("Reading file {:?}", path));
     let mut file = File::open(path)?;
     let mut contents = vec![];
     file.read_to_end(&mut contents)?;
@@ -120,12 +119,12 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
         None => None,
     };
     match uid {
-        Some(u) => trace!("Setting the uid to {}", u.as_raw()),
-        None => trace!("Uid unchanged"),
+        Some(u) => cert.trace(&format!("{:?}: setting the uid to {}", path, u.as_raw())),
+        None => cert.trace(&format!("{:?}: uid unchanged", path)),
     };
     match gid {
-        Some(g) => trace!("Setting the gid to {}", g.as_raw()),
-        None => trace!("Gid unchanged"),
+        Some(g) => cert.trace(&format!("{:?}: setting the gid to {}", path, g.as_raw())),
+        None => cert.trace(&format!("{:?}: gid unchanged", path)),
     };
     match nix::unistd::chown(path, uid, gid) {
         Ok(_) => Ok(()),
@@ -150,7 +149,7 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
         hooks::call(cert, &hook_data, HookType::FilePreEdit)?;
     }
 
-    trace!("Writing file {:?}", path);
+    cert.trace(&format!("Writing file {:?}", path));
     let mut file = if cfg!(unix) {
         let mut options = OpenOptions::new();
         options.mode(match &file_type {
@@ -178,7 +177,7 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
 
 pub fn get_account_priv_key(cert: &Certificate) -> Result<PKey<Private>, Error> {
     let path = get_file_path(cert, FileType::AccountPrivateKey)?;
-    let raw_key = read_file(&path)?;
+    let raw_key = read_file(cert, &path)?;
     let key = PKey::private_key_from_pem(&raw_key)?;
     Ok(key)
 }
@@ -190,7 +189,7 @@ pub fn set_account_priv_key(cert: &Certificate, key: &PKey<Private>) -> Result<(
 
 pub fn get_account_pub_key(cert: &Certificate) -> Result<PKey<Public>, Error> {
     let path = get_file_path(cert, FileType::AccountPublicKey)?;
-    let raw_key = read_file(&path)?;
+    let raw_key = read_file(cert, &path)?;
     let key = PKey::public_key_from_pem(&raw_key)?;
     Ok(key)
 }
@@ -202,7 +201,7 @@ pub fn set_account_pub_key(cert: &Certificate, key: &PKey<Public>) -> Result<(),
 
 pub fn get_priv_key(cert: &Certificate) -> Result<PKey<Private>, Error> {
     let path = get_file_path(cert, FileType::PrivateKey)?;
-    let raw_key = read_file(&path)?;
+    let raw_key = read_file(cert, &path)?;
     let key = PKey::private_key_from_pem(&raw_key)?;
     Ok(key)
 }
@@ -219,7 +218,7 @@ pub fn get_pub_key(cert: &Certificate) -> Result<PKey<Public>, Error> {
 
 pub fn get_certificate(cert: &Certificate) -> Result<X509, Error> {
     let path = get_file_path(cert, FileType::Certificate)?;
-    let raw_crt = read_file(&path)?;
+    let raw_crt = read_file(cert, &path)?;
     let crt = X509::from_pem(&raw_crt)?;
     Ok(crt)
 }
@@ -236,7 +235,7 @@ fn check_files(cert: &Certificate, file_types: &[FileType]) -> bool {
                 return false;
             }
         };
-        trace!("Testing file path: {}", path.to_str().unwrap());
+        cert.trace(&format!("Testing file path: {}", path.to_str().unwrap()));
         if !path.is_file() {
             return false;
         }

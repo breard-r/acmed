@@ -2,7 +2,6 @@ use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
 use crate::config;
 use acme_common::error::Error;
-use log::{debug, warn};
 use std::thread;
 use std::time::Duration;
 
@@ -16,7 +15,7 @@ impl MainEventLoop {
         let cnf = config::from_file(config_file)?;
 
         let mut certs = Vec::new();
-        for crt in cnf.certificate.iter() {
+        for (i, crt) in cnf.certificate.iter().enumerate() {
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 domains: crt.domains.to_owned(),
@@ -36,6 +35,7 @@ impl MainEventLoop {
                 pk_file_owner: cnf.get_pk_file_user(),
                 pk_file_group: cnf.get_pk_file_group(),
                 env: crt.env.to_owned(),
+                id: i + 1,
             };
             certs.push(cert);
         }
@@ -49,7 +49,6 @@ impl MainEventLoop {
     pub fn run(&mut self) {
         loop {
             for crt in self.certs.iter_mut() {
-                debug!("{}", crt);
                 match crt.should_renew() {
                     Ok(sr) => {
                         if sr {
@@ -57,32 +56,22 @@ impl MainEventLoop {
                                 match request_certificate(crt, &self.root_certs) {
                                     Ok(_) => ("Success.".to_string(), true),
                                     Err(e) => {
-                                        let msg = format!(
-                                            "Unable to renew the {} certificate for {}: {}",
-                                            crt.algo,
-                                            &crt.domains.first().unwrap().dns,
-                                            e
-                                        );
-                                        warn!("{}", msg);
-                                        (format!("Failed: {}", msg), false)
+                                        let e = e.prefix("Unable to renew the certificate");
+                                        crt.warn(&e.message);
+                                        (e.message, false)
                                     }
                                 };
                             match crt.call_post_operation_hooks(&status, is_success) {
                                 Ok(_) => {}
                                 Err(e) => {
-                                    let msg = format!(
-                                        "{} certificate for {}: post-operation hook error: {}",
-                                        crt.algo,
-                                        &crt.domains.first().unwrap().dns,
-                                        e
-                                    );
-                                    warn!("{}", msg);
+                                    let e = e.prefix("Post-operation hook error");
+                                    crt.warn(&e.message);
                                 }
                             };
                         }
                     }
                     Err(e) => {
-                        warn!("{}", e);
+                        crt.warn(&e.message);
                     }
                 };
             }

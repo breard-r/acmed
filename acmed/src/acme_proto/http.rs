@@ -1,9 +1,9 @@
 use crate::acme_proto::structs::{AcmeError, ApiError, Directory, HttpApiError};
+use crate::certificate::Certificate;
 use acme_common::error::Error;
 use http_req::request::{Method, Request};
 use http_req::response::Response;
 use http_req::uri::Uri;
-use log::{debug, trace, warn};
 use std::path::Path;
 use std::str::FromStr;
 use std::{thread, time};
@@ -25,8 +25,13 @@ impl FromStr for DummyString {
     }
 }
 
-fn new_request<'a>(root_certs: &'a [String], uri: &'a Uri, method: Method) -> Request<'a> {
-    debug!("{}: {}", method, uri);
+fn new_request<'a>(
+    cert: &Certificate,
+    root_certs: &'a [String],
+    uri: &'a Uri,
+    method: Method,
+) -> Request<'a> {
+    cert.debug(&format!("{}: {}", method, uri));
     let useragent = format!(
         "{}/{} ({}) {}",
         crate::APP_NAME,
@@ -52,7 +57,7 @@ fn send_request(request: &Request) -> Result<(Response, String), Error> {
     Ok((res, res_str))
 }
 
-fn send_request_retry(request: &Request) -> Result<(Response, String), Error> {
+fn send_request_retry(cert: &Certificate, request: &Request) -> Result<(Response, String), Error> {
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let (res, res_body) = send_request(request)?;
         match check_response(&res, &res_body) {
@@ -64,7 +69,7 @@ fn send_request_retry(request: &Request) -> Result<(Response, String), Error> {
                     let msg = format!("HTTP error: {}: {}", res.status_code(), res.reason());
                     return Err(msg.into());
                 }
-                warn!("{}", e);
+                cert.warn(&format!("{}", e));
             }
         };
         thread::sleep(time::Duration::from_secs(crate::DEFAULT_HTTP_FAIL_WAIT_SEC));
@@ -86,10 +91,10 @@ fn is_nonce(data: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
 }
 
-fn nonce_from_response(res: &Response) -> Result<String, Error> {
+fn nonce_from_response(cert: &Certificate, res: &Response) -> Result<String, Error> {
     let nonce = get_header(res, "Replay-Nonce")?;
     if is_nonce(&nonce) {
-        trace!("New nonce: {}", nonce);
+        cert.trace(&format!("New nonce: {}", nonce));
         Ok(nonce.to_string())
     } else {
         let msg = format!("{}: invalid nonce.", nonce);
@@ -98,21 +103,22 @@ fn nonce_from_response(res: &Response) -> Result<String, Error> {
 }
 
 fn post_jose_type(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data: &[u8],
     accept_type: &str,
 ) -> Result<(Response, String), Error> {
     let uri = url.parse::<Uri>()?;
-    let mut request = new_request(root_certs, &uri, Method::POST);
+    let mut request = new_request(cert, root_certs, &uri, Method::POST);
     request.header("Content-Type", CONTENT_TYPE_JOSE);
     request.header("Content-Length", &data.len().to_string());
     request.header("Accept", accept_type);
     request.body(data);
     let rstr = String::from_utf8_lossy(data);
-    trace!("request body: {}", rstr);
+    cert.trace(&format!("request body: {}", rstr));
     let (res, res_body) = send_request(&request)?;
-    trace!("response body: {}", res_body);
+    cert.trace(&format!("response body: {}", res_body));
     Ok((res, res_body))
 }
 
@@ -125,6 +131,7 @@ fn check_response(res: &Response, body: &str) -> Result<(), AcmeError> {
 }
 
 fn fetch_obj_type<T, G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -138,8 +145,8 @@ where
     let mut nonce = nonce.to_string();
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let data = data_builder(&nonce)?;
-        let (res, res_body) = post_jose_type(root_certs, url, data.as_bytes(), accept_type)?;
-        nonce = nonce_from_response(&res)?;
+        let (res, res_body) = post_jose_type(cert, root_certs, url, data.as_bytes(), accept_type)?;
+        nonce = nonce_from_response(cert, &res)?;
 
         match check_response(&res, &res_body) {
             Ok(()) => {
@@ -152,7 +159,7 @@ where
                     let msg = format!("HTTP error: {}: {}", res.status_code(), res.reason());
                     return Err(msg.into());
                 }
-                warn!("{}", e);
+                cert.warn(&format!("{}", e));
             }
         };
         thread::sleep(time::Duration::from_secs(crate::DEFAULT_HTTP_FAIL_WAIT_SEC));
@@ -161,6 +168,7 @@ where
 }
 
 fn fetch_obj<T, G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -170,10 +178,18 @@ where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    fetch_obj_type(root_certs, url, data_builder, nonce, CONTENT_TYPE_JSON)
+    fetch_obj_type(
+        cert,
+        root_certs,
+        url,
+        data_builder,
+        nonce,
+        CONTENT_TYPE_JSON,
+    )
 }
 
 pub fn get_obj_loc<T, G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -183,7 +199,7 @@ where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (obj, location, nonce) = fetch_obj(root_certs, url, data_builder, nonce)?;
+    let (obj, location, nonce) = fetch_obj(cert, root_certs, url, data_builder, nonce)?;
     if location.is_empty() {
         Err("Location header not found.".into())
     } else {
@@ -192,6 +208,7 @@ where
 }
 
 pub fn get_obj<T, G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -201,11 +218,12 @@ where
     T: std::str::FromStr<Err = Error>,
     G: Fn(&str) -> Result<String, Error>,
 {
-    let (obj, _, nonce) = fetch_obj(root_certs, url, data_builder, nonce)?;
+    let (obj, _, nonce) = fetch_obj(cert, root_certs, url, data_builder, nonce)?;
     Ok((obj, nonce))
 }
 
 pub fn pool_obj<T, G, S>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -220,12 +238,12 @@ where
     let mut nonce: String = nonce.to_string();
     for _ in 0..crate::DEFAULT_POOL_NB_TRIES {
         thread::sleep(time::Duration::from_secs(crate::DEFAULT_POOL_WAIT_SEC));
-        let (obj, _, new_nonce) = fetch_obj(root_certs, url, data_builder, &nonce)?;
+        let (obj, _, new_nonce) = fetch_obj(cert, root_certs, url, data_builder, &nonce)?;
         if break_fn(&obj) {
             return Ok((obj, new_nonce));
         }
         if let Some(e) = obj.get_error() {
-            warn!("Error: {}", e);
+            cert.warn(&e.prefix("Error").message);
         }
         nonce = new_nonce;
     }
@@ -234,6 +252,7 @@ where
 }
 
 pub fn post_challenge_response<G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -243,11 +262,12 @@ where
     G: Fn(&str) -> Result<String, Error>,
 {
     let (_, _, nonce): (DummyString, String, String) =
-        fetch_obj(root_certs, url, data_builder, nonce)?;
+        fetch_obj(cert, root_certs, url, data_builder, nonce)?;
     Ok(nonce)
 }
 
 pub fn get_certificate<G>(
+    cert: &Certificate,
     root_certs: &[String],
     url: &str,
     data_builder: &G,
@@ -257,25 +277,29 @@ where
     G: Fn(&str) -> Result<String, Error>,
 {
     let (res_body, _, nonce): (DummyString, String, String) =
-        fetch_obj(root_certs, url, data_builder, nonce)?;
+        fetch_obj(cert, root_certs, url, data_builder, nonce)?;
     Ok((res_body.content, nonce))
 }
 
-pub fn get_directory(root_certs: &[String], url: &str) -> Result<Directory, Error> {
+pub fn get_directory(
+    cert: &Certificate,
+    root_certs: &[String],
+    url: &str,
+) -> Result<Directory, Error> {
     let uri = url.parse::<Uri>()?;
-    let mut request = new_request(root_certs, &uri, Method::GET);
+    let mut request = new_request(cert, root_certs, &uri, Method::GET);
     request.header("Accept", CONTENT_TYPE_JSON);
-    let (r, s) = send_request_retry(&request)?;
+    let (r, s) = send_request_retry(cert, &request)?;
     check_response(&r, &s)?;
     Directory::from_str(&s)
 }
 
-pub fn get_nonce(root_certs: &[String], url: &str) -> Result<String, Error> {
+pub fn get_nonce(cert: &Certificate, root_certs: &[String], url: &str) -> Result<String, Error> {
     let uri = url.parse::<Uri>()?;
-    let request = new_request(root_certs, &uri, Method::HEAD);
-    let (res, res_body) = send_request_retry(&request)?;
+    let request = new_request(cert, root_certs, &uri, Method::HEAD);
+    let (res, res_body) = send_request_retry(cert, &request)?;
     check_response(&res, &res_body)?;
-    nonce_from_response(&res)
+    nonce_from_response(cert, &res)
 }
 
 #[cfg(test)]

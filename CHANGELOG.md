@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Hooks are now cleaned right after the current challenge has been validated instead of after the certificate's retrieval.
 - In hooks, the `stdin` field now refers to the path of the file that should be written into the hook's standard input.
+- The logging format has been re-written.
 
 ### Fixed
 - The http-01-echo hook now correctly sets the file's access rights

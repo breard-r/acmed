@@ -2,7 +2,6 @@ use crate::certificate::Certificate;
 use crate::config::HookType;
 use acme_common::error::Error;
 use handlebars::Handlebars;
-use log::debug;
 use serde::Serialize;
 use std::collections::hash_map::Iter;
 use std::collections::HashMap;
@@ -102,11 +101,12 @@ impl fmt::Display for Hook {
 }
 
 macro_rules! get_hook_output {
-    ($out: expr, $reg: ident, $data: expr) => {{
+    ($cert: expr, $out: expr, $reg: ident, $data: expr, $hook_name: expr, $out_name: expr) => {{
         match $out {
             Some(path) => {
                 let path = $reg.render_template(path, $data)?;
-                let file = File::create(path)?;
+                $cert.trace(&format!("Hook {}: {}: {}", $hook_name, $out_name, &path));
+                let file = File::create(&path)?;
                 Stdio::from(file)
             }
             None => Stdio::null(),
@@ -114,11 +114,11 @@ macro_rules! get_hook_output {
     }};
 }
 
-fn call_single<T>(data: &T, hook: &Hook) -> Result<(), Error>
+fn call_single<T>(cert: &Certificate, data: &T, hook: &Hook) -> Result<(), Error>
 where
     T: Clone + HookEnvData + Serialize,
 {
-    debug!("Calling hook: {}", hook.name);
+    cert.debug(&format!("Calling hook: {}", hook.name));
     let reg = Handlebars::new();
     let mut v = vec![];
     let args = match &hook.args {
@@ -131,13 +131,27 @@ where
         }
         None => &[],
     };
-    debug!("Hook {}: cmd: {}", hook.name, hook.cmd);
-    debug!("Hook {}: args: {:?}", hook.name, args);
+    cert.trace(&format!("Hook {}: cmd: {}", hook.name, hook.cmd));
+    cert.trace(&format!("Hook {}: args: {:?}", hook.name, args));
     let mut cmd = Command::new(&hook.cmd)
         .envs(data.get_env())
         .args(args)
-        .stdout(get_hook_output!(&hook.stdout, reg, &data))
-        .stderr(get_hook_output!(&hook.stderr, reg, &data))
+        .stdout(get_hook_output!(
+            cert,
+            &hook.stdout,
+            reg,
+            &data,
+            &hook.name,
+            "stdout"
+        ))
+        .stderr(get_hook_output!(
+            cert,
+            &hook.stderr,
+            reg,
+            &data,
+            &hook.name,
+            "stderr"
+        ))
         .stdin(match &hook.stdin {
             HookStdin::Str(_) | HookStdin::File(_) => Stdio::piped(),
             HookStdin::None => Stdio::null(),
@@ -146,13 +160,13 @@ where
     match &hook.stdin {
         HookStdin::Str(s) => {
             let data_in = reg.render_template(&s, &data)?;
-            debug!("Hook {}: string stdin: {}", hook.name, &data_in);
+            cert.trace(&format!("Hook {}: string stdin: {}", hook.name, &data_in));
             let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
             stdin.write_all(data_in.as_bytes())?;
         }
         HookStdin::File(f) => {
             let file_name = reg.render_template(&f, &data)?;
-            debug!("Hook {}: file stdin: {}", hook.name, &file_name);
+            cert.trace(&format!("Hook {}: file stdin: {}", hook.name, &file_name));
             let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
             let file = File::open(&file_name)?;
             let buf_reader = BufReader::new(file);
@@ -167,14 +181,14 @@ where
     let status = cmd.wait()?;
     if !status.success() && !hook.allow_failure {
         let msg = match status.code() {
-            Some(code) => format!("Hook {}: unrecoverable failure: code {}", hook.name, code),
-            None => format!("Hook {}: unrecoverable failure", hook.name),
+            Some(code) => format!("Unrecoverable failure: code {}", code).into(),
+            None => "Unrecoverable failure".into(),
         };
-        return Err(msg.into());
+        return Err(msg);
     }
     match status.code() {
-        Some(code) => debug!("Hook {}: exited: code {}", hook.name, code),
-        None => debug!("Hook {}: exited", hook.name),
+        Some(code) => cert.debug(&format!("Hook {}: exited: code {}", hook.name, code)),
+        None => cert.debug(&format!("Hook {}: exited", hook.name)),
     };
     Ok(())
 }
@@ -188,7 +202,7 @@ where
         .iter()
         .filter(|h| h.hook_type.contains(&hook_type))
     {
-        call_single(data, &hook)?;
+        call_single(cert, data, &hook).map_err(|e| e.prefix(&hook.name))?;
     }
     Ok(())
 }
