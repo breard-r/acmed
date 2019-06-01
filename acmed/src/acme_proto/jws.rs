@@ -43,7 +43,7 @@ fn es256_sign(data: &[u8], private_key: &PKey<Private>) -> Result<String, Error>
 }
 
 fn eddsa_ed25519_sign(_data: &[u8], _private_key: &PKey<Private>) -> Result<String, Error> {
-    // TODO: implement
+    // TODO: implement eddsa_ed25519_sign
     Err("EdDSA not implemented.".into())
 }
 

@@ -33,7 +33,7 @@ impl Es256Jwk {
 
 #[derive(Serialize)]
 pub struct EdDsaEd25519Jwk {
-    // TODO: implement
+    // TODO: implement EdDsaEd25519Jwk
 }
 
 impl EdDsaEd25519Jwk {
