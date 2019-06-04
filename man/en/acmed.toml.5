@@ -63,6 +63,18 @@ Specify the group who will own newly-created private-key files. See
 .Xr chown 2
 for more details.
 .El
+.It Ic rate-limit
+Array of table where each element defines a HTTPS rate limit.
+.Bl -tag
+.It Cm name Ar string
+The name the rate limit is registered under. Must be unique.
+.It Cm number Ar integer
+Number of requests authorized withing the time period.
+.It Cm period Ar string
+Period of time during which a maximal number of requests is authorized. The format is described in the
+.Sx TIME PERIODS
+section.
+.El
 .It Ic endpoint
 Array of table where each element defines a Certificate Authority
 .Pq CA
@@ -70,11 +82,13 @@ which may be used to request certificates.
 .Bl -tag
 .It Cm name Ar string
 The name the endpoint is registered under. Must be unique.
-.It Cm url Ar string
-The endpoint's directory URL.
+.It Cm rate_limits Ar array
+Array containing the names of the HTTPS rate limits to apply.
 .It Cm tos_agreed Ar boolean
 Set whether or not the user agrees to the Terms Of Service
 .Pq TOS .
+.It Cm url Ar string
+The endpoint's directory URL.
 .El
 .It Ic hook
 Array of table where each element defines a command that will be launched at a defined point. See section
@@ -442,6 +456,39 @@ If
 is not specified, it will be set to
 .Pa /run .
 .El
+.Sh TIME PERIODS
+ACMEd uses its own time period format, which is vaguely inspired by the ISO 8601 one. Periods are formatted as
+.Ar PM[PM...]
+where
+.Ar M
+is case sensitive character representing a length and
+.Ar P
+is an integer representing a multiplayer for the following length. The authorized length are:
+.Bl -dash -compact
+.It
+.Ar s :
+second
+.It
+.Ar m :
+minute
+.It
+.Ar h :
+hour
+.It
+.Ar d :
+day
+.It
+.Ar w :
+week
+.El
+The
+.Ar PM
+couples can be specified multiple times and in any order.
+.Pp
+For example,
+.Dq 1d42s and
+.Dq 40s20h4h2s
+both represents a period of one day and forty-two seconds.
 .Sh FILES
 .Bl -tag
 .It Pa /etc/acmed/acmed.toml

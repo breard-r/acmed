@@ -51,6 +51,12 @@ impl From<std::string::FromUtf8Error> for Error {
     }
 }
 
+impl From<std::sync::mpsc::RecvError> for Error {
+    fn from(error: std::sync::mpsc::RecvError) -> Self {
+        format!("MSPC receiver error: {}", error).into()
+    }
+}
+
 impl From<syslog::Error> for Error {
     fn from(error: syslog::Error) -> Self {
         format!("syslog error: {}", error).into()

@@ -7,6 +7,7 @@ use log::{debug, info, trace, warn};
 use openssl::x509::X509;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
+use std::sync::mpsc::SyncSender;
 use time::{strptime, Duration};
 
 #[derive(Clone, Debug)]
@@ -49,6 +50,7 @@ pub struct Certificate {
     pub kp_reuse: bool,
     pub remote_url: String,
     pub tos_agreed: bool,
+    pub https_throttle: SyncSender<crate::rate_limits::Request>,
     pub hooks: Vec<Hook>,
     pub account_directory: String,
     pub crt_directory: String,
@@ -245,8 +247,10 @@ impl Certificate {
 mod tests {
     use super::{Algorithm, Certificate};
     use std::collections::HashMap;
+    use std::sync::mpsc::sync_channel;
 
     fn get_dummy_certificate() -> Certificate {
+        let (https_throttle, _) = sync_channel(0);
         Certificate {
             account: crate::config::Account {
                 name: String::new(),
@@ -257,6 +261,7 @@ mod tests {
             kp_reuse: false,
             remote_url: String::new(),
             tos_agreed: false,
+            https_throttle,
             hooks: Vec::new(),
             account_directory: String::new(),
             crt_directory: String::new(),

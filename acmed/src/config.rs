@@ -1,13 +1,15 @@
 use crate::certificate::Algorithm;
 use crate::hooks;
+use crate::rate_limits;
 use acme_common::error::Error;
 use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::sync::mpsc;
+use std::{fmt, thread};
 
 macro_rules! set_cfg_attr {
     ($to: expr, $from: expr) => {
@@ -42,6 +44,8 @@ pub struct Config {
     pub global: Option<GlobalOptions>,
     #[serde(default)]
     pub endpoint: Vec<Endpoint>,
+    #[serde(default, rename = "rate-limit")]
+    pub rate_limit: Vec<RateLimit>,
     #[serde(default)]
     pub hook: Vec<Hook>,
     #[serde(default)]
@@ -55,6 +59,15 @@ pub struct Config {
 }
 
 impl Config {
+    fn get_rate_limit(&self, name: &str) -> Result<(usize, String), Error> {
+        for rl in self.rate_limit.iter() {
+            if rl.name == name {
+                return Ok((rl.number, rl.period.to_owned()));
+            }
+        }
+        Err(format!("{}: rate limit not found", name).into())
+    }
+
     pub fn get_account_dir(&self) -> String {
         let account_dir = match &self.global {
             Some(g) => match &g.accounts_directory {
@@ -167,6 +180,27 @@ pub struct Endpoint {
     pub name: String,
     pub url: String,
     pub tos_agreed: bool,
+    #[serde(default)]
+    pub rate_limits: Vec<String>,
+}
+
+impl Endpoint {
+    fn is_used(&self, config: &Config) -> bool {
+        for crt in config.certificate.iter() {
+            if crt.endpoint == self.name {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RateLimit {
+    pub name: String,
+    pub number: usize,
+    pub period: String,
 }
 
 #[derive(Deserialize)]
@@ -304,6 +338,11 @@ impl Certificate {
         Ok(ep.url)
     }
 
+    pub fn get_endpoint_name(&self, cnf: &Config) -> Result<String, Error> {
+        let ep = self.get_endpoint(cnf)?;
+        Ok(ep.name)
+    }
+
     pub fn get_tos_agreement(&self, cnf: &Config) -> Result<bool, Error> {
         let ep = self.get_endpoint(cnf)?;
         Ok(ep.tos_agreed)
@@ -368,6 +407,7 @@ fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
         let cnf_path = get_cnf_path(path, cnf_name);
         let mut add_cnf = read_cnf(&cnf_path)?;
         config.endpoint.append(&mut add_cnf.endpoint);
+        config.rate_limit.append(&mut add_cnf.rate_limit);
         config.hook.append(&mut add_cnf.hook);
         config.group.append(&mut add_cnf.group);
         config.account.append(&mut add_cnf.account);
@@ -405,6 +445,24 @@ fn dispatch_global_env_vars(config: &mut Config) {
             }
         }
     }
+}
+
+pub fn init_rate_limits(
+    config: &Config,
+) -> Result<HashMap<String, mpsc::SyncSender<rate_limits::Request>>, Error> {
+    let mut corresp = HashMap::new();
+    for endpoint in config.endpoint.iter() {
+        if endpoint.is_used(config) {
+            let mut limits = Vec::new();
+            for l in endpoint.rate_limits.iter() {
+                limits.push(config.get_rate_limit(l)?);
+            }
+            let mut rl = rate_limits::RateLimit::new(&limits)?;
+            corresp.insert(endpoint.name.to_owned(), rl.get_sender());
+            thread::spawn(move || rl.run());
+        }
+    }
+    Ok(corresp)
 }
 
 pub fn from_file(file_name: &str) -> Result<Config, Error> {

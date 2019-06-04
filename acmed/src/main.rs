@@ -8,6 +8,7 @@ mod certificate;
 mod config;
 mod hooks;
 mod main_event_loop;
+mod rate_limits;
 mod storage;
 
 pub const APP_NAME: &str = "ACMEd";
@@ -30,6 +31,8 @@ pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
 pub const DEFAULT_HTTP_FAIL_NB_RETRY: usize = 10;
 pub const DEFAULT_HTTP_FAIL_WAIT_SEC: u64 = 1;
 pub const DEFAULT_HOOK_ALLOW_FAILURE: bool = false;
+pub const MAX_RATE_LIMIT_SLEEP_MILISEC: u64 = 3_600_000;
+pub const MIN_RATE_LIMIT_SLEEP_MILISEC: u64 = 100;
 
 fn main() {
     let full_version = format!(

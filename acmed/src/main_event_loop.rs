@@ -31,9 +31,20 @@ pub struct MainEventLoop {
 impl MainEventLoop {
     pub fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
         let cnf = config::from_file(config_file)?;
+        let rate_limits_corresp = config::init_rate_limits(&cnf)?;
 
         let mut certs = Vec::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
+            let ep_name = crt.get_endpoint_name(&cnf)?;
+            let https_throttle = rate_limits_corresp
+                .get(&ep_name)
+                .ok_or_else(|| {
+                    Error::from(format!(
+                        "{}: rate limit not found for this endpoint",
+                        ep_name
+                    ))
+                })?
+                .to_owned();
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 domains: crt.domains.to_owned(),
@@ -41,6 +52,7 @@ impl MainEventLoop {
                 kp_reuse: crt.get_kp_reuse(),
                 remote_url: crt.get_remote_url(&cnf)?,
                 tos_agreed: crt.get_tos_agreement(&cnf)?,
+                https_throttle,
                 hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),

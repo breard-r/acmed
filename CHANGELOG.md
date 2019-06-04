@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Hooks now have the optional `allow_failure` field.
 - In hooks, the `stdin_str` has been added in replacement of the previous `stdin` behavior.
+- HTTPS request rate limits.
 
 ### Changed
 - Certificates are renewed in parallel.
