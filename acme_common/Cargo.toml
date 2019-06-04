@@ -15,8 +15,8 @@ name = "acme_common"
 base64 = "0.10"
 daemonize = "0.4"
 env_logger = "0.6"
-handlebars = "2.0.0-beta.1"
-http_req = "0.4"
+handlebars = "2.0.0-beta.2"
+http_req = "0.5"
 log = "0.4"
 openssl = "0.10"
 serde = { version = "1.0", features = ["derive"] }
@@ -25,4 +25,4 @@ syslog = "4.0"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.13"
+nix = "0.14"

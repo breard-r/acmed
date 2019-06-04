@@ -14,8 +14,8 @@ build = "build.rs"
 [dependencies]
 acme_common = { path = "../acme_common" }
 clap = "2.32"
-handlebars = "2.0.0-beta.1"
-http_req = "0.4"
+handlebars = "2.0.0-beta.2"
+http_req = "0.5"
 log = "0.4"
 nom = "5.0.0-beta2"
 openssl = "0.10"
@@ -30,4 +30,4 @@ serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.13"
+nix = "0.14"
