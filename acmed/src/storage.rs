@@ -2,8 +2,8 @@ use crate::certificate::Certificate;
 use crate::config::HookType;
 use crate::hooks::{self, FileStorageHookData, HookEnvData};
 use acme_common::b64_encode;
+use acme_common::crypto::{PrivateKey, PublicKey};
 use acme_common::error::Error;
-use openssl::pkey::{PKey, Private, Public};
 use openssl::x509::X509;
 use std::collections::HashMap;
 use std::fmt;
@@ -175,44 +175,45 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     Ok(())
 }
 
-pub fn get_account_priv_key(cert: &Certificate) -> Result<PKey<Private>, Error> {
+pub fn get_account_priv_key(cert: &Certificate) -> Result<PrivateKey, Error> {
     let path = get_file_path(cert, FileType::AccountPrivateKey)?;
     let raw_key = read_file(cert, &path)?;
-    let key = PKey::private_key_from_pem(&raw_key)?;
+    let key = PrivateKey::from_pem(&raw_key)?;
     Ok(key)
 }
 
-pub fn set_account_priv_key(cert: &Certificate, key: &PKey<Private>) -> Result<(), Error> {
-    let data = key.private_key_to_pem_pkcs8()?;
+pub fn set_account_priv_key(cert: &Certificate, key: &PrivateKey) -> Result<(), Error> {
+    let data = key.to_pem()?;
     write_file(cert, FileType::AccountPrivateKey, &data)
 }
 
-pub fn get_account_pub_key(cert: &Certificate) -> Result<PKey<Public>, Error> {
+pub fn get_account_pub_key(cert: &Certificate) -> Result<PublicKey, Error> {
     let path = get_file_path(cert, FileType::AccountPublicKey)?;
     let raw_key = read_file(cert, &path)?;
-    let key = PKey::public_key_from_pem(&raw_key)?;
+    let key = PublicKey::from_pem(&raw_key)?;
     Ok(key)
 }
 
-pub fn set_account_pub_key(cert: &Certificate, key: &PKey<Public>) -> Result<(), Error> {
-    let data = key.public_key_to_pem()?;
+pub fn set_account_pub_key(cert: &Certificate, key: &PublicKey) -> Result<(), Error> {
+    let data = key.to_pem()?;
     write_file(cert, FileType::AccountPublicKey, &data)
 }
 
-pub fn get_priv_key(cert: &Certificate) -> Result<PKey<Private>, Error> {
+pub fn get_priv_key(cert: &Certificate) -> Result<PrivateKey, Error> {
     let path = get_file_path(cert, FileType::PrivateKey)?;
     let raw_key = read_file(cert, &path)?;
-    let key = PKey::private_key_from_pem(&raw_key)?;
+    let key = PrivateKey::from_pem(&raw_key)?;
     Ok(key)
 }
 
-pub fn set_priv_key(cert: &Certificate, key: &PKey<Private>) -> Result<(), Error> {
-    let data = key.private_key_to_pem_pkcs8()?;
+pub fn set_priv_key(cert: &Certificate, key: &PrivateKey) -> Result<(), Error> {
+    let data = key.to_pem()?;
     write_file(cert, FileType::PrivateKey, &data)
 }
 
-pub fn get_pub_key(cert: &Certificate) -> Result<PKey<Public>, Error> {
-    let pub_key = get_certificate(cert)?.public_key()?;
+pub fn get_pub_key(cert: &Certificate) -> Result<PublicKey, Error> {
+    let raw_key = get_certificate(cert)?.public_key()?.public_key_to_pem()?;
+    let pub_key = PublicKey::from_pem(&raw_key)?;
     Ok(pub_key)
 }
 

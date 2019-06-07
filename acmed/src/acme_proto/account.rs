@@ -4,13 +4,13 @@ use crate::acme_proto::jws::encode_jwk;
 use crate::acme_proto::structs::{Account, AccountResponse, Directory};
 use crate::certificate::Certificate;
 use crate::storage;
+use acme_common::crypto::{PrivateKey, PublicKey};
 use acme_common::error::Error;
-use openssl::pkey::{PKey, Private, Public};
 use std::str::FromStr;
 
 pub struct AccountManager {
-    pub priv_key: PKey<Private>,
-    pub pub_key: PKey<Public>,
+    pub pub_key: PublicKey,
+    pub priv_key: PrivateKey,
     pub account_url: String,
     pub orders_url: String,
 }
@@ -23,20 +23,20 @@ impl AccountManager {
         root_certs: &[String],
     ) -> Result<(Self, String), Error> {
         // TODO: store the key id (account url)
-        let (priv_key, pub_key) = if storage::account_files_exists(cert) {
+        let (pub_key, priv_key) = if storage::account_files_exists(cert) {
             // TODO: check if the keys are suitable for the specified signature algorithm
             // and, if not, initiate a key rollover.
             (
-                storage::get_account_priv_key(cert)?,
                 storage::get_account_pub_key(cert)?,
+                storage::get_account_priv_key(cert)?,
             )
         } else {
             // TODO: allow to change the signature algo
             let sign_alg = SignatureAlgorithm::from_str(crate::DEFAULT_JWS_SIGN_ALGO)?;
-            let (priv_key, pub_key) = sign_alg.gen_key_pair()?;
+            let (pub_key, priv_key) = sign_alg.gen_key_pair()?;
             storage::set_account_priv_key(cert, &priv_key)?;
             storage::set_account_pub_key(cert, &pub_key)?;
-            (priv_key, pub_key)
+            (pub_key, priv_key)
         };
         let account = Account::new(cert);
         let account = serde_json::to_string(&account)?;
@@ -50,8 +50,8 @@ impl AccountManager {
             &nonce,
         )?;
         let ac = AccountManager {
-            priv_key,
             pub_key,
+            priv_key,
             account_url,
             orders_url: acc_rep.orders.unwrap_or_default(),
         };

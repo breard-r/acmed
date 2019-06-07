@@ -1,8 +1,7 @@
-use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
 use crate::acme_proto::structs::{ApiError, HttpApiError, Identifier};
 use acme_common::b64_encode;
+use acme_common::crypto::PrivateKey;
 use acme_common::error::Error;
-use openssl::pkey::{PKey, Private};
 use openssl::sha::sha256;
 use serde::Deserialize;
 use std::fmt;
@@ -94,7 +93,7 @@ impl Challenge {
         }
     }
 
-    pub fn get_proof(&self, private_key: &PKey<Private>) -> Result<String, Error> {
+    pub fn get_proof(&self, private_key: &PrivateKey) -> Result<String, Error> {
         match self {
             Challenge::Http01(tc) => tc.key_authorization(private_key),
             Challenge::Dns01(tc) => {
@@ -156,9 +155,8 @@ pub struct TokenChallenge {
 }
 
 impl TokenChallenge {
-    fn key_authorization(&self, private_key: &PKey<Private>) -> Result<String, Error> {
-        let sa = SignatureAlgorithm::from_pkey(private_key)?;
-        let thumbprint = sa.get_jwk_thumbprint(private_key)?;
+    fn key_authorization(&self, private_key: &PrivateKey) -> Result<String, Error> {
+        let thumbprint = private_key.get_jwk_thumbprint()?;
         let thumbprint = sha256(thumbprint.as_bytes());
         let thumbprint = b64_encode(&thumbprint);
         let auth = format!("{}.{}", self.token, thumbprint);

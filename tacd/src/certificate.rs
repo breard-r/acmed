@@ -1,9 +1,8 @@
+use acme_common::crypto::{gen_keypair, KeyType, PrivateKey, PublicKey};
 use acme_common::error::Error;
-use acme_common::gen;
 use openssl::asn1::Asn1Time;
 use openssl::bn::{BigNum, MsbOption};
 use openssl::hash::MessageDigest;
-use openssl::pkey::{PKey, Private, Public};
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509};
 
@@ -14,8 +13,8 @@ const INVALID_EXT_MSG: &str = "Invalid acmeIdentifier extension.";
 
 fn get_certificate(
     domain: &str,
-    private_key: &PKey<Private>,
-    public_key: &PKey<Public>,
+    public_key: &PublicKey,
+    private_key: &PrivateKey,
     acme_ext: &str,
 ) -> Result<X509, Error> {
     let mut x509_name = X509NameBuilder::new()?;
@@ -34,7 +33,7 @@ fn get_certificate(
     builder.set_serial_number(&serial_number)?;
     builder.set_subject_name(&x509_name)?;
     builder.set_issuer_name(&x509_name)?;
-    builder.set_pubkey(public_key)?;
+    builder.set_pubkey(&public_key.inner_key)?;
     let not_before = Asn1Time::days_from_now(0)?;
     builder.set_not_before(&not_before)?;
     let not_after = Asn1Time::days_from_now(CRT_NB_DAYS_VALIDITY)?;
@@ -57,13 +56,13 @@ fn get_certificate(
     builder
         .append_extension(acme_ext)
         .map_err(|_| Error::from(INVALID_EXT_MSG))?;
-    builder.sign(private_key, MessageDigest::sha256())?;
+    builder.sign(&private_key.inner_key, MessageDigest::sha256())?;
     let cert = builder.build();
     Ok(cert)
 }
 
-pub fn gen_certificate(domain: &str, acme_ext: &str) -> Result<(PKey<Private>, X509), Error> {
-    let (priv_key, pub_key) = gen::p256()?;
-    let cert = get_certificate(domain, &priv_key, &pub_key, acme_ext)?;
+pub fn gen_certificate(domain: &str, acme_ext: &str) -> Result<(PrivateKey, X509), Error> {
+    let (pub_key, priv_key) = gen_keypair(KeyType::EcdsaP256)?;
+    let cert = get_certificate(domain, &pub_key, &priv_key, acme_ext)?;
     Ok((priv_key, cert))
 }
