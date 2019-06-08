@@ -84,9 +84,7 @@ impl PublicKey {
     }
 
     pub fn to_pem(&self) -> Result<Vec<u8>, Error> {
-        self.inner_key
-            .public_key_to_pem()
-            .map_err(|e| Error::from(e))
+        self.inner_key.public_key_to_pem().map_err(Error::from)
     }
 }
 
@@ -108,7 +106,7 @@ impl PrivateKey {
     pub fn to_pem(&self) -> Result<Vec<u8>, Error> {
         self.inner_key
             .private_key_to_pem_pkcs8()
-            .map_err(|e| Error::from(e))
+            .map_err(Error::from)
     }
 
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
