@@ -2,13 +2,13 @@ use crate::acme_proto::Challenge;
 use crate::config::{Account, Domain, HookType};
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
+use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
-use openssl::x509::X509;
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::sync::mpsc::SyncSender;
-use time::{strptime, Duration};
+use time::Duration;
 
 #[derive(Clone, Debug)]
 pub enum Algorithm {
@@ -90,33 +90,6 @@ impl Certificate {
         trace!("{}: {}", &self, msg);
     }
 
-    // OpenSSL ASN1_TIME_print madness
-    // The real fix would be to add Asn1TimeRef access in the openssl crate.
-    //
-    // https://github.com/sfackler/rust-openssl/issues/687
-    // https://github.com/sfackler/rust-openssl/pull/673
-    fn parse_openssl_time_string(&self, time: &str) -> Result<time::Tm, Error> {
-        self.debug(&format!("Parsing OpenSSL time: \"{}\"", time));
-        let formats = [
-            "%b %d %T %Y %Z",
-            "%b  %d %T %Y %Z",
-            "%b %d %T %Y",
-            "%b  %d %T %Y",
-            "%b %d %T.%f %Y %Z",
-            "%b  %d %T.%f %Y %Z",
-            "%b %d %T.%f %Y",
-            "%b  %d %T.%f %Y",
-        ];
-        for fmt in formats.iter() {
-            if let Ok(t) = strptime(time, fmt) {
-                self.trace(&format!("Format \"{}\" matches", fmt));
-                return Ok(t);
-            }
-            self.trace(&format!("Format \"{}\" does not match", fmt));
-        }
-        Err(format!("invalid time string: {}", time).into())
-    }
-
     pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
         let domain_name = domain_name.to_string();
         for d in self.domains.iter() {
@@ -128,9 +101,8 @@ impl Certificate {
         Err(format!("{}: domain name not found", domain_name).into())
     }
 
-    fn is_expiring(&self, cert: &X509) -> Result<bool, Error> {
-        let not_after = cert.not_after().to_string();
-        let not_after = self.parse_openssl_time_string(&not_after)?;
+    fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
+        let not_after = cert.not_after()?;
         self.debug(&format!("not after: {}", not_after.asctime()));
         // TODO: allow a custom duration (using time-parse ?)
         let renewal_time = not_after - Duration::weeks(3);
@@ -138,15 +110,8 @@ impl Certificate {
         Ok(time::now_utc() > renewal_time)
     }
 
-    fn has_missing_domains(&self, cert: &X509) -> bool {
-        let cert_names = match cert.subject_alt_names() {
-            Some(s) => s
-                .iter()
-                .filter(|v| v.dnsname().is_some())
-                .map(|v| v.dnsname().unwrap().to_string())
-                .collect(),
-            None => HashSet::new(),
-        };
+    fn has_missing_domains(&self, cert: &X509Certificate) -> bool {
+        let cert_names = cert.subject_alt_names();
         let req_names = self
             .domains
             .iter()
@@ -240,60 +205,5 @@ impl Certificate {
         hook_data.set_env(&self.env);
         hooks::call(self, &hook_data, HookType::PostOperation)?;
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Algorithm, Certificate};
-    use std::collections::HashMap;
-    use std::sync::mpsc::sync_channel;
-
-    fn get_dummy_certificate() -> Certificate {
-        let (https_throttle, _) = sync_channel(0);
-        Certificate {
-            account: crate::config::Account {
-                name: String::new(),
-                email: String::new(),
-            },
-            domains: Vec::new(),
-            algo: Algorithm::Rsa2048,
-            kp_reuse: false,
-            remote_url: String::new(),
-            tos_agreed: false,
-            https_throttle,
-            hooks: Vec::new(),
-            account_directory: String::new(),
-            crt_directory: String::new(),
-            crt_name: String::new(),
-            crt_name_format: String::new(),
-            cert_file_mode: 0,
-            cert_file_owner: None,
-            cert_file_group: None,
-            pk_file_mode: 0,
-            pk_file_owner: None,
-            pk_file_group: None,
-            env: HashMap::new(),
-            id: 0,
-        }
-    }
-
-    #[test]
-    fn test_parse_openssl_time() {
-        let time_str_lst = [
-            "May  7 18:34:07 2024",
-            "May  7 18:34:07 2024 GMT",
-            "May 17 18:34:07 2024",
-            "May 17 18:34:07 2024 GMT",
-            "May  7 18:34:07.922661874 2024",
-            "May  7 18:34:07.922661874 2024 GMT",
-            "May 17 18:34:07.922661874 2024",
-            "May 17 18:34:07.922661874 2024 GMT",
-        ];
-        let crt = get_dummy_certificate();
-        for time_str in time_str_lst.iter() {
-            let time_res = crt.parse_openssl_time_string(time_str);
-            assert!(time_res.is_ok());
-        }
     }
 }

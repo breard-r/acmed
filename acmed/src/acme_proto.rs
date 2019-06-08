@@ -5,6 +5,7 @@ use crate::acme_proto::structs::{
 };
 use crate::certificate::Certificate;
 use crate::storage;
+use acme_common::crypto::Csr;
 use acme_common::error::Error;
 use std::fmt;
 
@@ -176,8 +177,9 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     )?;
 
     // 11. Finalize the order by sending the CSR
-    let (priv_key, pub_key) = certificate::get_key_pair(cert)?;
-    let csr = certificate::generate_csr(cert, &priv_key, &pub_key)?;
+    let (pub_key, priv_key) = certificate::get_key_pair(cert)?;
+    let domains: Vec<String> = cert.domains.iter().map(|e| e.dns.to_owned()).collect();
+    let csr = Csr::new(&pub_key, &priv_key, domains.as_slice())?.to_der_base64()?;
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
     let (order, nonce): (Order, String) =
         http::get_obj(cert, root_certs, &order.finalize, &data_builder, &nonce)?;

@@ -2,9 +2,8 @@ use crate::certificate::Certificate;
 use crate::config::HookType;
 use crate::hooks::{self, FileStorageHookData, HookEnvData};
 use acme_common::b64_encode;
-use acme_common::crypto::{PrivateKey, PublicKey};
+use acme_common::crypto::{PrivateKey, PublicKey, X509Certificate};
 use acme_common::error::Error;
-use openssl::x509::X509;
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
@@ -212,15 +211,13 @@ pub fn set_priv_key(cert: &Certificate, key: &PrivateKey) -> Result<(), Error> {
 }
 
 pub fn get_pub_key(cert: &Certificate) -> Result<PublicKey, Error> {
-    let raw_key = get_certificate(cert)?.public_key()?.public_key_to_pem()?;
-    let pub_key = PublicKey::from_pem(&raw_key)?;
-    Ok(pub_key)
+    get_certificate(cert)?.public_key()
 }
 
-pub fn get_certificate(cert: &Certificate) -> Result<X509, Error> {
+pub fn get_certificate(cert: &Certificate) -> Result<X509Certificate, Error> {
     let path = get_file_path(cert, FileType::Certificate)?;
     let raw_crt = read_file(cert, &path)?;
-    let crt = X509::from_pem(&raw_crt)?;
+    let crt = X509Certificate::from_pem(&raw_crt)?;
     Ok(crt)
 }
 

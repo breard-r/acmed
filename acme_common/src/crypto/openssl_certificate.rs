@@ -1,0 +1,163 @@
+use super::{gen_keypair, KeyType, PrivateKey, PublicKey};
+use crate::b64_encode;
+use crate::error::Error;
+use openssl::asn1::Asn1Time;
+use openssl::bn::{BigNum, MsbOption};
+use openssl::hash::MessageDigest;
+use openssl::stack::Stack;
+use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
+use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
+use std::collections::HashSet;
+use time::strptime;
+
+const APP_ORG: &str = "ACMEd";
+const APP_NAME: &str = "ACMEd";
+const X509_VERSION: i32 = 0x02;
+const CRT_SERIAL_NB_BITS: i32 = 32;
+const CRT_NB_DAYS_VALIDITY: u32 = 7;
+const INVALID_EXT_MSG: &str = "Invalid acmeIdentifier extension.";
+
+pub struct Csr {
+    inner_csr: X509Req,
+}
+
+impl Csr {
+    pub fn new(
+        pub_key: &PublicKey,
+        priv_key: &PrivateKey,
+        domains: &[String],
+    ) -> Result<Self, Error> {
+        let mut builder = X509ReqBuilder::new()?;
+        builder.set_pubkey(&pub_key.inner_key)?;
+        let ctx = builder.x509v3_context(None);
+        let mut san = SubjectAlternativeName::new();
+        for dns in domains.iter() {
+            san.dns(&dns);
+        }
+        let san = san.build(&ctx)?;
+        let mut ext_stack = Stack::new()?;
+        ext_stack.push(san)?;
+        builder.add_extensions(&ext_stack)?;
+        builder.sign(&priv_key.inner_key, MessageDigest::sha256())?;
+        Ok(Csr {
+            inner_csr: builder.build(),
+        })
+    }
+
+    pub fn to_der_base64(&self) -> Result<String, Error> {
+        let csr = self.inner_csr.to_der()?;
+        let csr = b64_encode(&csr);
+        Ok(csr)
+    }
+}
+
+pub struct X509Certificate {
+    pub inner_cert: X509,
+}
+
+impl X509Certificate {
+    pub fn from_pem(pem_data: &[u8]) -> Result<Self, Error> {
+        Ok(X509Certificate {
+            inner_cert: X509::from_pem(pem_data)?,
+        })
+    }
+
+    pub fn from_acme_ext(domain: &str, acme_ext: &str) -> Result<(PrivateKey, Self), Error> {
+        let (pub_key, priv_key) = gen_keypair(KeyType::EcdsaP256)?;
+        let inner_cert = gen_certificate(domain, &pub_key, &priv_key, acme_ext)?;
+        let cert = X509Certificate { inner_cert };
+        Ok((priv_key, cert))
+    }
+
+    pub fn public_key(&self) -> Result<PublicKey, Error> {
+        let raw_key = self.inner_cert.public_key()?.public_key_to_pem()?;
+        let pub_key = PublicKey::from_pem(&raw_key)?;
+        Ok(pub_key)
+    }
+
+    // OpenSSL ASN1_TIME_print madness
+    // The real fix would be to add Asn1TimeRef access in the openssl crate.
+    //
+    // https://github.com/sfackler/rust-openssl/issues/687
+    // https://github.com/sfackler/rust-openssl/pull/673
+    pub fn not_after(&self) -> Result<time::Tm, Error> {
+        let formats = [
+            "%b %d %T %Y %Z",
+            "%b  %d %T %Y %Z",
+            "%b %d %T %Y",
+            "%b  %d %T %Y",
+            "%b %d %T.%f %Y %Z",
+            "%b  %d %T.%f %Y %Z",
+            "%b %d %T.%f %Y",
+            "%b  %d %T.%f %Y",
+        ];
+        let not_after = self.inner_cert.not_after().to_string();
+        for fmt in formats.iter() {
+            if let Ok(t) = strptime(&not_after, fmt) {
+                return Ok(t);
+            }
+        }
+        Err(format!("invalid time string: {}", &not_after).into())
+    }
+
+    pub fn subject_alt_names(&self) -> HashSet<String> {
+        match self.inner_cert.subject_alt_names() {
+            Some(s) => s
+                .iter()
+                .filter(|v| v.dnsname().is_some())
+                .map(|v| v.dnsname().unwrap().to_string())
+                .collect(),
+            None => HashSet::new(),
+        }
+    }
+}
+
+fn gen_certificate(
+    domain: &str,
+    public_key: &PublicKey,
+    private_key: &PrivateKey,
+    acme_ext: &str,
+) -> Result<X509, Error> {
+    let mut x509_name = X509NameBuilder::new()?;
+    x509_name.append_entry_by_text("O", APP_ORG)?;
+    let ca_name = format!("{} TLS-ALPN-01 Authority", APP_NAME);
+    x509_name.append_entry_by_text("CN", &ca_name)?;
+    let x509_name = x509_name.build();
+
+    let mut builder = X509Builder::new()?;
+    builder.set_version(X509_VERSION)?;
+    let serial_number = {
+        let mut serial = BigNum::new()?;
+        serial.rand(CRT_SERIAL_NB_BITS - 1, MsbOption::MAYBE_ZERO, false)?;
+        serial.to_asn1_integer()?
+    };
+    builder.set_serial_number(&serial_number)?;
+    builder.set_subject_name(&x509_name)?;
+    builder.set_issuer_name(&x509_name)?;
+    builder.set_pubkey(&public_key.inner_key)?;
+    let not_before = Asn1Time::days_from_now(0)?;
+    builder.set_not_before(&not_before)?;
+    let not_after = Asn1Time::days_from_now(CRT_NB_DAYS_VALIDITY)?;
+    builder.set_not_after(&not_after)?;
+
+    builder.append_extension(BasicConstraints::new().build()?)?;
+    let ctx = builder.x509v3_context(None, None);
+    let san_ext = SubjectAlternativeName::new().dns(domain).build(&ctx)?;
+    builder.append_extension(san_ext)?;
+
+    let ctx = builder.x509v3_context(None, None);
+    let mut v: Vec<&str> = acme_ext.split('=').collect();
+    let value = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
+    let acme_ext_name = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
+    if !v.is_empty() {
+        return Err(Error::from(INVALID_EXT_MSG));
+    }
+    let acme_ext = X509Extension::new(None, Some(&ctx), &acme_ext_name, &value)
+        .map_err(|_| Error::from(INVALID_EXT_MSG))?;
+    builder
+        .append_extension(acme_ext)
+        .map_err(|_| Error::from(INVALID_EXT_MSG))?;
+    builder.sign(&private_key.inner_key, MessageDigest::sha256())?;
+    let cert = builder.build();
+    Ok(cert)
+}

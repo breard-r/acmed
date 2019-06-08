@@ -1,15 +1,14 @@
+use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
 use std::fs::File;
 use std::io::{self, Read};
 
-mod certificate;
 mod server;
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-const APP_ORG: &str = "ACMEd";
 const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
@@ -46,7 +45,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
     let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
-    let (pk, cert) = certificate::gen_certificate(&domain, &ext)?;
+    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext)?;
     info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
     server::start(listen_addr, &cert, &pk)?;
     Ok(())
