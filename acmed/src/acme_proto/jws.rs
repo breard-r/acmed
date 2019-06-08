@@ -1,8 +1,7 @@
 use crate::acme_proto::jws::algorithms::{EdDsaVariant, SignatureAlgorithm};
 use acme_common::b64_encode;
-use acme_common::crypto::PrivateKey;
+use acme_common::crypto::{sha256, PrivateKey};
 use acme_common::error::Error;
-use openssl::sha::sha256;
 use serde::Serialize;
 
 pub mod algorithms;
