@@ -5,6 +5,7 @@ use serde::Deserialize;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path::PathBuf;
 
 macro_rules! set_rustc_env_var {
@@ -91,6 +92,21 @@ fn get_openssl_version(v: &str) -> String {
     }
 }
 
+fn get_lib_version(lib: &str) -> Option<String> {
+    let pat = format!("\"checksum {} ", lib);
+    let mut lock_file = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    lock_file.push("../Cargo.lock");
+    let file = File::open(lock_file).unwrap();
+    for line in BufReader::new(file).lines() {
+        let line = line.unwrap();
+        if line.starts_with(&pat) {
+            let v: Vec<&str> = line.split(' ').collect();
+            return Some(String::from(v[2]));
+        }
+    }
+    None
+}
+
 fn set_tls() {
     if let Ok(v) = env::var("DEP_OPENSSL_VERSION_NUMBER") {
         let version = get_openssl_version(&v);
@@ -101,6 +117,11 @@ fn set_tls() {
         let version = get_openssl_version(&v);
         set_rustc_env_var!("ACMED_TLS_LIB_VERSION", version);
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "LibreSSL");
+    }
+    if let Ok(_) = env::var("CARGO_FEATURE_STANDALONE") {
+        let version = get_lib_version("ring").unwrap();
+        set_rustc_env_var!("ACMED_TLS_LIB_VERSION", version);
+        set_rustc_env_var!("ACMED_TLS_LIB_NAME", "ring");
     }
 }
 
