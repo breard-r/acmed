@@ -13,7 +13,7 @@ name = "acme_common"
 
 [features]
 default = ["openssl"]
-standalone = []
+standalone = ["ring"]
 
 [dependencies]
 base64 = "0.10"
@@ -23,6 +23,7 @@ handlebars = "2.0.0-beta.2"
 http_req = "0.5"
 log = "0.4"
 openssl = { version = "0.10", optional = true }
+ring = { version = "0.14", optional = true }
 serde_json = "1.0"
 syslog = "4.0"
 time = "0.1"
