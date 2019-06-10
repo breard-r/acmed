@@ -284,7 +284,7 @@ impl Certificate {
     pub fn get_algorithm(&self) -> Result<Algorithm, Error> {
         let algo = match &self.algorithm {
             Some(a) => &a,
-            None => crate::DEFAULT_ALGO,
+            None => acme_common::crypto::DEFAULT_ALGO,
         };
         Algorithm::from_str(algo)
     }

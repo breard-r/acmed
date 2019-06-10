@@ -7,7 +7,10 @@ mod standalone_hash;
 
 mod openssl_keys;
 
+#[cfg(not(feature = "standalone"))]
 pub const DEFAULT_ALGO: &str = "rsa2048";
+#[cfg(feature = "standalone")]
+pub const DEFAULT_ALGO: &str = "ecdsa_p256";
 
 pub use openssl_certificate::{Csr, X509Certificate};
 

@@ -18,7 +18,6 @@ pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";
 pub const DEFAULT_ACCOUNTS_DIR: &str = "/etc/acmed/accounts";
 pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";
 pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{algo}}.{{file_type}}.{{ext}}";
-pub const DEFAULT_ALGO: &str = "rsa2048";
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
