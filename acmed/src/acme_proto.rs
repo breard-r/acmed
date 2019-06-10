@@ -7,6 +7,7 @@ use crate::certificate::Certificate;
 use crate::storage;
 use acme_common::crypto::Csr;
 use acme_common::error::Error;
+use serde_json::json;
 use std::fmt;
 
 mod account;
@@ -179,7 +180,10 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     // 11. Finalize the order by sending the CSR
     let (pub_key, priv_key) = certificate::get_key_pair(cert)?;
     let domains: Vec<String> = cert.domains.iter().map(|e| e.dns.to_owned()).collect();
-    let csr = Csr::new(&pub_key, &priv_key, domains.as_slice())?.to_der_base64()?;
+    let csr = json!({
+        "csr": Csr::new(&pub_key, &priv_key, domains.as_slice())?.to_der_base64()?,
+    });
+    let csr = csr.to_string();
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
     let (order, nonce): (Order, String) =
         http::get_obj(cert, root_certs, &order.finalize, &data_builder, &nonce)?;
