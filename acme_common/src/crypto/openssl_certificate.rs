@@ -8,7 +8,7 @@ use openssl::stack::Stack;
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
 use std::collections::HashSet;
-use time::strptime;
+use x509_parser::parse_x509_der;
 
 const APP_ORG: &str = "ACMEd";
 const APP_NAME: &str = "ACMEd";
@@ -75,29 +75,10 @@ impl X509Certificate {
         Ok(pub_key)
     }
 
-    // OpenSSL ASN1_TIME_print madness
-    // The real fix would be to add Asn1TimeRef access in the openssl crate.
-    //
-    // https://github.com/sfackler/rust-openssl/issues/687
-    // https://github.com/sfackler/rust-openssl/pull/673
     pub fn not_after(&self) -> Result<time::Tm, Error> {
-        let formats = [
-            "%b %d %T %Y %Z",
-            "%b  %d %T %Y %Z",
-            "%b %d %T %Y",
-            "%b  %d %T %Y",
-            "%b %d %T.%f %Y %Z",
-            "%b  %d %T.%f %Y %Z",
-            "%b %d %T.%f %Y",
-            "%b  %d %T.%f %Y",
-        ];
-        let not_after = self.inner_cert.not_after().to_string();
-        for fmt in formats.iter() {
-            if let Ok(t) = strptime(&not_after, fmt) {
-                return Ok(t);
-            }
-        }
-        Err(format!("invalid time string: {}", &not_after).into())
+        let raw_crt = self.inner_cert.to_der()?;
+        let (_, crt) = parse_x509_der(&raw_crt).map_err(|_| Error::from("Invalid certificate."))?;
+        Ok(crt.tbs_certificate.validity.not_after)
     }
 
     pub fn subject_alt_names(&self) -> HashSet<String> {
