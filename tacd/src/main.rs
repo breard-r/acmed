@@ -1,11 +1,18 @@
+#[cfg(not(feature = "standalone"))]
+mod openssl_server;
+#[cfg(not(feature = "standalone"))]
+use openssl_server::start as server_start;
+#[cfg(feature = "standalone")]
+mod standalone_server;
+#[cfg(feature = "standalone")]
+use standalone_server::start as server_start;
+
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
 use std::fs::File;
 use std::io::{self, Read};
-
-mod server;
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -47,7 +54,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
     let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
     let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext)?;
     info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
-    server::start(listen_addr, &cert, &pk)?;
+    server_start(listen_addr, &cert, &pk)?;
     Ok(())
 }
 
