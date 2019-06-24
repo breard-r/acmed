@@ -1,4 +1,5 @@
 use crate::b64_encode;
+use crate::crypto::KeyType;
 use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::{EcGroup, EcKey};
@@ -7,8 +8,6 @@ use openssl::nid::Nid;
 use openssl::pkey::{Id, PKey, Private};
 use openssl::rsa::Rsa;
 use serde_json::json;
-use std::fmt;
-use std::str::FromStr;
 
 macro_rules! get_key_type {
     ($key: expr) => {
@@ -32,40 +31,6 @@ macro_rules! get_key_type {
             }
         }
     };
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum KeyType {
-    EcdsaP256,
-    EcdsaP384,
-    Rsa2048,
-    Rsa4096,
-}
-
-impl FromStr for KeyType {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Error> {
-        match s.to_lowercase().as_str() {
-            "ecdsa_p256" => Ok(KeyType::EcdsaP256),
-            "ecdsa_p384" => Ok(KeyType::EcdsaP384),
-            "rsa2048" => Ok(KeyType::Rsa2048),
-            "rsa4096" => Ok(KeyType::Rsa4096),
-            _ => Err(format!("{}: unknown algorithm.", s).into()),
-        }
-    }
-}
-
-impl fmt::Display for KeyType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            KeyType::EcdsaP256 => "ecdsa-p256",
-            KeyType::EcdsaP384 => "ecdsa-p384",
-            KeyType::Rsa2048 => "rsa2048",
-            KeyType::Rsa4096 => "rsa4096",
-        };
-        write!(f, "{}", s)
-    }
 }
 
 pub struct KeyPair {
@@ -95,10 +60,9 @@ impl KeyPair {
 
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
         match self.key_type {
-            KeyType::Rsa2048 | KeyType::Rsa4096 => {
-                // TODO: implement RSA signatures
-                Err("RSA signatures are not implemented yet".into())
-            }
+            KeyType::Curve25519 => {
+                Err("Curve25519 signatures are not implemented yet".into())
+            },
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => {
                 let signature = EcdsaSig::sign(data, self.inner_key.ec_key()?.as_ref())?;
                 let r = signature.r().to_vec();
@@ -107,13 +71,20 @@ impl KeyPair {
                 signature.append(&mut s);
                 Ok(signature)
             }
+            KeyType::Rsa2048 | KeyType::Rsa4096 => {
+                // TODO: implement RSA signatures
+                Err("RSA signatures are not implemented yet".into())
+            }
         }
     }
 
     pub fn get_jwk_thumbprint(&self) -> Result<String, Error> {
+        // TODO: implement Curve25519 and RSA JWK thumbprint
         match self.key_type {
+            KeyType::Curve25519 => {
+                Err("Curve25519 thumbprint are not implemented yet".into())
+            },
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(),
-            // TODO: implement RSA JWK thumbprint
             KeyType::Rsa2048 | KeyType::Rsa4096 => {
                 Err("RSA jwk thumbprint are not implemented yet".into())
             }
@@ -178,10 +149,11 @@ fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
 
 pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
     let priv_key = match key_type {
-        KeyType::Rsa2048 => gen_rsa_pair(2048),
-        KeyType::Rsa4096 => gen_rsa_pair(4096),
+        KeyType::Curve25519 => Err(Error::from("")),
         KeyType::EcdsaP256 => gen_ec_pair(Nid::X9_62_PRIME256V1),
         KeyType::EcdsaP384 => gen_ec_pair(Nid::SECP384R1),
+        KeyType::Rsa2048 => gen_rsa_pair(2048),
+        KeyType::Rsa4096 => gen_rsa_pair(4096),
     }
     .map_err(|_| Error::from(format!("Unable to generate a {} key pair.", key_type)))?;
     let key_pair = KeyPair {

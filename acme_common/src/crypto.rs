@@ -6,6 +6,7 @@ mod openssl_hash;
 mod standalone_hash;
 
 mod openssl_keys;
+mod key_type;
 
 #[cfg(not(feature = "standalone"))]
 pub const DEFAULT_ALGO: &str = "rsa2048";
@@ -19,4 +20,5 @@ pub use openssl_hash::sha256;
 #[cfg(feature = "standalone")]
 pub use standalone_hash::sha256;
 
-pub use openssl_keys::{gen_keypair, KeyPair, KeyType};
+pub use openssl_keys::{gen_keypair, KeyPair};
+pub use key_type::KeyType;
