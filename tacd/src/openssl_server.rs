@@ -1,4 +1,4 @@
-use acme_common::crypto::{PrivateKey, X509Certificate};
+use acme_common::crypto::{KeyPair, X509Certificate};
 use acme_common::error::Error;
 use log::debug;
 use openssl::ssl::{self, AlpnError, SslAcceptor, SslMethod};
@@ -32,14 +32,14 @@ macro_rules! listen_and_accept {
 pub fn start(
     listen_addr: &str,
     certificate: &X509Certificate,
-    private_key: &PrivateKey,
+    key_pair: &KeyPair,
 ) -> Result<(), Error> {
     let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
     acceptor.set_alpn_select_callback(|_, client| {
         debug!("ALPN negociation");
         ssl::select_next_proto(crate::ALPN_ACME_PROTO_NAME, client).ok_or(ALPN_ERROR)
     });
-    acceptor.set_private_key(&private_key.inner_key)?;
+    acceptor.set_private_key(&key_pair.inner_key)?;
     acceptor.set_certificate(&certificate.inner_cert)?;
     acceptor.check_private_key()?;
     let acceptor = Arc::new(acceptor.build());

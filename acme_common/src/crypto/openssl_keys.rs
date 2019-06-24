@@ -4,7 +4,7 @@ use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::{EcGroup, EcKey};
 use openssl::ecdsa::EcdsaSig;
 use openssl::nid::Nid;
-use openssl::pkey::{Id, PKey, Private, Public};
+use openssl::pkey::{Id, PKey, Private};
 use openssl::rsa::Rsa;
 use serde_json::json;
 use std::fmt;
@@ -36,10 +36,10 @@ macro_rules! get_key_type {
 
 #[derive(Clone, Copy, Debug)]
 pub enum KeyType {
-    Rsa2048,
-    Rsa4096,
     EcdsaP256,
     EcdsaP384,
+    Rsa2048,
+    Rsa4096,
 }
 
 impl FromStr for KeyType {
@@ -47,10 +47,10 @@ impl FromStr for KeyType {
 
     fn from_str(s: &str) -> Result<Self, Error> {
         match s.to_lowercase().as_str() {
-            "rsa2048" => Ok(KeyType::Rsa2048),
-            "rsa4096" => Ok(KeyType::Rsa4096),
             "ecdsa_p256" => Ok(KeyType::EcdsaP256),
             "ecdsa_p384" => Ok(KeyType::EcdsaP384),
+            "rsa2048" => Ok(KeyType::Rsa2048),
+            "rsa4096" => Ok(KeyType::Rsa4096),
             _ => Err(format!("{}: unknown algorithm.", s).into()),
         }
     }
@@ -59,54 +59,38 @@ impl FromStr for KeyType {
 impl fmt::Display for KeyType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
-            KeyType::Rsa2048 => "rsa2048",
-            KeyType::Rsa4096 => "rsa4096",
             KeyType::EcdsaP256 => "ecdsa-p256",
             KeyType::EcdsaP384 => "ecdsa-p384",
+            KeyType::Rsa2048 => "rsa2048",
+            KeyType::Rsa4096 => "rsa4096",
         };
         write!(f, "{}", s)
     }
 }
 
-pub struct PublicKey {
-    pub key_type: KeyType,
-    pub inner_key: PKey<Public>,
-}
-
-impl PublicKey {
-    pub fn from_pem(pem_data: &[u8]) -> Result<Self, Error> {
-        let inner_key = PKey::public_key_from_pem(pem_data)?;
-        let key_type = get_key_type!(inner_key);
-        Ok(PublicKey {
-            key_type,
-            inner_key,
-        })
-    }
-
-    pub fn to_pem(&self) -> Result<Vec<u8>, Error> {
-        self.inner_key.public_key_to_pem().map_err(Error::from)
-    }
-}
-
-pub struct PrivateKey {
+pub struct KeyPair {
     pub key_type: KeyType,
     pub inner_key: PKey<Private>,
 }
 
-impl PrivateKey {
+impl KeyPair {
     pub fn from_pem(pem_data: &[u8]) -> Result<Self, Error> {
         let inner_key = PKey::private_key_from_pem(pem_data)?;
         let key_type = get_key_type!(inner_key);
-        Ok(PrivateKey {
+        Ok(KeyPair {
             key_type,
             inner_key,
         })
     }
 
-    pub fn to_pem(&self) -> Result<Vec<u8>, Error> {
+    pub fn private_key_to_pem(&self) -> Result<Vec<u8>, Error> {
         self.inner_key
             .private_key_to_pem_pkcs8()
             .map_err(Error::from)
+    }
+
+    pub fn public_key_to_pem(&self) -> Result<Vec<u8>, Error> {
+        self.inner_key.public_key_to_pem().map_err(Error::from)
     }
 
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
@@ -177,45 +161,32 @@ impl PrivateKey {
     }
 }
 
-fn gen_rsa_pair(nb_bits: u32) -> Result<(PKey<Public>, PKey<Private>), Error> {
-    let priv_key = Rsa::generate(nb_bits).unwrap();
-    let pub_key = Rsa::from_public_components(
-        priv_key.n().to_owned().unwrap(),
-        priv_key.e().to_owned().unwrap(),
-    )
-    .unwrap();
-    Ok((
-        PKey::from_rsa(pub_key).unwrap(),
-        PKey::from_rsa(priv_key).unwrap(),
-    ))
+fn gen_rsa_pair(nb_bits: u32) -> Result<PKey<Private>, Error> {
+    // TODO: check if map_err is required
+    let priv_key = Rsa::generate(nb_bits).map_err(|_| Error::from(""))?;
+    let pk = PKey::from_rsa(priv_key).map_err(|_| Error::from(""))?;
+    Ok(pk)
 }
 
-fn gen_ec_pair(nid: Nid) -> Result<(PKey<Public>, PKey<Private>), Error> {
-    let group = EcGroup::from_curve_name(nid).unwrap();
-    let ec_priv_key = EcKey::generate(&group).unwrap();
-    let public_key_point = ec_priv_key.public_key();
-    let ec_pub_key = EcKey::from_public_key(&group, public_key_point).unwrap();
-    Ok((
-        PKey::from_ec_key(ec_pub_key).unwrap(),
-        PKey::from_ec_key(ec_priv_key).unwrap(),
-    ))
+fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
+    // TODO: check if map_err is required
+    let group = EcGroup::from_curve_name(nid).map_err(|_| Error::from(""))?;
+    let ec_priv_key = EcKey::generate(&group).map_err(|_| Error::from(""))?;
+    let pk = PKey::from_ec_key(ec_priv_key).map_err(|_| Error::from(""))?;
+    Ok(pk)
 }
 
-pub fn gen_keypair(key_type: KeyType) -> Result<(PublicKey, PrivateKey), Error> {
-    let (pub_key, priv_key) = match key_type {
+pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
+    let priv_key = match key_type {
         KeyType::Rsa2048 => gen_rsa_pair(2048),
         KeyType::Rsa4096 => gen_rsa_pair(4096),
         KeyType::EcdsaP256 => gen_ec_pair(Nid::X9_62_PRIME256V1),
         KeyType::EcdsaP384 => gen_ec_pair(Nid::SECP384R1),
     }
     .map_err(|_| Error::from(format!("Unable to generate a {} key pair.", key_type)))?;
-    let pub_key = PublicKey {
-        key_type,
-        inner_key: pub_key,
-    };
-    let priv_key = PrivateKey {
+    let key_pair = KeyPair {
         key_type,
         inner_key: priv_key,
     };
-    Ok((pub_key, priv_key))
+    Ok(key_pair)
 }

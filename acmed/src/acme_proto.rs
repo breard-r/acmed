@@ -58,7 +58,7 @@ impl PartialEq<structs::Challenge> for Challenge {
 
 macro_rules! set_data_builder {
     ($account: ident, $data: expr, $url: expr) => {
-        |n: &str| encode_kid(&$account.priv_key, &$account.account_url, $data, &$url, n)
+        |n: &str| encode_kid(&$account.key_pair, &$account.account_url, $data, &$url, n)
     };
 }
 macro_rules! set_empty_data_builder {
@@ -124,7 +124,7 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
         let current_challenge = cert.get_domain_challenge(&auth.identifier.value)?;
         for challenge in auth.challenges.iter() {
             if current_challenge == *challenge {
-                let proof = challenge.get_proof(&account.priv_key)?;
+                let proof = challenge.get_proof(&account.key_pair)?;
                 let file_name = challenge.get_file_name();
                 let domain = auth.identifier.value.to_owned();
 
@@ -178,10 +178,10 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     )?;
 
     // 11. Finalize the order by sending the CSR
-    let (pub_key, priv_key) = certificate::get_key_pair(cert)?;
+    let key_pair = certificate::get_key_pair(cert)?;
     let domains: Vec<String> = cert.domains.iter().map(|e| e.dns.to_owned()).collect();
     let csr = json!({
-        "csr": Csr::new(&pub_key, &priv_key, domains.as_slice())?.to_der_base64()?,
+        "csr": Csr::new(&key_pair, domains.as_slice())?.to_der_base64()?,
     });
     let csr = csr.to_string();
     let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);

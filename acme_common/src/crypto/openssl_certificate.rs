@@ -1,4 +1,4 @@
-use super::{gen_keypair, KeyType, PrivateKey, PublicKey};
+use super::{gen_keypair, KeyPair, KeyType};
 use crate::b64_encode;
 use crate::error::Error;
 use openssl::asn1::Asn1Time;
@@ -22,13 +22,9 @@ pub struct Csr {
 }
 
 impl Csr {
-    pub fn new(
-        pub_key: &PublicKey,
-        priv_key: &PrivateKey,
-        domains: &[String],
-    ) -> Result<Self, Error> {
+    pub fn new(key_pair: &KeyPair, domains: &[String]) -> Result<Self, Error> {
         let mut builder = X509ReqBuilder::new()?;
-        builder.set_pubkey(&pub_key.inner_key)?;
+        builder.set_pubkey(&key_pair.inner_key)?;
         let ctx = builder.x509v3_context(None);
         let mut san = SubjectAlternativeName::new();
         for dns in domains.iter() {
@@ -38,7 +34,7 @@ impl Csr {
         let mut ext_stack = Stack::new()?;
         ext_stack.push(san)?;
         builder.add_extensions(&ext_stack)?;
-        builder.sign(&priv_key.inner_key, MessageDigest::sha256())?;
+        builder.sign(&key_pair.inner_key, MessageDigest::sha256())?;
         Ok(Csr {
             inner_csr: builder.build(),
         })
@@ -62,17 +58,11 @@ impl X509Certificate {
         })
     }
 
-    pub fn from_acme_ext(domain: &str, acme_ext: &str) -> Result<(PrivateKey, Self), Error> {
-        let (pub_key, priv_key) = gen_keypair(KeyType::EcdsaP256)?;
-        let inner_cert = gen_certificate(domain, &pub_key, &priv_key, acme_ext)?;
+    pub fn from_acme_ext(domain: &str, acme_ext: &str) -> Result<(KeyPair, Self), Error> {
+        let key_pair = gen_keypair(KeyType::EcdsaP256)?;
+        let inner_cert = gen_certificate(domain, &key_pair, acme_ext)?;
         let cert = X509Certificate { inner_cert };
-        Ok((priv_key, cert))
-    }
-
-    pub fn public_key(&self) -> Result<PublicKey, Error> {
-        let raw_key = self.inner_cert.public_key()?.public_key_to_pem()?;
-        let pub_key = PublicKey::from_pem(&raw_key)?;
-        Ok(pub_key)
+        Ok((key_pair, cert))
     }
 
     pub fn not_after(&self) -> Result<time::Tm, Error> {
@@ -93,12 +83,7 @@ impl X509Certificate {
     }
 }
 
-fn gen_certificate(
-    domain: &str,
-    public_key: &PublicKey,
-    private_key: &PrivateKey,
-    acme_ext: &str,
-) -> Result<X509, Error> {
+fn gen_certificate(domain: &str, key_pair: &KeyPair, acme_ext: &str) -> Result<X509, Error> {
     let mut x509_name = X509NameBuilder::new()?;
     x509_name.append_entry_by_text("O", APP_ORG)?;
     let ca_name = format!("{} TLS-ALPN-01 Authority", APP_NAME);
@@ -115,7 +100,7 @@ fn gen_certificate(
     builder.set_serial_number(&serial_number)?;
     builder.set_subject_name(&x509_name)?;
     builder.set_issuer_name(&x509_name)?;
-    builder.set_pubkey(&public_key.inner_key)?;
+    builder.set_pubkey(&key_pair.inner_key)?;
     let not_before = Asn1Time::days_from_now(0)?;
     builder.set_not_before(&not_before)?;
     let not_after = Asn1Time::days_from_now(CRT_NB_DAYS_VALIDITY)?;
@@ -138,7 +123,7 @@ fn gen_certificate(
     builder
         .append_extension(acme_ext)
         .map_err(|_| Error::from(INVALID_EXT_MSG))?;
-    builder.sign(&private_key.inner_key, MessageDigest::sha256())?;
+    builder.sign(&key_pair.inner_key, MessageDigest::sha256())?;
     let cert = builder.build();
     Ok(cert)
 }

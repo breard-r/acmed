@@ -1,6 +1,6 @@
 use crate::acme_proto::structs::{ApiError, HttpApiError, Identifier};
 use acme_common::b64_encode;
-use acme_common::crypto::{sha256, PrivateKey};
+use acme_common::crypto::{sha256, KeyPair};
 use acme_common::error::Error;
 use serde::Deserialize;
 use std::fmt;
@@ -92,18 +92,18 @@ impl Challenge {
         }
     }
 
-    pub fn get_proof(&self, private_key: &PrivateKey) -> Result<String, Error> {
+    pub fn get_proof(&self, key_pair: &KeyPair) -> Result<String, Error> {
         match self {
-            Challenge::Http01(tc) => tc.key_authorization(private_key),
+            Challenge::Http01(tc) => tc.key_authorization(key_pair),
             Challenge::Dns01(tc) => {
-                let ka = tc.key_authorization(private_key)?;
+                let ka = tc.key_authorization(key_pair)?;
                 let a = sha256(ka.as_bytes());
                 let a = b64_encode(&a);
                 Ok(a)
             }
             Challenge::TlsAlpn01(tc) => {
                 let acme_ext_name = format!("{}.{}", ACME_OID, ID_PE_ACME_ID);
-                let ka = tc.key_authorization(private_key)?;
+                let ka = tc.key_authorization(key_pair)?;
                 let proof = sha256(ka.as_bytes());
                 let proof_str = proof
                     .iter()
@@ -154,8 +154,8 @@ pub struct TokenChallenge {
 }
 
 impl TokenChallenge {
-    fn key_authorization(&self, private_key: &PrivateKey) -> Result<String, Error> {
-        let thumbprint = private_key.get_jwk_thumbprint()?;
+    fn key_authorization(&self, key_pair: &KeyPair) -> Result<String, Error> {
+        let thumbprint = key_pair.get_jwk_thumbprint()?;
         let thumbprint = sha256(thumbprint.as_bytes());
         let thumbprint = b64_encode(&thumbprint);
         let auth = format!("{}.{}", self.token, thumbprint);

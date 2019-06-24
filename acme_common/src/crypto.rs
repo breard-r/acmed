@@ -19,4 +19,4 @@ pub use openssl_hash::sha256;
 #[cfg(feature = "standalone")]
 pub use standalone_hash::sha256;
 
-pub use openssl_keys::{gen_keypair, KeyType, PrivateKey, PublicKey};
+pub use openssl_keys::{gen_keypair, KeyPair, KeyType};

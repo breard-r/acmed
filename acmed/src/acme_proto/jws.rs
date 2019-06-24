@@ -1,6 +1,6 @@
 use crate::acme_proto::jws::algorithms::{EdDsaVariant, SignatureAlgorithm};
 use acme_common::b64_encode;
-use acme_common::crypto::{sha256, PrivateKey};
+use acme_common::crypto::{sha256, KeyPair};
 use acme_common::error::Error;
 use serde::Serialize;
 
@@ -30,12 +30,12 @@ struct JwsProtectedHeaderKid {
     url: String,
 }
 
-fn get_data(private_key: &PrivateKey, protected: &str, payload: &[u8]) -> Result<String, Error> {
+fn get_data(key_pair: &KeyPair, protected: &str, payload: &[u8]) -> Result<String, Error> {
     let protected = b64_encode(protected);
     let payload = b64_encode(payload);
     let signing_input = format!("{}.{}", protected, payload);
     let fingerprint = sha256(signing_input.as_bytes());
-    let signature = private_key.sign(&fingerprint)?;
+    let signature = key_pair.sign(&fingerprint)?;
     let signature = b64_encode(&signature);
     let data = JwsData {
         protected,
@@ -47,30 +47,30 @@ fn get_data(private_key: &PrivateKey, protected: &str, payload: &[u8]) -> Result
 }
 
 pub fn encode_jwk(
-    private_key: &PrivateKey,
+    key_pair: &KeyPair,
     payload: &[u8],
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let sign_alg = SignatureAlgorithm::from_pkey(private_key)?;
+    let sign_alg = SignatureAlgorithm::from_pkey(key_pair)?;
     let protected = JwsProtectedHeaderJwk {
         alg: sign_alg.to_string(),
-        jwk: sign_alg.get_jwk(private_key)?,
+        jwk: sign_alg.get_jwk(key_pair)?,
         nonce: nonce.into(),
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(private_key, &protected, payload)
+    get_data(key_pair, &protected, payload)
 }
 
 pub fn encode_kid(
-    private_key: &PrivateKey,
+    key_pair: &KeyPair,
     key_id: &str,
     payload: &[u8],
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let sign_alg = SignatureAlgorithm::from_pkey(private_key)?;
+    let sign_alg = SignatureAlgorithm::from_pkey(key_pair)?;
     let protected = JwsProtectedHeaderKid {
         alg: sign_alg.to_string(),
         kid: key_id.to_string(),
@@ -78,7 +78,7 @@ pub fn encode_kid(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(private_key, &protected, payload)
+    get_data(key_pair, &protected, payload)
 }
 
 #[cfg(test)]

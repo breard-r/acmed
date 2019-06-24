@@ -1,5 +1,5 @@
 use super::jwk::{EdDsaEd25519Jwk, Es256Jwk, Jwk};
-use acme_common::crypto::{gen_keypair, KeyType, PrivateKey, PublicKey};
+use acme_common::crypto::{gen_keypair, KeyPair, KeyType};
 use acme_common::error::Error;
 use std::fmt;
 use std::str::FromStr;
@@ -47,20 +47,20 @@ impl FromStr for SignatureAlgorithm {
 }
 
 impl SignatureAlgorithm {
-    pub fn from_pkey(private_key: &PrivateKey) -> Result<Self, Error> {
-        match private_key.key_type {
+    pub fn from_pkey(key_pair: &KeyPair) -> Result<Self, Error> {
+        match key_pair.key_type {
             KeyType::EcdsaP256 => Ok(SignatureAlgorithm::Es256),
             t => Err(format!("{}: unsupported key type", t).into()),
         }
     }
 
-    pub fn get_jwk(&self, private_key: &PrivateKey) -> Result<Jwk, Error> {
-        let (x, y) = private_key.get_nist_ec_coordinates()?;
+    pub fn get_jwk(&self, key_pair: &KeyPair) -> Result<Jwk, Error> {
+        let (x, y) = key_pair.get_nist_ec_coordinates()?;
         let jwk = Jwk::Es256(Es256Jwk::new(&x, &y));
         Ok(jwk)
     }
 
-    pub fn gen_key_pair(&self) -> Result<(PublicKey, PrivateKey), Error> {
+    pub fn gen_key_pair(&self) -> Result<KeyPair, Error> {
         match self {
             SignatureAlgorithm::Es256 => gen_keypair(KeyType::EcdsaP256),
             SignatureAlgorithm::EdDsa(EdDsaVariant::Ed25519) => Err("Not implemented".into()),
