@@ -88,10 +88,10 @@ mod tests {
 
     #[test]
     fn test_default_jwk() {
-        let (_, priv_key) = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
-        let s = encode_jwk(&priv_key, payload.as_bytes(), "", "");
+        let s = encode_jwk(&key_pair, payload.as_bytes(), "", "");
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));
@@ -102,11 +102,11 @@ mod tests {
 
     #[test]
     fn test_default_nopad_jwk() {
-        let (_, priv_key) = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
         let payload = "Dummy payload";
         let payload_b64 = "RHVtbXkgcGF5bG9hZA";
         let payload_b64_pad = "RHVtbXkgcGF5bG9hZA==";
-        let s = encode_jwk(&priv_key, payload.as_bytes(), "", "");
+        let s = encode_jwk(&key_pair, payload.as_bytes(), "", "");
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));
@@ -118,11 +118,11 @@ mod tests {
 
     #[test]
     fn test_default_kid() {
-        let (_, priv_key) = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
         let key_id = "0x2a";
-        let s = encode_kid(&priv_key, key_id, payload.as_bytes(), "", "");
+        let s = encode_kid(&key_pair, key_id, payload.as_bytes(), "", "");
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));

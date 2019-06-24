@@ -71,7 +71,7 @@ impl SignatureAlgorithm {
 #[cfg(test)]
 mod tests {
     use super::{EdDsaVariant, SignatureAlgorithm};
-    use acme_common::crypto::PrivateKey;
+    use acme_common::crypto::KeyPair;
     use std::str::FromStr;
 
     #[test]
@@ -115,7 +115,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg6To1BW8qTehGhPca
 0eMcW8iQU4yA02dvtKkuqfny4HChRANCAAQwxx+j3wYGzD5LSFNBTLlT7J+7rWrq
 4BGdR8705iwpBeOQgMpLj+9vuFutlVtmoYpJSYa9+49Hxz8aCe1AQeWt
 -----END PRIVATE KEY-----";
-        let k = PrivateKey::from_pem(pem).unwrap();
+        let k = KeyPair::from_pem(pem).unwrap();
         let s = SignatureAlgorithm::from_pkey(&k);
         assert!(s.is_ok());
         let s = s.unwrap();
