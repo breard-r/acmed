@@ -35,6 +35,8 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 - A pre-built set of hooks that can be used in most circumstances
 - Daemon and certificates management via the `acmectl` tool
+- Nonce scoping configuration
+- HTTP/2 support
 
 
 ## Documentation
