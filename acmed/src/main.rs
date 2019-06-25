@@ -7,6 +7,7 @@ mod acme_proto;
 mod certificate;
 mod config;
 mod hooks;
+mod jws;
 mod main_event_loop;
 mod rate_limits;
 mod storage;

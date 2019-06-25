@@ -1,8 +1,8 @@
 use crate::acme_proto::http;
-use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
-use crate::acme_proto::jws::encode_jwk;
 use crate::acme_proto::structs::{Account, AccountResponse, Directory};
 use crate::certificate::Certificate;
+use crate::jws::algorithms::SignatureAlgorithm;
+use crate::jws::encode_jwk;
 use crate::storage;
 use acme_common::crypto::KeyPair;
 use acme_common::error::Error;

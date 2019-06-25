@@ -1,9 +1,9 @@
 use crate::acme_proto::account::AccountManager;
-use crate::acme_proto::jws::encode_kid;
 use crate::acme_proto::structs::{
     ApiError, Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
 };
 use crate::certificate::Certificate;
+use crate::jws::encode_kid;
 use crate::storage;
 use acme_common::crypto::Csr;
 use acme_common::error::Error;
@@ -13,7 +13,6 @@ use std::fmt;
 mod account;
 mod certificate;
 mod http;
-pub mod jws;
 pub mod structs;
 
 #[derive(Clone, Debug, PartialEq)]
