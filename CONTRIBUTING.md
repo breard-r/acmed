@@ -21,7 +21,7 @@ The [nix](https://crates.io/crates/nix) crate does not currently allow to retrie
 
 ### rust-openssl
 
-The [openssl](https://crates.io/crates/openssl) does not expose the Asn1Time in a usable way, which requires ACMEd to hack around it by parsing the string representation of such objects. This is sub-optimal and has already caused at least one bug.
+The [openssl](https://crates.io/crates/openssl) crate does not expose the Asn1Time in a usable way, which requires ACMEd to parse certificates using an external library in order to get the `not after` field. This is sub-optimal.
 
 - https://github.com/sfackler/rust-openssl/issues/687
 - https://github.com/sfackler/rust-openssl/pull/673
@@ -39,7 +39,7 @@ If you really want to submit a pull request, please :
 - format your code using [rustfmt](https://github.com/rust-lang/rustfmt)
 - be sure not to have any warning when compiling
 - run [clippy](https://github.com/rust-lang/rust-clippy) and fix any issue
-- refrain from including a new dependency (crates having `ring` in their dependency tree are an absolute no-go)
+- refrain from including a new dependency (crates having `ring` in their dependency tree are a no-go, see #2)
 - beware of potential repercussions on the default hooks: those should remain usable
 
 Not following the rules above will delay the merge since they will have to be fixed first.
