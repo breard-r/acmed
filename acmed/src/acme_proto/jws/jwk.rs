@@ -4,7 +4,6 @@ use serde::Serialize;
 #[serde(untagged)]
 pub enum Jwk {
     Es256(Es256Jwk),
-    EdDsaEd25519(EdDsaEd25519Jwk),
 }
 
 #[derive(Serialize)]
@@ -28,16 +27,5 @@ impl Es256Jwk {
             x: x.to_string(),
             y: y.to_string(),
         }
-    }
-}
-
-#[derive(Serialize)]
-pub struct EdDsaEd25519Jwk {
-    // TODO: implement EdDsaEd25519Jwk
-}
-
-impl EdDsaEd25519Jwk {
-    pub fn new() -> Self {
-        EdDsaEd25519Jwk {}
     }
 }

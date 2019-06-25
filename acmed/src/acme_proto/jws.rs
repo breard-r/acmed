@@ -1,4 +1,4 @@
-use crate::acme_proto::jws::algorithms::{EdDsaVariant, SignatureAlgorithm};
+use crate::acme_proto::jws::algorithms::SignatureAlgorithm;
 use acme_common::b64_encode;
 use acme_common::crypto::{sha256, KeyPair};
 use acme_common::error::Error;

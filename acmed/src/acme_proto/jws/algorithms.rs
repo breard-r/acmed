@@ -1,34 +1,18 @@
-use super::jwk::{EdDsaEd25519Jwk, Es256Jwk, Jwk};
+use super::jwk::{Es256Jwk, Jwk};
 use acme_common::crypto::{gen_keypair, KeyPair, KeyType};
 use acme_common::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum EdDsaVariant {
-    Ed25519,
-}
-
-impl fmt::Display for EdDsaVariant {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            EdDsaVariant::Ed25519 => "Ed25519",
-        };
-        write!(f, "{}", s)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
 pub enum SignatureAlgorithm {
     Es256,
-    EdDsa(EdDsaVariant),
 }
 
 impl fmt::Display for SignatureAlgorithm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             SignatureAlgorithm::Es256 => "ES256",
-            SignatureAlgorithm::EdDsa(_) => "EdDSA",
         };
         write!(f, "{}", s)
     }
@@ -40,7 +24,6 @@ impl FromStr for SignatureAlgorithm {
     fn from_str(data: &str) -> Result<Self, Self::Err> {
         match data.to_lowercase().as_str() {
             "es256" => Ok(SignatureAlgorithm::Es256),
-            "eddsa-ed25519" => Ok(SignatureAlgorithm::EdDsa(EdDsaVariant::Ed25519)),
             _ => Err(format!("{}: unknown signature algorithm", data).into()),
         }
     }
@@ -63,14 +46,13 @@ impl SignatureAlgorithm {
     pub fn gen_key_pair(&self) -> Result<KeyPair, Error> {
         match self {
             SignatureAlgorithm::Es256 => gen_keypair(KeyType::EcdsaP256),
-            SignatureAlgorithm::EdDsa(EdDsaVariant::Ed25519) => Err("Not implemented".into()),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{EdDsaVariant, SignatureAlgorithm};
+    use super::SignatureAlgorithm;
     use acme_common::crypto::KeyPair;
     use std::str::FromStr;
 
@@ -100,12 +82,6 @@ mod tests {
             let a = a.unwrap();
             assert_eq!(a, SignatureAlgorithm::Es256);
         }
-    }
-
-    #[test]
-    fn test_eddsa_ed25519_to_str() {
-        let a = SignatureAlgorithm::EdDsa(EdDsaVariant::Ed25519);
-        assert_eq!(a.to_string().as_str(), "EdDSA");
     }
 
     #[test]
