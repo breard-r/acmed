@@ -1,12 +1,6 @@
-#[cfg(not(feature = "standalone"))]
 mod openssl_server;
-#[cfg(not(feature = "standalone"))]
-use openssl_server::start as server_start;
-#[cfg(feature = "standalone")]
-mod standalone_server;
-#[cfg(feature = "standalone")]
-use standalone_server::start as server_start;
 
+use crate::openssl_server::start as server_start;
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
 use clap::{App, Arg, ArgMatches};

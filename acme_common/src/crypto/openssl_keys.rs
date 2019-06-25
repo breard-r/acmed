@@ -60,9 +60,7 @@ impl KeyPair {
 
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
         match self.key_type {
-            KeyType::Curve25519 => {
-                Err("Curve25519 signatures are not implemented yet".into())
-            },
+            KeyType::Curve25519 => Err("Curve25519 signatures are not implemented yet".into()),
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => {
                 let signature = EcdsaSig::sign(data, self.inner_key.ec_key()?.as_ref())?;
                 let r = signature.r().to_vec();
@@ -81,9 +79,7 @@ impl KeyPair {
     pub fn get_jwk_thumbprint(&self) -> Result<String, Error> {
         // TODO: implement Curve25519 and RSA JWK thumbprint
         match self.key_type {
-            KeyType::Curve25519 => {
-                Err("Curve25519 thumbprint are not implemented yet".into())
-            },
+            KeyType::Curve25519 => Err("Curve25519 thumbprint are not implemented yet".into()),
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(),
             KeyType::Rsa2048 | KeyType::Rsa4096 => {
                 Err("RSA jwk thumbprint are not implemented yet".into())

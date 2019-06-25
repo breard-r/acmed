@@ -10,12 +10,8 @@ readme = "../README.md"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 
-[features]
-default = ["openssl"]
-standalone = []
-
 [dependencies]
 acme_common = { path = "../acme_common" }
 clap = "2.32"
 log = "0.4"
-openssl = { version = "0.10", optional = true }
+openssl = "0.10"
