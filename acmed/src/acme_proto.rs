@@ -10,7 +10,7 @@ use acme_common::error::Error;
 use serde_json::json;
 use std::fmt;
 
-mod account;
+pub mod account;
 mod certificate;
 mod http;
 pub mod structs;

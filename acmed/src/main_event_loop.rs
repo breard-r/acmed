@@ -1,3 +1,4 @@
+use crate::acme_proto::account::init_account;
 use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
 use crate::config;
@@ -67,6 +68,7 @@ impl MainEventLoop {
                 env: crt.env.to_owned(),
                 id: i + 1,
             };
+            init_account(&cert)?;
             certs.push(cert);
         }
 
