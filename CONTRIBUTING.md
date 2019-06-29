@@ -26,6 +26,10 @@ The [openssl](https://crates.io/crates/openssl) crate does not expose the Asn1Ti
 - https://github.com/sfackler/rust-openssl/issues/687
 - https://github.com/sfackler/rust-openssl/pull/673
 
+An other improvement that would be appreciable is to add Curve 25519 support.
+
+- https://github.com/sfackler/rust-openssl/issues/947
+
 
 ## Improving the code
 
