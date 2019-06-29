@@ -8,6 +8,7 @@ use openssl::nid::Nid;
 use openssl::pkey::{Id, PKey, Private};
 use openssl::rsa::Rsa;
 use serde_json::json;
+use serde_json::value::Value;
 
 macro_rules! get_key_type {
     ($key: expr) => {
@@ -76,39 +77,28 @@ impl KeyPair {
         }
     }
 
-    pub fn get_jwk_thumbprint(&self) -> Result<String, Error> {
-        // TODO: implement Curve25519 and RSA JWK thumbprint
+    pub fn jwk_public_key(&self) -> Result<Value, Error> {
+        self.get_jwk_public_key(false)
+    }
+
+    pub fn jwk_public_key_thumbprint(&self) -> Result<Value, Error> {
+        self.get_jwk_public_key(true)
+    }
+
+    fn get_jwk_public_key(&self, thumbprint: bool) -> Result<Value, Error> {
         match self.key_type {
             KeyType::Curve25519 => Err("Curve25519 thumbprint are not implemented yet".into()),
-            KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(),
+            KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(thumbprint),
             KeyType::Rsa2048 | KeyType::Rsa4096 => {
                 Err("RSA jwk thumbprint are not implemented yet".into())
             }
         }
     }
 
-    fn get_nist_ec_jwk(&self) -> Result<String, Error> {
-        let (x, y) = self.get_nist_ec_coordinates()?;
-        let crv = match self.key_type {
-            KeyType::EcdsaP256 => "P-256",
-            KeyType::EcdsaP384 => "P-384",
-            _ => {
-                return Err("Not a NIST elliptic curve.".into());
-            }
-        };
-        let jwk = json!({
-            "crv": crv,
-            "kty": "EC",
-            "x": x,
-            "y": y,
-        });
-        Ok(jwk.to_string())
-    }
-
-    pub fn get_nist_ec_coordinates(&self) -> Result<(String, String), Error> {
-        let curve = match self.key_type {
-            KeyType::EcdsaP256 => Nid::X9_62_PRIME256V1,
-            KeyType::EcdsaP384 => Nid::SECP384R1,
+    fn get_nist_ec_jwk(&self, thumbprint: bool) -> Result<Value, Error> {
+        let (crv, curve) = match self.key_type {
+            KeyType::EcdsaP256 => ("P-256", Nid::X9_62_PRIME256V1),
+            KeyType::EcdsaP384 => ("P-384", Nid::SECP384R1),
             _ => {
                 return Err("Not a NIST elliptic curve.".into());
             }
@@ -124,7 +114,24 @@ impl KeyPair {
             .affine_coordinates_gfp(&group, &mut x, &mut y, &mut ctx)?;
         let x = b64_encode(&x.to_vec());
         let y = b64_encode(&y.to_vec());
-        Ok((x, y))
+        let jwk = if thumbprint {
+            json!({
+                "crv": crv,
+                "kty": "EC",
+                "x": x,
+                "y": y,
+            })
+        } else {
+            json!({
+                "alg": "ES256",
+                "crv": crv,
+                "kty": "EC",
+                "use": "sig",
+                "x": x,
+                "y": y,
+            })
+        };
+        Ok(jwk)
     }
 }
 

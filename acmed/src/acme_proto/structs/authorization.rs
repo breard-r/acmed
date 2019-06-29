@@ -155,8 +155,8 @@ pub struct TokenChallenge {
 
 impl TokenChallenge {
     fn key_authorization(&self, key_pair: &KeyPair) -> Result<String, Error> {
-        let thumbprint = key_pair.get_jwk_thumbprint()?;
-        let thumbprint = sha256(thumbprint.as_bytes());
+        let thumbprint = key_pair.jwk_public_key_thumbprint()?;
+        let thumbprint = sha256(thumbprint.to_string().as_bytes());
         let thumbprint = b64_encode(&thumbprint);
         let auth = format!("{}.{}", self.token, thumbprint);
         Ok(auth)
