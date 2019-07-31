@@ -7,6 +7,7 @@ repository = "https://github.com/breard-r/libreauth"
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
+publish = false
 
 [lib]
 name = "acme_common"
