@@ -3,9 +3,9 @@ use acme_common::b64_encode;
 use acme_common::crypto::{sha256, KeyPair};
 use acme_common::error::Error;
 use serde::Serialize;
+use serde_json::value::Value;
 
 pub mod algorithms;
-mod jwk;
 
 #[derive(Serialize)]
 struct JwsData {
@@ -17,7 +17,7 @@ struct JwsData {
 #[derive(Serialize)]
 struct JwsProtectedHeaderJwk {
     alg: String,
-    jwk: jwk::Jwk,
+    jwk: Value,
     nonce: String,
     url: String,
 }
@@ -55,7 +55,7 @@ pub fn encode_jwk(
     let sign_alg = SignatureAlgorithm::from_pkey(key_pair)?;
     let protected = JwsProtectedHeaderJwk {
         alg: sign_alg.to_string(),
-        jwk: sign_alg.get_jwk(key_pair)?,
+        jwk: key_pair.jwk_public_key()?,
         nonce: nonce.into(),
         url: url.into(),
     };

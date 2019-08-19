@@ -1,5 +1,5 @@
 use crate::certificate::Certificate;
-use crate::config::HookType;
+pub use crate::config::HookType;
 use acme_common::error::Error;
 use handlebars::Handlebars;
 use serde::Serialize;

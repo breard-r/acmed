@@ -10,6 +10,7 @@ readme = "../README.md"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 build = "build.rs"
+publish = false
 
 [dependencies]
 acme_common = { path = "../acme_common" }

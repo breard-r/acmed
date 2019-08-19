@@ -9,6 +9,7 @@ repository = "https://github.com/breard-r/acmed"
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+publish = false
 
 [dependencies]
 acme_common = { path = "../acme_common" }

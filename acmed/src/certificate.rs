@@ -1,6 +1,6 @@
 use crate::acme_proto::Challenge;
-use crate::config::{Account, Domain, HookType};
-use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, PostOperationHookData};
+use crate::config::{Account, Domain};
+use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;

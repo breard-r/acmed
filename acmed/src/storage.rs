@@ -1,6 +1,5 @@
 use crate::certificate::Certificate;
-use crate::config::HookType;
-use crate::hooks::{self, FileStorageHookData, HookEnvData};
+use crate::hooks::{self, FileStorageHookData, HookEnvData, HookType};
 use acme_common::b64_encode;
 use acme_common::crypto::{KeyPair, X509Certificate};
 use acme_common::error::Error;

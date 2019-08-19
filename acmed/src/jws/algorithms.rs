@@ -1,4 +1,3 @@
-use super::jwk::{Es256Jwk, Jwk};
 use acme_common::crypto::{gen_keypair, KeyPair, KeyType};
 use acme_common::error::Error;
 use std::fmt;
@@ -35,12 +34,6 @@ impl SignatureAlgorithm {
             KeyType::EcdsaP256 => Ok(SignatureAlgorithm::Es256),
             t => Err(format!("{}: unsupported key type", t).into()),
         }
-    }
-
-    pub fn get_jwk(&self, key_pair: &KeyPair) -> Result<Jwk, Error> {
-        let (x, y) = key_pair.get_nist_ec_coordinates()?;
-        let jwk = Jwk::Es256(Es256Jwk::new(&x, &y));
-        Ok(jwk)
     }
 
     pub fn gen_key_pair(&self) -> Result<KeyPair, Error> {
