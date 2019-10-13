@@ -76,10 +76,10 @@ fn main() {
                 .conflicts_with("log-syslog"),
         )
         .arg(
-            Arg::with_name("foregroung")
+            Arg::with_name("foreground")
                 .short("f")
-                .long("foregroung")
-                .help("Runs in the foregroung"),
+                .long("foreground")
+                .help("Runs in the foreground"),
         )
         .arg(
             Arg::with_name("pid-file")
@@ -87,7 +87,7 @@ fn main() {
                 .help("Specifies the location of the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .conflicts_with("foregroung"),
+                .conflicts_with("foreground"),
         )
         .arg(
             Arg::with_name("root-cert")
@@ -117,7 +117,7 @@ fn main() {
     };
 
     init_server(
-        matches.is_present("foregroung"),
+        matches.is_present("foreground"),
         matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
     );
 

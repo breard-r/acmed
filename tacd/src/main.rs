@@ -40,7 +40,7 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 
 fn init(cnf: &ArgMatches) -> Result<(), Error> {
     acme_common::init_server(
-        cnf.is_present("foregroung"),
+        cnf.is_present("foreground"),
         cnf.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
     );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
@@ -118,10 +118,10 @@ fn main() {
                 .conflicts_with("log-syslog"),
         )
         .arg(
-            Arg::with_name("foregroung")
-                .long("foregroung")
+            Arg::with_name("foreground")
+                .long("foreground")
                 .short("f")
-                .help("Runs in the foregroung"),
+                .help("Runs in the foreground"),
         )
         .arg(
             Arg::with_name("pid-file")
@@ -129,7 +129,7 @@ fn main() {
                 .help("Specifies the location of the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .conflicts_with("foregroung"),
+                .conflicts_with("foreground"),
         )
         .get_matches();
 

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - A race condition when requesting multiple certificates on the same non-existent account has been fixed.
+- The `foregroung` option has been renamed `foreground`.
 
 
 ## [0.6.0] - 2019-06-05
