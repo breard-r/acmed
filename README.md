@@ -27,8 +27,8 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Retry of HTTPS request rejected with a badNonce or other recoverable errors
 - Customizable HTTPS requests rate limits.
 - Optional key pair reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
-- For a given certificate, each domain names may be validated using a different challenge.
-- A standalone server dedicated to the tls-alpn-01 challenge validation
+- For a given certificate, each domain name may be validated using a different challenge.
+- A standalone server dedicated to the tls-alpn-01 challenge validation (tacd).
 
 
 ## Planned features
@@ -37,6 +37,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Daemon and certificates management via the `acmectl` tool
 - Nonce scoping configuration
 - HTTP/2 support
+
 
 ## Project status
 
@@ -85,11 +86,11 @@ The man pages, the default hooks configuration file, the `CHANGELOG.md` and the 
 
 Short answer: No.
 
-Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to run any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
+Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to modify any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
 
 ### Is it suitable for beginners?
 
-It depends on what you call a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
+It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
 
 ### Why is RSA 2048 the default?
 
