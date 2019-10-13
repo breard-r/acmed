@@ -15,7 +15,7 @@ name = "acme_common"
 [dependencies]
 base64 = "0.10"
 daemonize = "0.4"
-env_logger = "0.6"
+env_logger = "0.7"
 handlebars = "2.0.0-beta.2"
 http_req = "0.5"
 log = "0.4"
