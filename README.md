@@ -38,6 +38,13 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Nonce scoping configuration
 - HTTP/2 support
 
+## Project status
+
+This project is usable, but is still a work in progress. Each release should works well and accordingly to its documentation.
+Because the API has not been stabilized yet, breaking changes may occur. Therefore, before any upgrade, you are invited to read the [CHANGELOG](CHANGELOG.md) and check if any change can break your setup.
+
+Please keep in mind this software has neither been subject to a peer review nor to a security audit.
+
 
 ## Documentation
 
