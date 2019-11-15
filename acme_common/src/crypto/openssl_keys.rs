@@ -23,8 +23,11 @@ macro_rules! get_key_type {
             Id::EC => match $key.ec_key()?.group().curve_name() {
                 Some(Nid::X9_62_PRIME256V1) => KeyType::EcdsaP256,
                 Some(Nid::SECP384R1) => KeyType::EcdsaP384,
-                _ => {
-                    return Err("Unsupported EC key".into());
+                Some(nid) => {
+                    return Err(format!("{:?}: Unsupported EC key.", nid).into());
+                }
+                None => {
+                    return Err("None: Unsupported EC key".into());
                 }
             },
             _ => {
