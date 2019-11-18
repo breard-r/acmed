@@ -60,7 +60,7 @@ This project provides the following man pages:
 
 In order to compile ADMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.32.0, although it is recommended to use the latest stable one.
 
-ACMEd depends on the OpenSSL. The minimal supported versions are those from the [openssl](https://docs.rs/openssl/) crate, currently OpenSSL 1.0.1 through 1.1.1 and LibreSSL 2.5 through 2.8. The `tacd` executable also requires your OpenSSL/LibreSSL version to support TLS-ALPN.
+ACMEd depends OpenSSL 1.1.0 or higher.
 
 On systems based on Debian/Ubuntu, you may need to install the `libssl-dev`, `build-essential` and `pkg-config` packages.
 
