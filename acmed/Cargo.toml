@@ -22,7 +22,7 @@ nom = "5.0"
 openssl-sys = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-time = "0.1"
+time = "0.2"
 toml = "0.5"
 
 [build-dependencies]
