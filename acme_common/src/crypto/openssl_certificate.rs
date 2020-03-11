@@ -8,6 +8,7 @@ use openssl::stack::Stack;
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
 use std::collections::HashSet;
+use std::time::Duration;
 use x509_parser::parse_x509_der;
 
 const APP_ORG: &str = "ACMEd";
@@ -65,10 +66,10 @@ impl X509Certificate {
         Ok((key_pair, cert))
     }
 
-    pub fn not_after(&self) -> Result<time::Tm, Error> {
+    pub fn expires_in(&self) -> Result<Duration, Error> {
         let raw_crt = self.inner_cert.to_der()?;
         let (_, crt) = parse_x509_der(&raw_crt).map_err(|_| Error::from("Invalid certificate."))?;
-        Ok(crt.tbs_certificate.validity.not_after)
+        crt.tbs_certificate.validity.time_to_expiration().ok_or(Error::from("Invalid certificate validity."))
     }
 
     pub fn subject_alt_names(&self) -> HashSet<String> {

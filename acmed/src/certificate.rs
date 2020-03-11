@@ -8,7 +8,7 @@ use log::{debug, info, trace, warn};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::sync::mpsc::SyncSender;
-use time::Duration;
+use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub enum Algorithm {
@@ -102,12 +102,12 @@ impl Certificate {
     }
 
     fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
-        let not_after = cert.not_after()?;
-        self.debug(&format!("not after: {}", not_after.asctime()));
+        let expires_in = cert.expires_in()?;
+        self.debug(&format!("expires in {}s", expires_in.as_secs()));
         // TODO: allow a custom duration (using time-parse ?)
-        let renewal_time = not_after - Duration::weeks(3);
-        self.debug(&format!("renew on: {}", renewal_time.asctime()));
-        Ok(time::now_utc() > renewal_time)
+        // 1814400 is 3 weeks (3 * 7 * 24 * 60 * 60)
+        let renewal_time = Duration::new(1814400, 0);
+        Ok(expires_in <= renewal_time)
     }
 
     fn has_missing_domains(&self, cert: &X509Certificate) -> bool {
