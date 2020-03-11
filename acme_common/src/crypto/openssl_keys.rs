@@ -2,7 +2,7 @@ use crate::b64_encode;
 use crate::crypto::KeyType;
 use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
-use openssl::ec::{EcGroup, EcKey};
+use openssl::ec::{EcGroup, EcKey, Asn1Flag};
 use openssl::ecdsa::EcdsaSig;
 use openssl::nid::Nid;
 use openssl::pkey::{Id, PKey, Private};
@@ -147,7 +147,11 @@ fn gen_rsa_pair(nb_bits: u32) -> Result<PKey<Private>, Error> {
 
 fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
     // TODO: check if map_err is required
-    let group = EcGroup::from_curve_name(nid).map_err(|_| Error::from(""))?;
+    let mut group = EcGroup::from_curve_name(nid).map_err(|_| Error::from(""))?;
+
+    // Use NAMED_CURVE format; OpenSSL 1.0.1 and 1.0.2 default to EXPLICIT_CURVE which won't work (see #9)
+    group.set_asn1_flag(Asn1Flag::NAMED_CURVE);
+
     let ec_priv_key = EcKey::generate(&group).map_err(|_| Error::from(""))?;
     let pk = PKey::from_ec_key(ec_priv_key).map_err(|_| Error::from(""))?;
     Ok(pk)
