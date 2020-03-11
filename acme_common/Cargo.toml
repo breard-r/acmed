@@ -13,7 +13,7 @@ publish = false
 name = "acme_common"
 
 [dependencies]
-base64 = "0.10"
+base64 = "0.12"
 daemonize = "0.4"
 env_logger = "0.7"
 handlebars = "3.0"
