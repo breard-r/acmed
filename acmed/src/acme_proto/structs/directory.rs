@@ -8,7 +8,7 @@ pub struct DirectoryMeta {
     pub terms_of_service: Option<String>,
     pub website: Option<String>,
     pub caa_identities: Option<Vec<String>>,
-    pub external_account_required: Option<String>,
+    pub external_account_required: Option<bool>,
 }
 
 #[derive(Deserialize)]
