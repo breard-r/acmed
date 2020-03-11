@@ -69,7 +69,10 @@ impl X509Certificate {
     pub fn expires_in(&self) -> Result<Duration, Error> {
         let raw_crt = self.inner_cert.to_der()?;
         let (_, crt) = parse_x509_der(&raw_crt).map_err(|_| Error::from("Invalid certificate."))?;
-        crt.tbs_certificate.validity.time_to_expiration().ok_or(Error::from("Invalid certificate validity."))
+        crt.tbs_certificate
+            .validity
+            .time_to_expiration()
+            .ok_or(Error::from("Invalid certificate validity."))
     }
 
     pub fn subject_alt_names(&self) -> HashSet<String> {

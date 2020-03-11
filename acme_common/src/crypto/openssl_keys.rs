@@ -2,7 +2,7 @@ use crate::b64_encode;
 use crate::crypto::KeyType;
 use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
-use openssl::ec::{EcGroup, EcKey, Asn1Flag};
+use openssl::ec::{Asn1Flag, EcGroup, EcKey};
 use openssl::ecdsa::EcdsaSig;
 use openssl::nid::Nid;
 use openssl::pkey::{Id, PKey, Private};
