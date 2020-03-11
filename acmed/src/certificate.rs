@@ -93,7 +93,9 @@ impl Certificate {
     pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
         let domain_name = domain_name.to_string();
         for d in self.domains.iter() {
-            if d.dns == domain_name {
+            // strip wildcards from domain before matching
+            let base_domain = d.dns.trim_start_matches("*.");
+            if base_domain == domain_name {
                 let c = Challenge::from_str(&d.challenge)?;
                 return Ok(c);
             }
