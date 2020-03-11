@@ -69,7 +69,7 @@ fn set_lock() {
 }
 
 fn get_openssl_version_unit(n: u64, pos: u32) -> u64 {
-    let p = 0xff_00_00_00_0 >> (8 * pos);
+    let p = 0x000f_f000_0000 >> (8 * pos);
     let n = n & p;
     n >> (8 * (3 - pos) + 4)
 }
@@ -118,7 +118,7 @@ fn set_tls() {
         set_rustc_env_var!("ACMED_TLS_LIB_VERSION", version);
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "LibreSSL");
     }
-    if let Ok(_) = env::var("CARGO_FEATURE_STANDALONE") {
+    if env::var("CARGO_FEATURE_STANDALONE").is_ok() {
         let version = get_lib_version("ring").unwrap();
         set_rustc_env_var!("ACMED_TLS_LIB_VERSION", version);
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "ring");

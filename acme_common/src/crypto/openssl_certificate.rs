@@ -72,7 +72,7 @@ impl X509Certificate {
         crt.tbs_certificate
             .validity
             .time_to_expiration()
-            .ok_or(Error::from("Invalid certificate validity."))
+            .ok_or_else(|| Error::from("Invalid certificate validity."))
     }
 
     pub fn subject_alt_names(&self) -> HashSet<String> {

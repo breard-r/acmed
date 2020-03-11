@@ -74,7 +74,7 @@ impl MainEventLoop {
 
         Ok(MainEventLoop {
             certs,
-            root_certs: root_certs.iter().map(|v| v.to_string()).collect(),
+            root_certs: root_certs.iter().map(|v| (*v).to_string()).collect(),
         })
     }
 

@@ -100,7 +100,7 @@ fn nonce_from_response(cert: &Certificate, res: &Response) -> Result<String, Err
     let nonce = get_header(res, "Replay-Nonce")?;
     if is_nonce(&nonce) {
         cert.trace(&format!("New nonce: {}", nonce));
-        Ok(nonce.to_string())
+        Ok(nonce)
     } else {
         let msg = format!("{}: invalid nonce.", nonce);
         Err(msg.into())
@@ -123,13 +123,13 @@ fn post_jose_type(
     let rstr = String::from_utf8_lossy(data);
     cert.trace(&format!("request body: {}", rstr));
     let (res, res_body) = send_request(cert, &request)?;
-    let lpos = res_body.find("{").unwrap_or(0);
+    let lpos = res_body.find('{').unwrap_or(0);
     let res_body = if lpos == 0 {
         res_body
     } else {
         res_body.chars().skip(lpos).collect::<String>()
     };
-    let rpos = res_body.rfind("}").unwrap_or(0);
+    let rpos = res_body.rfind('}').unwrap_or(0);
     let res_body = if rpos == 0 {
         res_body
     } else {

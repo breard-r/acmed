@@ -300,7 +300,8 @@ impl Certificate {
         match &self.name {
             Some(n) => n.to_string(),
             None => self.domains.first().unwrap().dns.to_owned(),
-        }.replace("*", "_")
+        }
+        .replace("*", "_")
     }
 
     pub fn get_crt_name_format(&self) -> String {
