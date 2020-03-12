@@ -2,6 +2,7 @@ use crate::certificate::Algorithm;
 use crate::hooks;
 use crate::rate_limits;
 use acme_common::error::Error;
+use acme_common::to_idna;
 use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -287,6 +288,16 @@ impl Certificate {
             None => acme_common::crypto::DEFAULT_ALGO,
         };
         Algorithm::from_str(algo)
+    }
+
+    pub fn get_domains(&self) -> Result<Vec<Domain>, Error> {
+        let mut ret = vec![];
+        for d in self.domains.iter() {
+            let mut nd = d.clone();
+            nd.dns = to_idna(&nd.dns)?;
+            ret.push(nd);
+        }
+        Ok(ret)
     }
 
     pub fn get_kp_reuse(&self) -> bool {

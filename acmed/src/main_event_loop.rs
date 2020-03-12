@@ -48,7 +48,7 @@ impl MainEventLoop {
                 .to_owned();
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
-                domains: crt.domains.to_owned(),
+                domains: crt.get_domains()?,
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
                 remote_url: crt.get_remote_url(&cnf)?,

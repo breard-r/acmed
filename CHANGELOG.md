@@ -17,12 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Wildcard certificates are now supported. In the file name, the `*` is replaced by `_`.
+- Internationalized domain names are now supported.
 
 ### Changed
 - The PID file is now always written whether or not ACMEd is running in the foreground. Previously, it was written only when running in the background.
 
 ### Fixed
 - In the directory, the `externalAccountRequired` field is now a boolean instead of a string.
+
 
 ## [0.6.1] - 2019-09-13
 

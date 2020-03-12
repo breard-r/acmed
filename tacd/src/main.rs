@@ -3,6 +3,7 @@ mod openssl_server;
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
+use acme_common::to_idna;
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
 use std::fs::File;
@@ -44,6 +45,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
         cnf.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
     );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
+    let domain = to_idna(&domain)?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
     let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
     let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext)?;
