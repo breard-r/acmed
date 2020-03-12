@@ -1,5 +1,5 @@
 
-[//]: # (Copyright 2019 Rodolphe Bréard <rodolphe@breard.tf>)
+[//]: # (Copyright 2019-2020 Rodolphe Bréard <rodolphe@breard.tf>)
 
 [//]: # (Copying and distribution of this file, with or without modification,)
 [//]: # (are permitted in any medium without royalty provided the copyright)
@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.7.0] - 2020-03-12
 
 ### Added
 - Wildcard certificates are now supported. In the file name, the `*` is replaced by `_`.

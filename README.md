@@ -1,5 +1,5 @@
 
-[//]: # (Copyright 2019 Rodolphe Bréard <rodolphe@breard.tf>)
+[//]: # (Copyright 2019-2020 Rodolphe Bréard <rodolphe@breard.tf>)
 
 [//]: # (Copying and distribution of this file, with or without modification,)
 [//]: # (are permitted in any medium without royalty provided the copyright)
@@ -20,6 +20,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 - http-01, dns-01 and [tls-alpn-01](https://tools.ietf.org/html/rfc8737) challenges
 - RSA 2048, RSA 4096, ECDSA P-256 and ECDSA P-384 certificates
+- Internationalized domain names support
 - Fully customizable challenge validation action
 - Fully customizable archiving method (yes, you can use git or anything else)
 - Nice and simple configuration file
