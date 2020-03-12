@@ -18,7 +18,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 ## Key features
 
-- http-01, dns-01 and tls-alpn-01 challenges
+- http-01, dns-01 and [tls-alpn-01](https://tools.ietf.org/html/rfc8737) challenges
 - RSA 2048, RSA 4096, ECDSA P-256 and ECDSA P-384 certificates
 - Fully customizable challenge validation action
 - Fully customizable archiving method (yes, you can use git or anything else)
