@@ -16,7 +16,7 @@ publish = false
 acme_common = { path = "../acme_common" }
 clap = "2.32"
 handlebars = "3.0"
-http_req = "0.5"
+http_req = "0.6"
 log = "0.4"
 nom = "5.0"
 openssl-sys = "0.9"
