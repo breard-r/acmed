@@ -86,8 +86,7 @@ fn main() {
                 .long("pid-file")
                 .help("Specifies the location of the PID file")
                 .takes_value(true)
-                .value_name("FILE")
-                .conflicts_with("foreground"),
+                .value_name("FILE"),
         )
         .arg(
             Arg::with_name("root-cert")
