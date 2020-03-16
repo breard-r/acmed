@@ -89,6 +89,17 @@ Short answer: No.
 
 Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to modify any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
 
+### Should ACMEd run as root?
+
+Running ACMEd as root is the simplest configuration since you do not have to worry about access rights, especially within hooks (Eg: restart a service).
+
+However, if you are concerned with safety, you should create a dedicated user for ACMEd. Before doing so, please consider the following points: "Will your services be able to read both the private key and the certificate?" and "Will the ACMEd user be able to execute the hooks?". The later could be achieved using sudo or Polkit.
+
+
+### Why is there no option to run ACMEd as a specific user or group?
+
+The reason some services has such an option is because at startup they may have to load data only accessible by root, hence they have to change the user themselves after those data are loaded. For example, this is wildly used in web servers so they load a private key, which should only be accessible by root. Since ACMEd does not have such requirement, it should be run directly as the correct user.
+
 ### Is it suitable for beginners?
 
 It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
