@@ -65,6 +65,8 @@ ACMEd depends OpenSSL 1.1.0 or higher.
 
 On systems based on Debian/Ubuntu, you may need to install the `libssl-dev`, `build-essential` and `pkg-config` packages.
 
+On Alpine Linux, you may need to install the `openssl-dev` and `alpine-sdk` packages. Also, you should use the `rust` and `cargo` packages in the community repository: installing Rust using rustup will result in compilation errors.
+
 ```
 $ make
 $ make install
