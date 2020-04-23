@@ -1,6 +1,5 @@
 use crate::acme_proto::structs::{AcmeError, ApiError, Directory, HttpApiError};
 use crate::certificate::Certificate;
-use crate::rate_limits;
 use acme_common::error::Error;
 use http_req::request::{self, Method};
 use http_req::response::Response;
@@ -53,9 +52,6 @@ fn new_request<'a>(root_certs: &'a [String], uri: &'a Uri, method: Method) -> Re
 
 fn send_request(cert: &Certificate, request: &Request) -> Result<(Response, String), Error> {
     let mut buffer = Vec::new();
-    cert.https_throttle
-        .send(rate_limits::Request::HttpsRequest)
-        .unwrap();
     cert.debug(&format!("{}: {}", request.method, request.uri));
     let res = request.r.send(&mut buffer)?;
     let res_str = String::from_utf8(buffer)?;

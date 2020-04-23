@@ -9,7 +9,6 @@ mod config;
 mod hooks;
 mod jws;
 mod main_event_loop;
-mod rate_limits;
 mod storage;
 
 pub const APP_NAME: &str = "ACMEd";

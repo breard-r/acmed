@@ -32,20 +32,10 @@ pub struct MainEventLoop {
 impl MainEventLoop {
     pub fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
         let cnf = config::from_file(config_file)?;
-        let rate_limits_corresp = config::init_rate_limits(&cnf)?;
 
         let mut certs = Vec::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
             let ep_name = crt.get_endpoint_name(&cnf)?;
-            let https_throttle = rate_limits_corresp
-                .get(&ep_name)
-                .ok_or_else(|| {
-                    Error::from(format!(
-                        "{}: rate limit not found for this endpoint",
-                        ep_name
-                    ))
-                })?
-                .to_owned();
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 domains: crt.get_domains()?,
@@ -53,7 +43,6 @@ impl MainEventLoop {
                 kp_reuse: crt.get_kp_reuse(),
                 remote_url: crt.get_remote_url(&cnf)?,
                 tos_agreed: crt.get_tos_agreement(&cnf)?,
-                https_throttle,
                 hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),
@@ -86,25 +75,18 @@ impl MainEventLoop {
     }
 
     fn renew_certificates(&self) {
-        let mut handles = vec![];
         for crt in self.certs.iter() {
             match crt.should_renew() {
                 Ok(true) => {
                     let root_certs = self.root_certs.clone();
                     let cert = (*crt).clone();
-                    let handler = thread::spawn(move || {
-                        renew_certificate(&cert, &root_certs);
-                    });
-                    handles.push(handler);
+                    renew_certificate(&cert, &root_certs);
                 }
                 Ok(false) => {}
                 Err(e) => {
                     crt.warn(&e.message);
                 }
             };
-        }
-        for handler in handles {
-            let _ = handler.join();
         }
     }
 }

@@ -1,6 +1,5 @@
 use crate::certificate::Algorithm;
 use crate::hooks;
-use crate::rate_limits;
 use acme_common::error::Error;
 use acme_common::to_idna;
 use log::info;
@@ -9,8 +8,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
-use std::{fmt, thread};
+use std::fmt;
 
 macro_rules! set_cfg_attr {
     ($to: expr, $from: expr) => {
@@ -457,24 +455,6 @@ fn dispatch_global_env_vars(config: &mut Config) {
             }
         }
     }
-}
-
-pub fn init_rate_limits(
-    config: &Config,
-) -> Result<HashMap<String, mpsc::SyncSender<rate_limits::Request>>, Error> {
-    let mut corresp = HashMap::new();
-    for endpoint in config.endpoint.iter() {
-        if endpoint.is_used(config) {
-            let mut limits = Vec::new();
-            for l in endpoint.rate_limits.iter() {
-                limits.push(config.get_rate_limit(l)?);
-            }
-            let mut rl = rate_limits::RateLimit::new(&limits)?;
-            corresp.insert(endpoint.name.to_owned(), rl.get_sender());
-            thread::spawn(move || rl.run());
-        }
-    }
-    Ok(corresp)
 }
 
 pub fn from_file(file_name: &str) -> Result<Config, Error> {

@@ -7,7 +7,6 @@ use acme_common::error::Error;
 use log::{debug, info, trace, warn};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
-use std::sync::mpsc::SyncSender;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
@@ -50,7 +49,6 @@ pub struct Certificate {
     pub kp_reuse: bool,
     pub remote_url: String,
     pub tos_agreed: bool,
-    pub https_throttle: SyncSender<crate::rate_limits::Request>,
     pub hooks: Vec<Hook>,
     pub account_directory: String,
     pub crt_directory: String,
