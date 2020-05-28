@@ -204,15 +204,15 @@ Path to the directory where certificates and their associated private keys are s
 Names of hooks that will be called when requesting a new certificate. The hooks are guaranteed to be called sequentially in the declaration order.
 .El
 .Sh WRITING A HOOK
-When requesting a certificate to a CA using ACME, there is three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every domains to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that uses a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
+When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every domains to be included: It requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: Although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
 .Pp
-In order to allow a full automation of the three above steps without imposing arbitrary restrictions or methods,
+In order to allow full automation of the three above steps without imposing arbitrary restrictions or methods,
 .Xr acmed 8
-uses hooks. Fundamentally, a hook is a command line template that will be called at a specific time of the process. Such approach allows admins to use any executable script or program located on the machine to customize the process.
+uses hooks. Fundamentally, a hook is a command line template that will be called at a specific time of the process. Such an approach allows admins to use any executable script or program located on the machine to customize the process.
 .Pp
 For a given certificate, hooks are guaranteed to be called sequentially in the declaration order. It is therefore possible to have a hook that depends on another one. Nevertheless, several certificates may be renewed at the same time. Hence, hooks shall not use globing or any other action that may disrupt hooks called by a different certificate.
 .Pp
-A hook have a type that will influence both the moment it is called and the available template variables. It is possible to declare several types. In such a case, the hook will be invoked whenever one of its type request it. When called, the hook only have access to template variable for the current type. If a hook uses a template variable that does not exists for the current type it is invoked for, the variable is empty.
+A hook has a type that will influence both the moment it is called and the available template variables. It is possible to declare several types. In such a case, the hook will be invoked whenever one of its type request it. When called, the hook only have access to template variable for the current type. If a hook uses a template variable that does not exists for the current type it is invoked for, the variable is empty.
 .Pp
 When writing a hook, the values of
 .Em args ,
