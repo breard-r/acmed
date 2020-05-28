@@ -155,9 +155,9 @@ impl Certificate {
         let renew = renew || self.is_expiring(&cert)?;
 
         if renew {
-            self.debug("The certificate will be renewed now.");
+            self.debug("The certificate will be renewed now");
         } else {
-            self.debug("The certificate will not be renewed now.");
+            self.debug("The certificate will not be renewed now");
         }
         Ok(renew)
     }
