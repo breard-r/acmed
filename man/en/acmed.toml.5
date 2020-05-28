@@ -158,6 +158,8 @@ The email address used to contact the account's holder.
 .El
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.
+.Pp
+Note that certificates are identified by the first domain in the list of domains. That means that if you reorder the domains so that a different domain is at the first position, a new certificate with a new name will be issued.
 .Bl -tag
 .It Ic account Ar string
 Name of the account to use.
