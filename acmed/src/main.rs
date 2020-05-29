@@ -1,5 +1,5 @@
 use crate::main_event_loop::MainEventLoop;
-use acme_common::init_server;
+use acme_common::{clean_pid_file, init_server};
 use clap::{App, Arg};
 use log::error;
 
@@ -126,6 +126,7 @@ fn main() {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);
+            let _ = clean_pid_file(matches.value_of("pid-file"));
             std::process::exit(1);
         }
     };

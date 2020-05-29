@@ -3,7 +3,7 @@ mod openssl_server;
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
-use acme_common::to_idna;
+use acme_common::{clean_pid_file, to_idna};
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
 use std::fs::File;
@@ -151,6 +151,7 @@ fn main() {
         Ok(_) => {}
         Err(e) => {
             error!("{}", e);
+            let _ = clean_pid_file(matches.value_of("pid-file"));
             std::process::exit(1);
         }
     };

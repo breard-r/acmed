@@ -1,7 +1,7 @@
 use daemonize::Daemonize;
 use std::fs::File;
 use std::io::prelude::*;
-use std::process;
+use std::{fs, process};
 
 pub mod crypto;
 pub mod error;
@@ -54,6 +54,13 @@ fn write_pid_file(pid_file: &str) -> Result<(), error::Error> {
     let mut file = File::create(pid_file)?;
     file.write_all(&data)?;
     file.sync_all()?;
+    Ok(())
+}
+
+pub fn clean_pid_file(pid_file: Option<&str>) -> Result<(), error::Error> {
+    if let Some(f) = pid_file {
+        fs::remove_file(f)?;
+    }
     Ok(())
 }
 
