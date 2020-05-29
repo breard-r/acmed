@@ -14,7 +14,7 @@ mod storage;
 
 pub const APP_NAME: &str = "ACMEd";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
+pub const DEFAULT_PID_FILE: &str = "/var/run/acmed.pid";
 pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";
 pub const DEFAULT_ACCOUNTS_DIR: &str = "/etc/acmed/accounts";
 pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";

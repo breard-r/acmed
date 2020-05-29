@@ -11,7 +11,7 @@ use std::io::{self, Read};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
+const DEFAULT_PID_FILE: &str = "/var/run/tacd.pid";
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
