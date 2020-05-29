@@ -40,12 +40,12 @@ pub fn b64_encode<T: ?Sized + AsRef<[u8]>>(input: &T) -> String {
     base64::encode_config(input, base64::URL_SAFE_NO_PAD)
 }
 
-pub fn init_server(foreground: bool, pid_file: &str) {
+pub fn init_server(foreground: bool, pid_file: Option<&str>, default_pid_file: &str) {
     if !foreground {
-        let daemonize = Daemonize::new().pid_file(pid_file);
+        let daemonize = Daemonize::new().pid_file(pid_file.unwrap_or(default_pid_file));
         exit_match!(daemonize.start());
-    } else {
-        exit_match!(write_pid_file(pid_file));
+    } else if let Some(f) = pid_file {
+        exit_match!(write_pid_file(f));
     }
 }
 

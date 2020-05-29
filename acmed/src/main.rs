@@ -117,7 +117,8 @@ fn main() {
 
     init_server(
         matches.is_present("foreground"),
-        matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
+        matches.value_of("pid-file"),
+        DEFAULT_PID_FILE,
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
