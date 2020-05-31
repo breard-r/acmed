@@ -97,10 +97,13 @@ Running ACMEd as root is the simplest configuration since you do not have to wor
 
 However, if you are concerned with safety, you should create a dedicated user for ACMEd. Before doing so, please consider the following points: "Will your services be able to read both the private key and the certificate?" and "Will the ACMEd user be able to execute the hooks?". The later could be achieved using sudo or Polkit.
 
-
 ### Why is there no option to run ACMEd as a specific user or group?
 
 The reason some services has such an option is because at startup they may have to load data only accessible by root, hence they have to change the user themselves after those data are loaded. For example, this is wildly used in web servers so they load a private key, which should only be accessible by root. Since ACMEd does not have such requirement, it should be run directly as the correct user.
+
+### How can I run ACMEd with systemd?
+
+An example service file is provided (see `acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
 
 ### Is it suitable for beginners?
 
