@@ -3,6 +3,7 @@ use crate::acme_proto::structs::{
     ApiError, Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
 };
 use crate::certificate::Certificate;
+use crate::endpoint::Endpoint;
 use crate::jws::encode_kid;
 use crate::storage;
 use acme_common::crypto::Csr;
@@ -66,7 +67,7 @@ macro_rules! set_empty_data_builder {
     };
 }
 
-pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<(), Error> {
+pub fn request_certificate(cert: &Certificate, root_certs: &[String], endpoint: &mut Endpoint) -> Result<(), Error> {
     let domains = cert
         .domains
         .iter()
@@ -75,13 +76,13 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String]) -> Result<
     let mut hook_datas = vec![];
 
     // 1. Get the directory
-    let directory = http::get_directory(cert, root_certs, &cert.remote_url)?;
+    let directory = http::get_directory(cert, root_certs, &endpoint.url)?;
 
     // 2. Get a first nonce
     let nonce = http::get_nonce(cert, root_certs, &directory.new_nonce)?;
 
     // 3. Get or create the account
-    let (account, nonce) = AccountManager::new(cert, &directory, &nonce, root_certs)?;
+    let (account, nonce) = AccountManager::new(cert, &directory, endpoint, &nonce, root_certs)?;
 
     // 4. Create a new order
     let new_order = NewOrder::new(&domains);

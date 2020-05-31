@@ -1,6 +1,7 @@
 use crate::acme_proto::http;
 use crate::acme_proto::structs::{Account, AccountResponse, Directory};
 use crate::certificate::Certificate;
+use crate::endpoint::Endpoint;
 use crate::jws::algorithms::SignatureAlgorithm;
 use crate::jws::encode_jwk;
 use crate::storage;
@@ -18,12 +19,13 @@ impl AccountManager {
     pub fn new(
         cert: &Certificate,
         directory: &Directory,
+        endpoint: &Endpoint,
         nonce: &str,
         root_certs: &[String],
     ) -> Result<(Self, String), Error> {
         // TODO: store the key id (account url)
         let key_pair = storage::get_account_keypair(cert)?;
-        let account = Account::new(cert);
+        let account = Account::new(cert, endpoint);
         let account = serde_json::to_string(&account)?;
         let data_builder =
             |n: &str| encode_jwk(&key_pair, account.as_bytes(), &directory.new_account, n);

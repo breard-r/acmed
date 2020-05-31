@@ -2,12 +2,14 @@ use crate::acme_proto::account::init_account;
 use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
 use crate::config;
+use crate::endpoint::Endpoint;
 use acme_common::error::Error;
+use std::collections::HashMap;
 use std::thread;
 use std::time::Duration;
 
-fn renew_certificate(crt: &Certificate, root_certs: &[String]) {
-    let (status, is_success) = match request_certificate(crt, root_certs) {
+fn renew_certificate(crt: &Certificate, root_certs: &[String], endpoint: &mut Endpoint) {
+    let (status, is_success) = match request_certificate(crt, root_certs, endpoint) {
         Ok(_) => ("Success.".to_string(), true),
         Err(e) => {
             let e = e.prefix("Unable to renew the certificate");
@@ -27,6 +29,7 @@ fn renew_certificate(crt: &Certificate, root_certs: &[String]) {
 pub struct MainEventLoop {
     certs: Vec<Certificate>,
     root_certs: Vec<String>,
+    endpoints: HashMap<String, Endpoint>,
 }
 
 impl MainEventLoop {
@@ -34,15 +37,15 @@ impl MainEventLoop {
         let cnf = config::from_file(config_file)?;
 
         let mut certs = Vec::new();
+        let mut endpoints = HashMap::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
-            let ep_name = crt.get_endpoint_name(&cnf)?;
+            let endpoint = crt.get_endpoint(&cnf)?;
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 domains: crt.get_domains()?,
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
-                remote_url: crt.get_remote_url(&cnf)?,
-                tos_agreed: crt.get_tos_agreement(&cnf)?,
+                endpoint_name: endpoint.name.clone(),
                 hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),
@@ -57,6 +60,9 @@ impl MainEventLoop {
                 env: crt.env.to_owned(),
                 id: i + 1,
             };
+            if ! endpoints.contains_key(&endpoint.name) {
+                endpoints.insert(endpoint.name.clone(), endpoint);
+            }
             init_account(&cert)?;
             certs.push(cert);
         }
@@ -64,23 +70,30 @@ impl MainEventLoop {
         Ok(MainEventLoop {
             certs,
             root_certs: root_certs.iter().map(|v| (*v).to_string()).collect(),
+            endpoints,
         })
     }
 
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         loop {
             self.renew_certificates();
             thread::sleep(Duration::from_secs(crate::DEFAULT_SLEEP_TIME));
         }
     }
 
-    fn renew_certificates(&self) {
+    fn renew_certificates(&mut self) {
         for crt in self.certs.iter() {
             match crt.should_renew() {
                 Ok(true) => {
                     let root_certs = self.root_certs.clone();
-                    let cert = (*crt).clone();
-                    renew_certificate(&cert, &root_certs);
+                    match self.endpoints.get_mut(&crt.endpoint_name) {
+                        Some(mut endpoint) => {
+                            renew_certificate(&crt, &root_certs, &mut endpoint);
+                        },
+                        None => {
+                            crt.warn(&format!("{}: Endpoint not found", &crt.endpoint_name));
+                        }
+                    };
                 }
                 Ok(false) => {}
                 Err(e) => {

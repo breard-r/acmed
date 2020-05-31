@@ -1,4 +1,5 @@
 use crate::certificate::Certificate;
+use crate::endpoint::Endpoint;
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -12,10 +13,10 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(cert: &Certificate) -> Self {
+    pub fn new(cert: &Certificate, endpoint: &Endpoint) -> Self {
         Account {
             contact: vec![format!("mailto:{}", cert.account.email)],
-            terms_of_service_agreed: cert.tos_agreed,
+            terms_of_service_agreed: endpoint.tos_agreed,
             only_return_existing: false,
         }
     }

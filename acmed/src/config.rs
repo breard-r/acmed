@@ -184,13 +184,14 @@ pub struct Endpoint {
 }
 
 impl Endpoint {
-    fn is_used(&self, config: &Config) -> bool {
-        for crt in config.certificate.iter() {
-            if crt.endpoint == self.name {
-                return true;
-            }
-        }
-        false
+    fn to_generic(&self, _cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+        // TODO: include rate limits using `cnf.get_rate_limit()`
+        let ep = crate::endpoint::Endpoint {
+            name: self.name.to_owned(),
+            url: self.url.to_owned(),
+            tos_agreed: self.tos_agreed,
+        };
+        Ok(ep)
     }
 }
 
@@ -334,28 +335,14 @@ impl Certificate {
         crt_directory.to_string()
     }
 
-    fn get_endpoint(&self, cnf: &Config) -> Result<Endpoint, Error> {
+    pub fn get_endpoint(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
         for endpoint in cnf.endpoint.iter() {
             if endpoint.name == self.endpoint {
-                return Ok(endpoint.clone());
+                let ep = endpoint.to_generic(cnf)?;
+                return Ok(ep);
             }
         }
         Err(format!("{}: unknown endpoint.", self.endpoint).into())
-    }
-
-    pub fn get_remote_url(&self, cnf: &Config) -> Result<String, Error> {
-        let ep = self.get_endpoint(cnf)?;
-        Ok(ep.url)
-    }
-
-    pub fn get_endpoint_name(&self, cnf: &Config) -> Result<String, Error> {
-        let ep = self.get_endpoint(cnf)?;
-        Ok(ep.name)
-    }
-
-    pub fn get_tos_agreement(&self, cnf: &Config) -> Result<bool, Error> {
-        let ep = self.get_endpoint(cnf)?;
-        Ok(ep.tos_agreed)
     }
 
     pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
