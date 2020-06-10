@@ -24,7 +24,7 @@ punycode = "0.4"
 serde_json = "1.0"
 syslog = "5.0"
 toml = "0.5"
-x509-parser = "0.6"
+x509-parser = "0.7"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.17"
