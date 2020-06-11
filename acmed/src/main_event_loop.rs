@@ -5,8 +5,11 @@ use crate::config;
 use crate::endpoint::Endpoint;
 use acme_common::error::Error;
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
+
+type EndpointSync = Arc<RwLock<Endpoint>>;
 
 fn renew_certificate(crt: &Certificate, root_certs: &[String], endpoint: &mut Endpoint) {
     let (status, is_success) = match request_certificate(crt, root_certs, endpoint) {
@@ -29,7 +32,7 @@ fn renew_certificate(crt: &Certificate, root_certs: &[String], endpoint: &mut En
 pub struct MainEventLoop {
     certs: Vec<Certificate>,
     root_certs: Vec<String>,
-    endpoints: HashMap<String, Endpoint>,
+    endpoints: HashMap<String, EndpointSync>,
 }
 
 impl MainEventLoop {
@@ -40,12 +43,13 @@ impl MainEventLoop {
         let mut endpoints = HashMap::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
             let endpoint = crt.get_endpoint(&cnf)?;
+            let endpoint_name = endpoint.name.clone();
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 domains: crt.get_domains()?,
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
-                endpoint_name: endpoint.name.clone(),
+                endpoint_name: endpoint_name.clone(),
                 hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),
@@ -60,8 +64,9 @@ impl MainEventLoop {
                 env: crt.env.to_owned(),
                 id: i + 1,
             };
-            if !endpoints.contains_key(&endpoint.name) {
-                endpoints.insert(endpoint.name.clone(), endpoint);
+            if !endpoints.contains_key(&endpoint_name) {
+                let ep = Arc::new(RwLock::new(endpoint));
+                endpoints.insert(endpoint_name, ep);
             }
             init_account(&cert)?;
             certs.push(cert);
@@ -82,24 +87,36 @@ impl MainEventLoop {
     }
 
     fn renew_certificates(&mut self) {
-        for crt in self.certs.iter() {
-            match crt.should_renew() {
-                Ok(true) => {
-                    let root_certs = self.root_certs.clone();
-                    match self.endpoints.get_mut(&crt.endpoint_name) {
-                        Some(mut endpoint) => {
-                            renew_certificate(&crt, &root_certs, &mut endpoint);
+        let mut handles = vec![];
+        for (ep_name, endpoint_lock) in self.endpoints.iter_mut() {
+            let mut certs_to_renew = vec![];
+            for crt in self.certs.iter() {
+                if crt.endpoint_name == *ep_name {
+                    match crt.should_renew() {
+                        Ok(true) => {
+                            let crt_arc = Arc::new(crt.clone());
+                            certs_to_renew.push(crt_arc);
                         }
-                        None => {
-                            crt.warn(&format!("{}: Endpoint not found", &crt.endpoint_name));
+                        Ok(false) => {}
+                        Err(e) => {
+                            crt.warn(&e.message);
                         }
-                    };
+                    }
                 }
-                Ok(false) => {}
-                Err(e) => {
-                    crt.warn(&e.message);
+            }
+            let lock = endpoint_lock.clone();
+            let rc = self.root_certs.clone();
+            let handle = thread::spawn(move || {
+                let mut endpoint = lock.write().unwrap();
+                for crt in certs_to_renew {
+                    //let root_certs = rc.clone();
+                    renew_certificate(&crt, &rc, &mut endpoint);
                 }
-            };
+            });
+            handles.push(handle);
+        }
+        for handle in handles {
+            let _ = handle.join();
         }
     }
 }
