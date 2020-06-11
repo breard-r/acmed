@@ -184,10 +184,13 @@ pub struct Endpoint {
 }
 
 impl Endpoint {
-    fn to_generic(&self, _cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
-        // TODO: include rate limits using `cnf.get_rate_limit()`
-        let ep = crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed);
-        Ok(ep)
+    fn to_generic(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+        let mut limits = vec![];
+        for rl_name in self.rate_limits.iter() {
+            let (nb, timeframe) = cnf.get_rate_limit(&rl_name)?;
+            limits.push((nb, timeframe));
+        }
+        crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed, &limits)
     }
 }
 

@@ -51,8 +51,8 @@ fn check_status(response: &Response) -> Result<(), Error> {
     Ok(())
 }
 
-fn rate_limit(endpoint: &Endpoint) {
-    // TODO: Implement
+fn rate_limit(endpoint: &mut Endpoint) {
+    endpoint.rl.block_until_allowed();
 }
 
 pub fn header_to_string(header_value: &HeaderValue) -> Result<String, Error> {
