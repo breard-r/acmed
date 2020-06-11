@@ -24,6 +24,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - Fully customizable challenge validation action
 - Fully customizable archiving method (yes, you can use git or anything else)
 - Nice and simple configuration file
+- A pre-built set of hooks that can be used in most circumstances
 - Run as a deamon: no need to set-up timers, crontab or other time-triggered process
 - Retry of HTTPS request rejected with a badNonce or other recoverable errors
 - Customizable HTTPS requests rate limits.
@@ -34,7 +35,6 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 ## Planned features
 
-- A pre-built set of hooks that can be used in most circumstances
 - Daemon and certificates management via the `acmectl` tool
 - Nonce scoping configuration
 - HTTP/2 support
