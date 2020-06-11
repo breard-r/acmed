@@ -57,17 +57,21 @@ impl PartialEq<structs::Challenge> for Challenge {
 }
 
 macro_rules! set_data_builder {
-    ($account: ident, $data: expr, $url: expr) => {
-        |n: &str| encode_kid(&$account.key_pair, &$account.account_url, $data, &$url, n)
+    ($account: ident, $data: expr) => {
+        |n: &str, url: &str| encode_kid(&$account.key_pair, &$account.account_url, $data, url, n)
     };
 }
 macro_rules! set_empty_data_builder {
-    ($account: ident, $url: expr) => {
-        set_data_builder!($account, b"", $url)
+    ($account: ident) => {
+        set_data_builder!($account, b"")
     };
 }
 
-pub fn request_certificate(cert: &Certificate, root_certs: &[String], endpoint: &mut Endpoint) -> Result<(), Error> {
+pub fn request_certificate(
+    cert: &Certificate,
+    root_certs: &[String],
+    endpoint: &mut Endpoint,
+) -> Result<(), Error> {
     let domains = cert
         .domains
         .iter()
@@ -75,37 +79,26 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String], endpoint: 
         .collect::<Vec<String>>();
     let mut hook_datas = vec![];
 
-    // 1. Get the directory
-    let directory = http::get_directory(cert, root_certs, &endpoint.url)?;
+    // Refresh the directory
+    http::refresh_directory(endpoint, root_certs)?;
 
-    // 2. Get a first nonce
-    let nonce = http::get_nonce(cert, root_certs, &directory.new_nonce)?;
+    // Get or create the account
+    let account = AccountManager::new(endpoint, root_certs, cert)?;
 
-    // 3. Get or create the account
-    let (account, nonce) = AccountManager::new(cert, &directory, endpoint, &nonce, root_certs)?;
-
-    // 4. Create a new order
+    // Create a new order
     let new_order = NewOrder::new(&domains);
     let new_order = serde_json::to_string(&new_order)?;
-    let data_builder = set_data_builder!(account, new_order.as_bytes(), directory.new_order);
-    let (order, order_url, mut nonce): (Order, String, String) = http::get_obj_loc(
-        cert,
-        root_certs,
-        &directory.new_order,
-        &data_builder,
-        &nonce,
-    )?;
+    let data_builder = set_data_builder!(account, new_order.as_bytes());
+    let (order, order_url) = http::new_order(endpoint, root_certs, &data_builder)?;
     if let Some(e) = order.get_error() {
         cert.warn(&e.prefix("Error").message);
     }
 
-    // 5. Get all the required authorizations
+    // Begin iter over authorizations
     for auth_url in order.authorizations.iter() {
-        let data_builder = set_empty_data_builder!(account, auth_url);
-        let (auth, new_nonce): (Authorization, String) =
-            http::get_obj(cert, root_certs, &auth_url, &data_builder, &nonce)?;
-        nonce = new_nonce;
-
+        // Fetch the authorization
+        let data_builder = set_empty_data_builder!(account);
+        let auth = http::get_authorization(endpoint, root_certs, &data_builder, &auth_url)?;
         if let Some(e) = auth.get_error() {
             cert.warn(&e.prefix("Error").message);
         }
@@ -120,7 +113,7 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String], endpoint: 
             return Err(msg.into());
         }
 
-        // 6. For each authorization, fetch the associated challenges
+        // Fetch the associated challenges
         let current_challenge = cert.get_domain_challenge(&auth.identifier.value)?;
         for challenge in auth.challenges.iter() {
             if current_challenge == *challenge {
@@ -128,87 +121,60 @@ pub fn request_certificate(cert: &Certificate, root_certs: &[String], endpoint: 
                 let file_name = challenge.get_file_name();
                 let domain = auth.identifier.value.to_owned();
 
-                // 7. Call the challenge hook in order to complete it
+                // Call the challenge hook in order to complete it
                 let mut data = cert.call_challenge_hooks(&file_name, &proof, &domain)?;
                 data.0.is_clean_hook = true;
                 hook_datas.push(data);
 
-                // 8. Tell the server the challenge has been completed
+                // Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
-                let data_builder = set_data_builder!(account, b"{}", chall_url);
-                let new_nonce = http::post_challenge_response(
-                    cert,
-                    root_certs,
-                    &chall_url,
-                    &data_builder,
-                    &nonce,
-                )?;
-                nonce = new_nonce;
+                let data_builder = set_data_builder!(account, b"{}");
+                let _ =
+                    http::post_challenge_response(endpoint, root_certs, &data_builder, &chall_url)?;
             }
         }
 
-        // 9. Pool the authorization in order to see whether or not it is valid
-        let data_builder = set_empty_data_builder!(account, auth_url);
+        // Pool the authorization in order to see whether or not it is valid
+        let data_builder = set_empty_data_builder!(account);
         let break_fn = |a: &Authorization| a.status == AuthorizationStatus::Valid;
-        let (_, new_nonce): (Authorization, String) = http::pool_obj(
-            cert,
-            root_certs,
-            &auth_url,
-            &data_builder,
-            &break_fn,
-            &nonce,
-        )?;
-        nonce = new_nonce;
+        let _ =
+            http::pool_authorization(endpoint, root_certs, &data_builder, &break_fn, &auth_url)?;
         for (data, hook_type) in hook_datas.iter() {
             cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
         }
         hook_datas.clear();
     }
+    // End iter over authorizations
 
-    // 10. Pool the order in order to see whether or not it is ready
-    let data_builder = set_empty_data_builder!(account, order_url);
+    // Pool the order in order to see whether or not it is ready
+    let data_builder = set_empty_data_builder!(account);
     let break_fn = |o: &Order| o.status == OrderStatus::Ready;
-    let (order, nonce): (Order, String) = http::pool_obj(
-        cert,
-        root_certs,
-        &order_url,
-        &data_builder,
-        &break_fn,
-        &nonce,
-    )?;
+    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)?;
 
-    // 11. Finalize the order by sending the CSR
+    // Finalize the order by sending the CSR
     let key_pair = certificate::get_key_pair(cert)?;
     let domains: Vec<String> = cert.domains.iter().map(|e| e.dns.to_owned()).collect();
     let csr = json!({
         "csr": Csr::new(&key_pair, domains.as_slice())?.to_der_base64()?,
     });
     let csr = csr.to_string();
-    let data_builder = set_data_builder!(account, csr.as_bytes(), order.finalize);
-    let (order, nonce): (Order, String) =
-        http::get_obj(cert, root_certs, &order.finalize, &data_builder, &nonce)?;
+    let data_builder = set_data_builder!(account, csr.as_bytes());
+    let order = http::finalize_order(endpoint, root_certs, &data_builder, &order.finalize)?;
     if let Some(e) = order.get_error() {
         cert.warn(&e.prefix("Error").message);
     }
 
-    // 12. Pool the order in order to see whether or not it is valid
-    let data_builder = set_empty_data_builder!(account, order_url);
+    // Pool the order in order to see whether or not it is valid
+    let data_builder = set_empty_data_builder!(account);
     let break_fn = |o: &Order| o.status == OrderStatus::Valid;
-    let (order, nonce): (Order, String) = http::pool_obj(
-        cert,
-        root_certs,
-        &order_url,
-        &data_builder,
-        &break_fn,
-        &nonce,
-    )?;
+    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)?;
 
-    // 13. Download the certificate
+    // Download the certificate
     let crt_url = order
         .certificate
         .ok_or_else(|| Error::from("No certificate available for download."))?;
-    let data_builder = set_empty_data_builder!(account, crt_url);
-    let (crt, _) = http::get_certificate(cert, root_certs, &crt_url, &data_builder, &nonce)?;
+    let data_builder = set_empty_data_builder!(account);
+    let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
 
     cert.info("Certificate renewed");

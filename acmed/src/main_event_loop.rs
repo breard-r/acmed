@@ -60,7 +60,7 @@ impl MainEventLoop {
                 env: crt.env.to_owned(),
                 id: i + 1,
             };
-            if ! endpoints.contains_key(&endpoint.name) {
+            if !endpoints.contains_key(&endpoint.name) {
                 endpoints.insert(endpoint.name.clone(), endpoint);
             }
             init_account(&cert)?;
@@ -89,7 +89,7 @@ impl MainEventLoop {
                     match self.endpoints.get_mut(&crt.endpoint_name) {
                         Some(mut endpoint) => {
                             renew_certificate(&crt, &root_certs, &mut endpoint);
-                        },
+                        }
                         None => {
                             crt.warn(&format!("{}: Endpoint not found", &crt.endpoint_name));
                         }

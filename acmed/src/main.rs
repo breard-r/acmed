@@ -8,6 +8,7 @@ mod certificate;
 mod config;
 mod endpoint;
 mod hooks;
+mod http;
 mod jws;
 mod main_event_loop;
 mod storage;

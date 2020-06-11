@@ -87,9 +87,21 @@ impl From<openssl::error::ErrorStack> for Error {
     }
 }
 
-impl From<http_req::error::Error> for Error {
-    fn from(error: http_req::error::Error) -> Self {
+impl From<reqwest::Error> for Error {
+    fn from(error: reqwest::Error) -> Self {
         format!("HTTP error: {}", error).into()
+    }
+}
+
+impl From<reqwest::header::InvalidHeaderName> for Error {
+    fn from(error: reqwest::header::InvalidHeaderName) -> Self {
+        format!("Invalid HTTP header name: {}", error).into()
+    }
+}
+
+impl From<reqwest::header::InvalidHeaderValue> for Error {
+    fn from(error: reqwest::header::InvalidHeaderValue) -> Self {
+        format!("Invalid HTTP header value: {}", error).into()
     }
 }
 

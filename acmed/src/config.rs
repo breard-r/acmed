@@ -5,10 +5,10 @@ use acme_common::to_idna;
 use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use std::fmt;
 
 macro_rules! set_cfg_attr {
     ($to: expr, $from: expr) => {
@@ -186,11 +186,7 @@ pub struct Endpoint {
 impl Endpoint {
     fn to_generic(&self, _cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
         // TODO: include rate limits using `cnf.get_rate_limit()`
-        let ep = crate::endpoint::Endpoint {
-            name: self.name.to_owned(),
-            url: self.url.to_owned(),
-            tos_agreed: self.tos_agreed,
-        };
+        let ep = crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed);
         Ok(ep)
     }
 }
