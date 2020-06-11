@@ -130,7 +130,7 @@ fn is_duration_chr(c: char) -> bool {
 
 fn get_multiplicator(input: &str) -> IResult<&str, u64> {
     let (input, nb) = take_while_m_n(1, 1, is_duration_chr)(input)?;
-    let mult = match nb.chars().nth(0) {
+    let mult = match nb.chars().next() {
         Some('s') => 1,
         Some('m') => 60,
         Some('h') => 3_600,

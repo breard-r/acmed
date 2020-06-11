@@ -135,7 +135,7 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     let mut hook_data = FileStorageHookData {
         file_name,
         file_directory,
-        file_path: path.to_path_buf(),
+        file_path: path.to_owned(),
         env: HashMap::new(),
     };
     hook_data.set_env(&cert.env);

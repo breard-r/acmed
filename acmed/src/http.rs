@@ -34,7 +34,7 @@ fn update_nonce(endpoint: &mut Endpoint, response: &Response) -> Result<(), Erro
             let msg = format!("{}: invalid nonce.", &nonce);
             return Err(msg.into());
         }
-        endpoint.nonce = Some(nonce.to_string());
+        endpoint.nonce = Some(nonce);
     }
     Ok(())
 }
