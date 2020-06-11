@@ -45,13 +45,11 @@ pub fn init_account(cert: &Certificate) -> Result<(), Error> {
         let sign_alg = SignatureAlgorithm::from_str(crate::DEFAULT_JWS_SIGN_ALGO)?;
         let key_pair = sign_alg.gen_key_pair()?;
         storage::set_account_keypair(cert, &key_pair)?;
-        let msg = format!("Account {} created.", &cert.account.name);
-        cert.info(&msg)
+        cert.info(&format!("Account {} created", &cert.account.name));
     } else {
         // TODO: check if the keys are suitable for the specified signature algorithm
         // and, if not, initiate a key rollover.
-        let msg = format!("Account {} already exists.", &cert.account.name);
-        cert.debug(&msg)
+        cert.debug(&format!("Account {} already exists", &cert.account.name));
     }
     Ok(())
 }

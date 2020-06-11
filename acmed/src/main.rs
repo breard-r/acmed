@@ -1,5 +1,5 @@
 use crate::main_event_loop::MainEventLoop;
-use acme_common::init_server;
+use acme_common::{clean_pid_file, init_server};
 use clap::{App, Arg};
 use log::error;
 
@@ -15,7 +15,7 @@ mod storage;
 
 pub const APP_NAME: &str = "ACMEd";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
+pub const DEFAULT_PID_FILE: &str = "/var/run/acmed.pid";
 pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";
 pub const DEFAULT_ACCOUNTS_DIR: &str = "/etc/acmed/accounts";
 pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";
@@ -118,7 +118,8 @@ fn main() {
 
     init_server(
         matches.is_present("foreground"),
-        matches.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
+        matches.value_of("pid-file"),
+        DEFAULT_PID_FILE,
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
@@ -126,6 +127,7 @@ fn main() {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);
+            let _ = clean_pid_file(matches.value_of("pid-file"));
             std::process::exit(1);
         }
     };

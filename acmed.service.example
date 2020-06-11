@@ -1,0 +1,29 @@
+# systemd example unit file. Please adjust.
+
+[Unit]
+Description=ACME client daemon
+After=network.target
+
+[Service]
+User=acmed
+Group=acmed
+
+# Working directory
+WorkingDirectory=/etc/acmed
+
+# Starting, stopping, timeouts
+ExecStart=/usr/local/bin/acmed --foreground --pid-file /etc/acmed/acmed.pid --log-level debug --log-stderr
+TimeoutStartSec=3
+TimeoutStopSec=5
+Restart=on-failure
+KillSignal=SIGINT
+
+# Sandboxing, reduce privileges, only allow write access to working directory
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectSystem=strict
+ReadWritePaths=/etc/acmed/
+
+[Install]
+WantedBy=multi-user.target

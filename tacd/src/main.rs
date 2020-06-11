@@ -3,7 +3,7 @@ mod openssl_server;
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
-use acme_common::to_idna;
+use acme_common::{clean_pid_file, to_idna};
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
 use std::fs::File;
@@ -11,7 +11,7 @@ use std::io::{self, Read};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-const DEFAULT_PID_FILE: &str = "/var/run/admed.pid";
+const DEFAULT_PID_FILE: &str = "/var/run/tacd.pid";
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
@@ -42,7 +42,8 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 fn init(cnf: &ArgMatches) -> Result<(), Error> {
     acme_common::init_server(
         cnf.is_present("foreground"),
-        cnf.value_of("pid-file").unwrap_or(DEFAULT_PID_FILE),
+        cnf.value_of("pid-file"),
+        DEFAULT_PID_FILE,
     );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
     let domain = to_idna(&domain)?;
@@ -150,6 +151,7 @@ fn main() {
         Ok(_) => {}
         Err(e) => {
             error!("{}", e);
+            let _ = clean_pid_file(matches.value_of("pid-file"));
             std::process::exit(1);
         }
     };

@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The HTTP(S) part is now handled by `reqwest` instead of `http_req`.
 
+## Fixed
+- `make install` now work with the busybox toolchain.
+
 
 ## [0.7.0] - 2020-03-12
 
