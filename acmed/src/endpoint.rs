@@ -20,7 +20,12 @@ pub struct Endpoint {
 }
 
 impl Endpoint {
-    pub fn new(name: &str, url: &str, tos_agreed: bool, limits: &[(usize, String)]) -> Result<Self, Error> {
+    pub fn new(
+        name: &str,
+        url: &str,
+        tos_agreed: bool,
+        limits: &[(usize, String)],
+    ) -> Result<Self, Error> {
         let rl = RateLimit::new(limits)?;
         Ok(Self {
             name: name.to_string(),
@@ -99,7 +104,11 @@ impl RateLimit {
     fn request_allowed(&self) -> bool {
         for (max_allowed, duration) in self.limits.iter() {
             let max_date = Instant::now() - *duration;
-            let nb_req = self.query_log.iter().filter(move |x| **x > max_date).count();
+            let nb_req = self
+                .query_log
+                .iter()
+                .filter(move |x| **x > max_date)
+                .count();
             if nb_req >= *max_allowed {
                 return false;
             }

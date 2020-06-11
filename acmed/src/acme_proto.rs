@@ -177,6 +177,9 @@ pub fn request_certificate(
     let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)?;
     storage::write_certificate(cert, &crt.as_bytes())?;
 
-    cert.info(&format!("Certificate renewed (domains: {})", cert.domain_list()));
+    cert.info(&format!(
+        "Certificate renewed (domains: {})",
+        cert.domain_list()
+    ));
     Ok(())
 }

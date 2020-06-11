@@ -102,7 +102,10 @@ impl Certificate {
 
     fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
         let expires_in = cert.expires_in()?;
-        self.debug(&format!("Certificate expires in {} days", expires_in.as_secs() / 86400));
+        self.debug(&format!(
+            "Certificate expires in {} days",
+            expires_in.as_secs() / 86400
+        ));
         // TODO: allow a custom duration (using time-parse ?)
         // 1814400 is 3 weeks (3 * 7 * 24 * 60 * 60)
         let renewal_time = Duration::new(1_814_400, 0);
@@ -141,7 +144,10 @@ impl Certificate {
     }
 
     pub fn should_renew(&self) -> Result<bool, Error> {
-        self.debug(&format!("Checking for renewal (domains: {})", self.domain_list()));
+        self.debug(&format!(
+            "Checking for renewal (domains: {})",
+            self.domain_list()
+        ));
         if !certificate_files_exists(&self) {
             self.debug("certificate does not exist: requesting one");
             return Ok(true);
