@@ -18,6 +18,7 @@ Since the author is not a native English speaker, some of the texts used in this
 An improvement that would be appreciable is to add Curve 25519 support to the [openssl](https://crates.io/crates/openssl) crate.
 
 - https://github.com/sfackler/rust-openssl/issues/947
+- https://github.com/sfackler/rust-openssl/pull/1275
 
 ### Find or create a good template engine
 
