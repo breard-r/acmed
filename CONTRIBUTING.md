@@ -11,7 +11,7 @@ The first way to help is to actually use the software and [report any bug you en
 Since the author is not a native English speaker, some of the texts used in this project should be fixed.
 
 
-## Fix issues in dependencies
+## Work on dependencies
 
 ### rust-openssl
 
@@ -23,6 +23,10 @@ The [openssl](https://crates.io/crates/openssl) crate does not expose the Asn1Ti
 An other improvement that would be appreciable is to add Curve 25519 support.
 
 - https://github.com/sfackler/rust-openssl/issues/947
+
+### Find or create a good template engine
+
+As reported in issue #8, there is currently no perfect template engine. A good way to help improve ACMEd would be to find or create one that supports all the listed requirements.
 
 
 ## Improving the code
