@@ -111,7 +111,7 @@ It depends on your definition of a beginner. This software is intended to be use
 
 ### Why is RSA 2048 the default?
 
-Yes, ACMED support RSA 4096, ECDSA P-256 and ECDSA P-384. However, those are not (yet) fitted to be the default choice.
+Despite the fact that RSA 4096, ECDSA P-256 and ECDSA P-384 are supported, those are not (yet) fitted to be the default choice.
 
 It is not obvious at the first sight, but [RSA 4096](https://gnupg.org/faq/gnupg-faq.html#no_default_of_rsa4096) is NOT twice more secure than RSA 2048. In fact, it adds a lot more calculation while providing only a small security improvement. If you think you will use it anyway since you are more concerned about security than performance, please check your certificate chain up to the root. Most of the time, the root certificate and the intermediates will be RSA 2048 ones (that is the case for [Let’s Encrypt](https://letsencrypt.org/certificates/)). If so, using RSA 4096 in the final certificate will not add any additional security since a system's global security level is equal to the level of its weakest point.
 
