@@ -12,7 +12,7 @@ rust:
     - "nightly"
 
 jobs:
-    allow_failure:
+    allow_failures:
         - rust: "nightly"
     include:
         - name: Run cargo audit
