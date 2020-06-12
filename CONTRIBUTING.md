@@ -13,12 +13,6 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ## Fix issues in dependencies
 
-### nix
-
-The [nix](https://crates.io/crates/nix) crate does not currently allow to retrieve an UID or GID from a user or group name, which prevents ACMEd to do so. A pull request has been made to `nix` in early 2018 but has not been merged yet.
-
-- https://github.com/nix-rust/nix/pull/864
-
 ### rust-openssl
 
 The [openssl](https://crates.io/crates/openssl) crate does not expose the Asn1Time in a usable way, which requires ACMEd to parse certificates using an external library in order to get the `not after` field. This is sub-optimal.

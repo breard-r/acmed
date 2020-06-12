@@ -97,8 +97,8 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
                 let nix_uid = nix::unistd::Uid::from_raw(raw_uid);
                 Some(nix_uid)
             } else {
-                // TODO: handle username
-                None
+                let user = nix::unistd::User::from_name(&u)?;
+                user.map(|u| u.uid)
             }
         }
         None => None,
@@ -110,8 +110,8 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
                 let nix_gid = nix::unistd::Gid::from_raw(raw_gid);
                 Some(nix_gid)
             } else {
-                // TODO: handle group name
-                None
+                let grp = nix::unistd::Group::from_name(&g)?;
+                grp.map(|g| g.gid)
             }
         }
         None => None,
