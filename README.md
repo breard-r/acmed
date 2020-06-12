@@ -35,6 +35,8 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 ## Planned features
 
+- IP Identifier Validation Extension [RFC 8738](https://tools.ietf.org/html/rfc8738)
+- STAR Certificates [RFC 8739](https://tools.ietf.org/html/rfc8739)
 - Daemon and certificates management via the `acmectl` tool
 - Nonce scoping configuration
 - HTTP/2 support
