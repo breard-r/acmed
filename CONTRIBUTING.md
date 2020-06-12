@@ -21,7 +21,7 @@ An improvement that would be appreciable is to add Curve 25519 support to the [o
 
 ### Find or create a good template engine
 
-As reported in issue #8, there is currently no perfect template engine. A good way to help improve ACMEd would be to find or create one that supports all the listed requirements.
+As reported in [issue #8](https://github.com/breard-r/acmed/issues/8), there is currently no perfect template engine. A good way to help improve ACMEd would be to find or create one that supports all the listed requirements.
 
 
 ## Improving the code
