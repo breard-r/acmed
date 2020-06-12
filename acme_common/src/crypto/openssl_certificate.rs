@@ -8,8 +8,7 @@ use openssl::stack::Stack;
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
 use std::collections::HashSet;
-use std::time::Duration;
-use x509_parser::parse_x509_der;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const APP_ORG: &str = "ACMEd";
 const APP_NAME: &str = "ACMEd";
@@ -67,12 +66,13 @@ impl X509Certificate {
     }
 
     pub fn expires_in(&self) -> Result<Duration, Error> {
-        let raw_crt = self.inner_cert.to_der()?;
-        let (_, crt) = parse_x509_der(&raw_crt).map_err(|_| Error::from("Invalid certificate."))?;
-        crt.tbs_certificate
-            .validity
-            .time_to_expiration()
-            .ok_or_else(|| Error::from("Invalid certificate validity."))
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as i64;
+        let now = Asn1Time::from_unix(timestamp)?;
+        let not_after = self.inner_cert.not_after();
+        let diff = now.diff(not_after)?;
+        let nb_secs = diff.days * 24 * 60 * 60 + diff.secs;
+        let nb_secs = if nb_secs > 0 { nb_secs as u64 } else { 0 };
+        Ok(Duration::from_secs(nb_secs))
     }
 
     pub fn subject_alt_names(&self) -> HashSet<String> {

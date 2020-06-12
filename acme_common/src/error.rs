@@ -57,6 +57,12 @@ impl From<std::sync::mpsc::RecvError> for Error {
     }
 }
 
+impl From<std::time::SystemTimeError> for Error {
+    fn from(error: std::time::SystemTimeError) -> Self {
+        format!("SystemTimeError difference: {:?}", error.duration()).into()
+    }
+}
+
 impl From<syslog::Error> for Error {
     fn from(error: syslog::Error) -> Self {
         format!("syslog error: {}", error).into()

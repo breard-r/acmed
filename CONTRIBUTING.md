@@ -15,12 +15,7 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ### rust-openssl
 
-The [openssl](https://crates.io/crates/openssl) crate does not expose the Asn1Time in a usable way, which requires ACMEd to parse certificates using an external library in order to get the `not after` field. This is sub-optimal.
-
-- https://github.com/sfackler/rust-openssl/issues/687
-- https://github.com/sfackler/rust-openssl/pull/673
-
-An other improvement that would be appreciable is to add Curve 25519 support.
+An improvement that would be appreciable is to add Curve 25519 support to the [openssl](https://crates.io/crates/openssl) crate.
 
 - https://github.com/sfackler/rust-openssl/issues/947
 
