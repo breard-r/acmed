@@ -74,7 +74,7 @@ $ make
 $ make install
 ```
 
-To build ACMEd and tacd inside a temporary Docker container, use the `build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
+To build ACMEd and tacd inside a temporary Docker container, use the `contrib/build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
 
 
 ## Frequently Asked Questions
