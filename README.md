@@ -61,13 +61,13 @@ This project provides the following man pages:
 
 ## Build from source
 
-In order to compile ACMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.39.0, although it is recommended to use the latest stable one.
+In order to compile ACMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimal required Rust version is 1.40.0, although it is recommended to use the latest stable one.
 
 ACMEd depends OpenSSL 1.1.0 or higher.
 
 On systems based on Debian/Ubuntu, you may need to install the `libssl-dev`, `build-essential` and `pkg-config` packages.
 
-On Alpine Linux, you may need to install the `openssl-dev` and `alpine-sdk` packages. Since Alpine Linux 3.11 you can use the `rust` and `cargo` packages from the community repository. Older versions of Alpine Linux will require you to install Rust 1.44 or later using rustup.
+On Alpine Linux, you may need to install the `openssl-dev` and `alpine-sdk` packages. Since Alpine Linux 3.12 you can use the `rust` and `cargo` packages from the community repository. Older versions of Alpine Linux will require you to install the stable version of Rust using rustup.
 
 ```
 $ make
