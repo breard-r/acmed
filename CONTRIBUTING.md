@@ -13,6 +13,10 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ## Work on dependencies
 
+### attohttpc
+
+Although `attohttpc` is not currently a dependency, it may replace `reqwest` which is far too big and drags a lot of dependencies. But before this could be done, it needs to allow [new root certificates to be added](https://github.com/sbstp/attohttpc/issues/71).
+
 ### rust-openssl
 
 An improvement that would be appreciable is to add Curve 25519 support to the [openssl](https://crates.io/crates/openssl) crate.
