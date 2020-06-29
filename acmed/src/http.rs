@@ -1,8 +1,8 @@
 use crate::acme_proto::structs::HttpApiError;
 use crate::endpoint::Endpoint;
+use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
-use reqwest::blocking::{Client, Response};
-use reqwest::header::{self, HeaderMap, HeaderValue};
+use attohttpc::{charsets, header, Response, Session};
 use std::fs::File;
 use std::io::prelude::*;
 use std::{thread, time};
@@ -40,12 +40,9 @@ fn update_nonce(endpoint: &mut Endpoint, response: &Response) -> Result<(), Erro
 }
 
 fn check_status(response: &Response) -> Result<(), Error> {
-    let status = response.status();
-    if !status.is_success() {
-        let msg = status
-            .canonical_reason()
-            .unwrap_or("<no description provided>");
-        let msg = format!("HTTP error: {}: {}", status.as_u16(), msg);
+    if !response.is_success() {
+        let status = response.status();
+        let msg = format!("HTTP error: {}: {}", status.as_u16(), status.as_str());
         return Err(msg.into());
     }
     Ok(())
@@ -55,14 +52,14 @@ fn rate_limit(endpoint: &mut Endpoint) {
     endpoint.rl.block_until_allowed();
 }
 
-pub fn header_to_string(header_value: &HeaderValue) -> Result<String, Error> {
+pub fn header_to_string(header_value: &header::HeaderValue) -> Result<String, Error> {
     let s = header_value
         .to_str()
         .map_err(|_| Error::from("Invalid nonce format."))?;
     Ok(s.to_string())
 }
 
-fn get_client(root_certs: &[String]) -> Result<Client, Error> {
+fn get_session(root_certs: &[String]) -> Result<Session, Error> {
     let useragent = format!(
         "{}/{} ({}) {}",
         crate::APP_NAME,
@@ -70,31 +67,25 @@ fn get_client(root_certs: &[String]) -> Result<Client, Error> {
         env!("ACMED_TARGET"),
         env!("ACMED_HTTP_LIB_AGENT")
     );
-    let mut headers = HeaderMap::with_capacity(2);
     // TODO: allow to change the language
-    headers.insert(
-        header::ACCEPT_LANGUAGE,
-        HeaderValue::from_static("en-US,en;q=0.5"),
-    );
-    headers.insert(header::USER_AGENT, HeaderValue::from_str(&useragent)?);
-    let mut client_builder = Client::builder().default_headers(headers).referer(false);
+    let mut session = Session::new();
+    session.default_charset(Some(charsets::UTF_8));
+    session.try_header(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5")?;
+    session.try_header(header::USER_AGENT, &useragent)?;
     for crt_file in root_certs.iter() {
         let mut buff = Vec::new();
         File::open(crt_file)?.read_to_end(&mut buff)?;
-        let crt = reqwest::Certificate::from_pem(&buff)?;
-        client_builder = client_builder.add_root_certificate(crt);
+        let crt = X509Certificate::from_pem_native(&buff)?;
+        session.add_root_certificate(crt);
     }
-    let client = client_builder.build()?;
-    Ok(client)
+    Ok(session)
 }
 
 pub fn get(endpoint: &mut Endpoint, root_certs: &[String], url: &str) -> Result<Response, Error> {
-    let client = get_client(root_certs)?;
+    let mut session = get_session(root_certs)?;
+    session.try_header(header::ACCEPT, CONTENT_TYPE_JSON)?;
     rate_limit(endpoint);
-    let response = client
-        .get(url)
-        .header(header::ACCEPT, HeaderValue::from_static(CONTENT_TYPE_JSON))
-        .send()?;
+    let response = session.get(url).send()?;
     update_nonce(endpoint, &response)?;
     check_status(&response)?;
     Ok(response)
@@ -111,20 +102,17 @@ pub fn post<F>(
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
-    let client = get_client(root_certs)?;
+    let mut session = get_session(root_certs)?;
+    session.try_header(header::ACCEPT, accept)?;
+    session.try_header(header::CONTENT_TYPE, content_type)?;
     if endpoint.nonce.is_none() {
         let _ = new_nonce(endpoint, root_certs);
     }
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let nonce = &endpoint.nonce.clone().unwrap();
-        let body = data_builder(&nonce, url)?.into_bytes();
+        let body = data_builder(&nonce, url)?;
         rate_limit(endpoint);
-        let response = client
-            .post(url)
-            .body(body)
-            .header(header::ACCEPT, HeaderValue::from_str(accept)?)
-            .header(header::CONTENT_TYPE, HeaderValue::from_str(content_type)?)
-            .send()?;
+        let response = session.post(url).text(&body).send()?;
         update_nonce(endpoint, &response)?;
         match check_status(&response) {
             Ok(_) => {

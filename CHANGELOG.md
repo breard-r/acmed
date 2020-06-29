@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - System users and groups can now be specified by name in addition to uid/gid.
 
+### Changed
+- The HTTP(S) part is now handled by `attohttpc` instead of `reqwest`.
+
 
 ## [0.8.0] - 2020-06-12
 

@@ -58,6 +58,10 @@ impl X509Certificate {
         })
     }
 
+    pub fn from_pem_native(pem_data: &[u8]) -> Result<native_tls::Certificate, Error> {
+        Ok(native_tls::Certificate::from_pem(pem_data)?)
+    }
+
     pub fn from_acme_ext(domain: &str, acme_ext: &str) -> Result<(KeyPair, Self), Error> {
         let key_pair = gen_keypair(KeyType::EcdsaP256)?;
         let inner_cert = gen_certificate(domain, &key_pair, acme_ext)?;

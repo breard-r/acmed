@@ -81,33 +81,27 @@ impl From<serde_json::error::Error> for Error {
     }
 }
 
+impl From<attohttpc::Error> for Error {
+    fn from(error: attohttpc::Error) -> Self {
+        format!("HTTP error: {}", error).into()
+    }
+}
+
 impl From<handlebars::TemplateRenderError> for Error {
     fn from(error: handlebars::TemplateRenderError) -> Self {
         format!("Template error: {}", error).into()
     }
 }
 
-impl From<openssl::error::ErrorStack> for Error {
-    fn from(error: openssl::error::ErrorStack) -> Self {
+impl From<native_tls::Error> for Error {
+    fn from(error: native_tls::Error) -> Self {
         format!("{}", error).into()
     }
 }
 
-impl From<reqwest::Error> for Error {
-    fn from(error: reqwest::Error) -> Self {
-        format!("HTTP error: {}", error).into()
-    }
-}
-
-impl From<reqwest::header::InvalidHeaderName> for Error {
-    fn from(error: reqwest::header::InvalidHeaderName) -> Self {
-        format!("Invalid HTTP header name: {}", error).into()
-    }
-}
-
-impl From<reqwest::header::InvalidHeaderValue> for Error {
-    fn from(error: reqwest::header::InvalidHeaderValue) -> Self {
-        format!("Invalid HTTP header value: {}", error).into()
+impl From<openssl::error::ErrorStack> for Error {
+    fn from(error: openssl::error::ErrorStack) -> Self {
+        format!("{}", error).into()
     }
 }
 

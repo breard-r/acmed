@@ -58,7 +58,7 @@ fn set_lock() {
         }
     };
     for p in lock.package.iter() {
-        if p.name == "reqwest" {
+        if p.name == "attohttpc" {
             let agent = format!("{}/{}", p.name, p.version);
             set_rustc_env_var!("ACMED_HTTP_LIB_AGENT", agent);
             set_rustc_env_var!("ACMED_HTTP_LIB_NAME", p.name);
