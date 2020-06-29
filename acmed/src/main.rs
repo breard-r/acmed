@@ -1,5 +1,5 @@
 use crate::main_event_loop::MainEventLoop;
-use acme_common::{clean_pid_file, init_server};
+use acme_common::{clean_pid_file, crypto, init_server};
 use clap::{App, Arg};
 use log::error;
 
@@ -40,8 +40,8 @@ fn main() {
         "{} {}\n\nCompiled with:\n  {} {}\n  {} {}",
         APP_VERSION,
         env!("ACMED_TARGET"),
-        env!("ACMED_TLS_LIB_NAME"),
-        env!("ACMED_TLS_LIB_VERSION"),
+        crypto::TLS_LIB_NAME,
+        crypto::TLS_LIB_VERSION,
         env!("ACMED_HTTP_LIB_NAME"),
         env!("ACMED_HTTP_LIB_VERSION")
     );

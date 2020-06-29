@@ -19,14 +19,13 @@ clap = "2.32"
 handlebars = "3.0"
 log = "0.4"
 nom = "5.0"
-openssl-sys = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.5"
 
+[target.'cfg(unix)'.dependencies]
+nix = "0.17"
+
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.5"
-
-[target.'cfg(unix)'.dependencies]
-nix = "0.17"
