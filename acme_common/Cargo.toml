@@ -28,4 +28,4 @@ syslog = "5.0"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.17"
+nix = "0.18"
