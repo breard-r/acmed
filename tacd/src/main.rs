@@ -98,7 +98,7 @@ fn main() {
                 .help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
                 .takes_value(true)
                 .value_name("FILE")
-                .conflicts_with("acme-ext-file")
+                .conflicts_with("acme-ext")
         )
         .arg(
             Arg::with_name("log-level")
