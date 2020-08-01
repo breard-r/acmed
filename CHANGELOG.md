@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The HTTP(S) part is now handled by `attohttpc` instead of `reqwest`.
 
+### Fixed
+- In tacd, the `--acme-ext-file` parameter is now in conflict with `acme-ext` instead of itself.
+
 
 ## [0.8.0] - 2020-06-12
 
