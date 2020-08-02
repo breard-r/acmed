@@ -5,34 +5,27 @@ DATAROOTDIR = $(PREFIX)/share
 DATADIR = $(DATAROOTDIR)
 SYSCONFDIR = /etc
 TARGET_DIR = ./target/release
-EXE_NAMES =	acmed \
-		tacd
-EXE_FILES = $(foreach name,$(EXE_NAMES),$(TARGET_DIR)/$(name))
 MAN_SRC_DIR = ./man/en
 MAN_DST_DIR = $(TARGET_DIR)/man
-MAN_SRC =	acmed.8 \
-		acmed.toml.5 \
-		tacd.8
-MAN_FILES = $(foreach name,$(MAN_SRC),$(MAN_DST_DIR)/$(name).gz)
 
-all: update $(EXE_FILES) man
-
-man: $(MAN_DST_DIR) $(MAN_FILES)
-
-$(EXE_NAMES): %: $(TARGET_DIR)/%
-
-$(EXE_FILES): $(TARGET_DIR)/%: %/Cargo.toml
-	cargo build --release --bin $(subst /Cargo.toml,,$<)
-	strip $@
-
-$(MAN_DST_DIR):
-	@mkdir -p $(MAN_DST_DIR)
-
-$(MAN_DST_DIR)/%.gz: $(MAN_SRC_DIR)/%
-	gzip <"$<" >"$@"
+all: update acmed tacd man
 
 update:
 	cargo update
+
+acmed:
+	cargo build --release --bin acmed
+	strip "$(TARGET_DIR)/acmed"
+
+tacd:
+	cargo build --release --bin tacd
+	strip "$(TARGET_DIR)/tacd"
+
+man:
+	@mkdir -p $(MAN_DST_DIR)
+	gzip <"$(MAN_SRC_DIR)/acmed.8" >"$(MAN_DST_DIR)/acmed.8.gz"
+	gzip <"$(MAN_SRC_DIR)/acmed.toml.5" >"$(MAN_DST_DIR)/acmed.toml.5.gz"
+	gzip <"$(MAN_SRC_DIR)/tacd.8" >"$(MAN_DST_DIR)/tacd.8.gz"
 
 install:
 	install -D -m 0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed
@@ -48,4 +41,4 @@ install:
 clean:
 	cargo clean
 
-.PHONY: $(EXE_NAMES) all clean install man update
+.PHONY: all update acmed tacd man install clean

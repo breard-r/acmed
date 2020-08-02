@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Fixed
+- The Makefile now works on FreeBSD. It should also work on other BSD although it has not been tested.
+
+
 ## [0.9.0] - 2020-08-01
 
 ### Added
