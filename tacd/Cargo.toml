@@ -11,6 +11,10 @@ license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 publish = false
 
+[features]
+default = ["openssl_dyn"]
+openssl_dyn = ["acme_common/openssl_dyn"]
+
 [dependencies]
 acme_common = { path = "../acme_common" }
 clap = "2.32"

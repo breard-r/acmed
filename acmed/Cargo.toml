@@ -12,9 +12,13 @@ include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 build = "build.rs"
 publish = false
 
+[features]
+default = ["openssl_dyn"]
+openssl_dyn = ["acme_common/openssl_dyn", "attohttpc/tls"]
+
 [dependencies]
 acme_common = { path = "../acme_common" }
-attohttpc = { version = "0.15", features = ["charsets", "json"] }
+attohttpc = { version = "0.15", default-features = false, features = ["charsets", "json"] }
 clap = "2.32"
 handlebars = "3.0"
 log = "0.4"
