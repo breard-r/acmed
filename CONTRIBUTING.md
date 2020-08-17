@@ -13,9 +13,19 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ## Work on dependencies
 
+### botan and botan-sys
+
+Although Botan isn't a dependency, it is considered for the replacement of OpenSSL as the default cryptographic API (although OpenSSL will be kept as an alternative). But before this can be done, the Botan crate need to support a few features:
+
+- Access to a certificate's expiration time (via `botan_sys::botan_x509_cert_get_time_expires`).
+- Access to a certificate's subject's alt names.
+- Self-signed certificate generation (via `botan_sys::botan_x509_cert_gen_selfsigned`).
+- CSR (requires to add bindings to [create_cert_req](https://botan.randombit.net/handbook/api_ref/x509.html#creating-pkcs-10-requests)) with DER export.
+
+
 ### attohttpc
 
-Although `attohttpc` is not currently a dependency, it may replace `reqwest` which is far too big and drags a lot of dependencies. But before this could be done, it needs to allow [new root certificates to be added](https://github.com/sbstp/attohttpc/issues/71).
+Add an optional Botan support as the cryptographic library.
 
 ### rust-openssl
 
