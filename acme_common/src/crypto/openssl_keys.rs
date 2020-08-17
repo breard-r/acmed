@@ -99,9 +99,9 @@ impl KeyPair {
     }
 
     fn get_nist_ec_jwk(&self, thumbprint: bool) -> Result<Value, Error> {
-        let (crv, curve) = match self.key_type {
-            KeyType::EcdsaP256 => ("P-256", Nid::X9_62_PRIME256V1),
-            KeyType::EcdsaP384 => ("P-384", Nid::SECP384R1),
+        let (crv, alg, curve) = match self.key_type {
+            KeyType::EcdsaP256 => ("P-256", "ES256", Nid::X9_62_PRIME256V1),
+            KeyType::EcdsaP384 => ("P-384", "ES384", Nid::SECP384R1),
             _ => {
                 return Err("Not a NIST elliptic curve.".into());
             }
@@ -126,7 +126,7 @@ impl KeyPair {
             })
         } else {
             json!({
-                "alg": "ES256",
+                "alg": alg,
                 "crv": crv,
                 "kty": "EC",
                 "use": "sig",
