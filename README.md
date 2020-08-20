@@ -95,6 +95,10 @@ Short answer: No.
 
 Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to modify any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
 
+### How should I configure my TLS server?
+
+You decide. ACMEd only retrieve the certificate for you, it does not impose any specific configuration or limitation on how to use it. For the record, if you are looking for security recommendations on TLS deployment, you can follow the [ANSSI TLS guide](https://www.ssi.gouv.fr/en/guide/security-recommendations-for-tls/) (the english version might not be the latest version of this document, if possible use [the french one](https://www.ssi.gouv.fr/entreprise/guide/recommandations-de-securite-relatives-a-tls/)).
+
 ### Should ACMEd run as root?
 
 Running ACMEd as root is the simplest configuration since you do not have to worry about access rights, especially within hooks (Eg: restart a service).
@@ -107,7 +111,7 @@ The reason some services has such an option is because at startup they may have 
 
 ### How can I run ACMEd with systemd?
 
-An example service file is provided (see `acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
+An example service file is provided (see `contrib/acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
 
 ### Is it suitable for beginners?
 
@@ -115,8 +119,12 @@ It depends on your definition of a beginner. This software is intended to be use
 
 ### Why is RSA 2048 the default?
 
-Despite the fact that RSA 4096, ECDSA P-256 and ECDSA P-384 are supported, those are not (yet) fitted to be the default choice.
+Short answer: it is sufficiently secured, has good performances and is wildly supported.
 
-It is not obvious at the first sight, but [RSA 4096](https://gnupg.org/faq/gnupg-faq.html#no_default_of_rsa4096) is NOT twice more secure than RSA 2048. In fact, it adds a lot more calculation while providing only a small security improvement. If you think you will use it anyway since you are more concerned about security than performance, please check your certificate chain up to the root. Most of the time, the root certificate and the intermediates will be RSA 2048 ones (that is the case for [Let’s Encrypt](https://letsencrypt.org/certificates/)). If so, using RSA 4096 in the final certificate will not add any additional security since a system's global security level is equal to the level of its weakest point.
+Before choosing a different algorithm for your certificate's signature, you might want to consider all of those three points.
 
-ECDSA certificates may be a good alternative to RSA since, for the same security level, they are smaller and requires less computation, hence improve performance. Unfortunately, as X.509 certificates may be used in various contexts, some software may not support this not-so-recent technology. To achieve maximal compatibility while using ECC, you usually have to set-up an hybrid configuration with both an ECDSA and a RSA certificate to fall-back to. Therefore, even if you are encouraged to use ECDSA certificates, it should not currently be the default. That said, it may be in a soon future.
+* For security, you may refer to the table 2 of the [NIST SP 800-57 Part 1](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final).
+* For performances, you can launch the following command on your machine: `openssl speed rsa2048 rsa3072 rsa4096 ecdsap256 ecdsap384 ecdsap521 ed25519 ed448`. Your server will be affected by the signature performances and the clients connecting to it will be affected by the verification performances.
+* Nowadays, every client support ECDSA support. So, unless you have very specific requirements, you can safely use it. At time of writing, EdDSA certificates are not yet supported, but it might become a thing in the future.
+
+Currently, security and client support aren't the main concerns since every possible type of certificates is good enough on those two points. The performances clearly favors ECDSA P-256, Ed25519 and RSA 2048. The later has been chosen as the default because it's the most wildly used as Certification Authorities root and middle certificates. This choice could change in favor of ECDSA once Let's Encrypt issues [a full ECDSA certificates chain](https://community.letsencrypt.org/t/lets-encrypt-new-hierarchy-plans/125517).
