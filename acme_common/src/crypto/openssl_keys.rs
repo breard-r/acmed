@@ -4,9 +4,11 @@ use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::{Asn1Flag, EcGroup, EcKey};
 use openssl::ecdsa::EcdsaSig;
+use openssl::hash::MessageDigest;
 use openssl::nid::Nid;
 use openssl::pkey::{Id, PKey, Private};
 use openssl::rsa::Rsa;
+use openssl::sign::Signer;
 use serde_json::json;
 use serde_json::value::Value;
 
@@ -14,8 +16,8 @@ macro_rules! get_key_type {
     ($key: expr) => {
         match $key.id() {
             Id::RSA => match $key.rsa()?.size() {
-                2048 => KeyType::Rsa2048,
-                4096 => KeyType::Rsa4096,
+                256 => KeyType::Rsa2048,
+                512 => KeyType::Rsa4096,
                 s => {
                     return Err(format!("{}: unsupported RSA key size", s).into());
                 }
@@ -74,8 +76,10 @@ impl KeyPair {
                 Ok(signature)
             }
             KeyType::Rsa2048 | KeyType::Rsa4096 => {
-                // TODO: implement RSA signatures
-                Err("RSA signatures are not implemented yet".into())
+                let mut signer = Signer::new(MessageDigest::sha256(), &self.inner_key)?;
+                signer.update(data)?;
+                let signature = signer.sign_to_vec()?;
+                Ok(signature)
             }
         }
     }
@@ -92,10 +96,32 @@ impl KeyPair {
         match self.key_type {
             KeyType::Curve25519 => Err("Curve25519 thumbprint are not implemented yet".into()),
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(thumbprint),
-            KeyType::Rsa2048 | KeyType::Rsa4096 => {
-                Err("RSA jwk thumbprint are not implemented yet".into())
-            }
+            KeyType::Rsa2048 | KeyType::Rsa4096 => self.get_rsa_jwk(thumbprint),
         }
+    }
+
+    fn get_rsa_jwk(&self, thumbprint: bool) -> Result<Value, Error> {
+        let rsa = self.inner_key.rsa().unwrap();
+        let e = rsa.e();
+        let n = rsa.n();
+        let e = b64_encode(&e.to_vec());
+        let n = b64_encode(&n.to_vec());
+        let jwk = if thumbprint {
+            json!({
+                "kty": "RSA",
+                "e": e,
+                "n": n,
+            })
+        } else {
+            json!({
+                "alg": "RS256",
+                "kty": "RSA",
+                "use": "sig",
+                "e": e,
+                "n": n,
+            })
+        };
+        Ok(jwk)
     }
 
     fn get_nist_ec_jwk(&self, thumbprint: bool) -> Result<Value, Error> {

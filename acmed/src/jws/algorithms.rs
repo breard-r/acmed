@@ -5,6 +5,7 @@ use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SignatureAlgorithm {
+    Rs256,
     Es256,
     Es384,
 }
@@ -12,6 +13,7 @@ pub enum SignatureAlgorithm {
 impl fmt::Display for SignatureAlgorithm {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
+            SignatureAlgorithm::Rs256 => "RS256",
             SignatureAlgorithm::Es256 => "ES256",
             SignatureAlgorithm::Es384 => "ES384",
         };
@@ -24,6 +26,7 @@ impl FromStr for SignatureAlgorithm {
 
     fn from_str(data: &str) -> Result<Self, Self::Err> {
         match data.to_lowercase().as_str() {
+            "rs256" => Ok(SignatureAlgorithm::Rs256),
             "es256" => Ok(SignatureAlgorithm::Es256),
             "es384" => Ok(SignatureAlgorithm::Es384),
             _ => Err(format!("{}: unknown signature algorithm", data).into()),
@@ -34,6 +37,8 @@ impl FromStr for SignatureAlgorithm {
 impl SignatureAlgorithm {
     pub fn from_pkey(key_pair: &KeyPair) -> Result<Self, Error> {
         match key_pair.key_type {
+            KeyType::Rsa2048 => Ok(SignatureAlgorithm::Rs256),
+            KeyType::Rsa4096 => Ok(SignatureAlgorithm::Rs256),
             KeyType::EcdsaP256 => Ok(SignatureAlgorithm::Es256),
             KeyType::EcdsaP384 => Ok(SignatureAlgorithm::Es384),
             t => Err(format!("{}: unsupported key type", t).into()),
@@ -42,6 +47,7 @@ impl SignatureAlgorithm {
 
     pub fn gen_key_pair(&self) -> Result<KeyPair, Error> {
         match self {
+            SignatureAlgorithm::Rs256 => gen_keypair(KeyType::Rsa2048),
             SignatureAlgorithm::Es256 => gen_keypair(KeyType::EcdsaP256),
             SignatureAlgorithm::Es384 => gen_keypair(KeyType::EcdsaP384),
         }
