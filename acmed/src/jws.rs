@@ -1,11 +1,8 @@
-use crate::jws::algorithms::SignatureAlgorithm;
 use acme_common::b64_encode;
-use acme_common::crypto::KeyPair;
+use acme_common::crypto::{JwsSignatureAlgorithm, KeyPair};
 use acme_common::error::Error;
 use serde::Serialize;
 use serde_json::value::Value;
-
-pub mod algorithms;
 
 #[derive(Serialize)]
 struct JwsData {
@@ -30,11 +27,16 @@ struct JwsProtectedHeaderKid {
     url: String,
 }
 
-fn get_data(key_pair: &KeyPair, protected: &str, payload: &[u8]) -> Result<String, Error> {
+fn get_data(
+    key_pair: &KeyPair,
+    sign_alg: &JwsSignatureAlgorithm,
+    protected: &str,
+    payload: &[u8],
+) -> Result<String, Error> {
     let protected = b64_encode(protected);
     let payload = b64_encode(payload);
     let signing_input = format!("{}.{}", protected, payload);
-    let signature = key_pair.sign(signing_input.as_bytes())?;
+    let signature = key_pair.sign(sign_alg, signing_input.as_bytes())?;
     let signature = b64_encode(&signature);
     let data = JwsData {
         protected,
@@ -51,7 +53,8 @@ pub fn encode_jwk(
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let sign_alg = SignatureAlgorithm::from_pkey(key_pair)?;
+    // TODO: allow to change the signature algo
+    let sign_alg = key_pair.key_type.get_default_signature_alg();
     let protected = JwsProtectedHeaderJwk {
         alg: sign_alg.to_string(),
         jwk: key_pair.jwk_public_key()?,
@@ -59,7 +62,7 @@ pub fn encode_jwk(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, &protected, payload)
+    get_data(key_pair, &sign_alg, &protected, payload)
 }
 
 pub fn encode_kid(
@@ -69,7 +72,8 @@ pub fn encode_kid(
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let sign_alg = SignatureAlgorithm::from_pkey(key_pair)?;
+    // TODO: allow to change the signature algo
+    let sign_alg = key_pair.key_type.get_default_signature_alg();
     let protected = JwsProtectedHeaderKid {
         alg: sign_alg.to_string(),
         kid: key_id.to_string(),
@@ -77,7 +81,7 @@ pub fn encode_kid(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, &protected, payload)
+    get_data(key_pair, &sign_alg, &protected, payload)
 }
 
 #[cfg(test)]

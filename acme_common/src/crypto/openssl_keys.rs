@@ -1,5 +1,5 @@
 use crate::b64_encode;
-use crate::crypto::KeyType;
+use crate::crypto::{JwsSignatureAlgorithm, KeyType};
 use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::{Asn1Flag, EcGroup, EcKey};
@@ -64,12 +64,15 @@ impl KeyPair {
         self.inner_key.public_key_to_pem().map_err(Error::from)
     }
 
-    pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
-        match self.key_type {
-            KeyType::Curve25519 => Err("Curve25519 signatures are not implemented yet".into()),
-            KeyType::EcdsaP256 => self.sign_ecdsa(&crate::crypto::sha256, data),
-            KeyType::EcdsaP384 => self.sign_ecdsa(&crate::crypto::sha384, data),
-            KeyType::Rsa2048 | KeyType::Rsa4096 => self.sign_rsa(&MessageDigest::sha256(), data),
+    pub fn sign(&self, alg: &JwsSignatureAlgorithm, data: &[u8]) -> Result<Vec<u8>, Error> {
+        let _ = self.key_type.check_alg_compatibility(alg)?;
+        match alg {
+            JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
+            JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&crate::crypto::sha256, data),
+            JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&crate::crypto::sha384, data),
+            JwsSignatureAlgorithm::Ed25519 => {
+                Err("Curve25519 signatures are not implemented yet".into())
+            }
         }
     }
 

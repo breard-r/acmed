@@ -2,12 +2,10 @@ use crate::acme_proto::http;
 use crate::acme_proto::structs::Account;
 use crate::certificate::Certificate;
 use crate::endpoint::Endpoint;
-use crate::jws::algorithms::SignatureAlgorithm;
 use crate::jws::encode_jwk;
 use crate::storage;
-use acme_common::crypto::KeyPair;
+use acme_common::crypto::{gen_keypair, KeyPair};
 use acme_common::error::Error;
-use std::str::FromStr;
 
 pub struct AccountManager {
     pub key_pair: KeyPair,
@@ -41,9 +39,8 @@ impl AccountManager {
 
 pub fn init_account(cert: &Certificate) -> Result<(), Error> {
     if !storage::account_files_exists(cert) {
-        // TODO: allow to change the signature algo
-        let sign_alg = SignatureAlgorithm::from_str(crate::DEFAULT_JWS_SIGN_ALGO)?;
-        let key_pair = sign_alg.gen_key_pair()?;
+        // TODO: allow to change the account key type
+        let key_pair = gen_keypair(crate::DEFAULT_ACCOUNT_KEY_TYPE)?;
         storage::set_account_keypair(cert, &key_pair)?;
         cert.info(&format!("Account {} created", &cert.account.name));
     } else {

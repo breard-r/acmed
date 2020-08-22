@@ -1,3 +1,4 @@
+use crate::crypto::JwsSignatureAlgorithm;
 use crate::error::Error;
 use std::fmt;
 use std::str::FromStr;
@@ -9,6 +10,35 @@ pub enum KeyType {
     EcdsaP384,
     Rsa2048,
     Rsa4096,
+}
+
+impl KeyType {
+    pub fn get_default_signature_alg(&self) -> JwsSignatureAlgorithm {
+        match self {
+            KeyType::Curve25519 => JwsSignatureAlgorithm::Ed25519,
+            KeyType::EcdsaP256 => JwsSignatureAlgorithm::Es256,
+            KeyType::EcdsaP384 => JwsSignatureAlgorithm::Es384,
+            KeyType::Rsa2048 | KeyType::Rsa4096 => JwsSignatureAlgorithm::Rs256,
+        }
+    }
+
+    pub fn check_alg_compatibility(&self, alg: &JwsSignatureAlgorithm) -> Result<(), Error> {
+        let ok = match self {
+            KeyType::Curve25519 | KeyType::EcdsaP256 | KeyType::EcdsaP384 => {
+                *alg == self.get_default_signature_alg()
+            }
+            KeyType::Rsa2048 | KeyType::Rsa4096 => *alg == JwsSignatureAlgorithm::Rs256,
+        };
+        if ok {
+            Ok(())
+        } else {
+            let err_msg = format!(
+                "Incompatible signature algorithm: {} cannot be used with an {} key.",
+                alg, self
+            );
+            Err(err_msg.into())
+        }
+    }
 }
 
 impl FromStr for KeyType {
