@@ -1,6 +1,6 @@
 use crate::jws::algorithms::SignatureAlgorithm;
 use acme_common::b64_encode;
-use acme_common::crypto::{sha256, sha384, KeyPair, KeyType};
+use acme_common::crypto::KeyPair;
 use acme_common::error::Error;
 use serde::Serialize;
 use serde_json::value::Value;
@@ -34,13 +34,7 @@ fn get_data(key_pair: &KeyPair, protected: &str, payload: &[u8]) -> Result<Strin
     let protected = b64_encode(protected);
     let payload = b64_encode(payload);
     let signing_input = format!("{}.{}", protected, payload);
-    let hash_func = match key_pair.key_type {
-        KeyType::EcdsaP256 => sha256,
-        KeyType::EcdsaP384 => sha384,
-        KeyType::Rsa2048 | KeyType::Rsa4096 | KeyType::Curve25519 => |d: &[u8]| d.to_vec(),
-    };
-    let fingerprint = hash_func(signing_input.as_bytes());
-    let signature = key_pair.sign(&fingerprint)?;
+    let signature = key_pair.sign(signing_input.as_bytes())?;
     let signature = b64_encode(&signature);
     let data = JwsData {
         protected,

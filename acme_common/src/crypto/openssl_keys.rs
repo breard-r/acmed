@@ -67,21 +67,31 @@ impl KeyPair {
     pub fn sign(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
         match self.key_type {
             KeyType::Curve25519 => Err("Curve25519 signatures are not implemented yet".into()),
-            KeyType::EcdsaP256 | KeyType::EcdsaP384 => {
-                let signature = EcdsaSig::sign(data, self.inner_key.ec_key()?.as_ref())?;
-                let r = signature.r().to_vec();
-                let mut s = signature.s().to_vec();
-                let mut signature = r;
-                signature.append(&mut s);
-                Ok(signature)
-            }
-            KeyType::Rsa2048 | KeyType::Rsa4096 => {
-                let mut signer = Signer::new(MessageDigest::sha256(), &self.inner_key)?;
-                signer.update(data)?;
-                let signature = signer.sign_to_vec()?;
-                Ok(signature)
-            }
+            KeyType::EcdsaP256 => self.sign_ecdsa(&crate::crypto::sha256, data),
+            KeyType::EcdsaP384 => self.sign_ecdsa(&crate::crypto::sha384, data),
+            KeyType::Rsa2048 | KeyType::Rsa4096 => self.sign_rsa(&MessageDigest::sha256(), data),
         }
+    }
+
+    fn sign_rsa(&self, hash_func: &MessageDigest, data: &[u8]) -> Result<Vec<u8>, Error> {
+        let mut signer = Signer::new(*hash_func, &self.inner_key)?;
+        signer.update(data)?;
+        let signature = signer.sign_to_vec()?;
+        Ok(signature)
+    }
+
+    fn sign_ecdsa(
+        &self,
+        hash_func: &dyn Fn(&[u8]) -> Vec<u8>,
+        data: &[u8],
+    ) -> Result<Vec<u8>, Error> {
+        let fingerprint = hash_func(data);
+        let signature = EcdsaSig::sign(&fingerprint, self.inner_key.ec_key()?.as_ref())?;
+        let r = signature.r().to_vec();
+        let mut s = signature.s().to_vec();
+        let mut signature = r;
+        signature.append(&mut s);
+        Ok(signature)
     }
 
     pub fn jwk_public_key(&self) -> Result<Value, Error> {
