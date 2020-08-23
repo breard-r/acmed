@@ -70,9 +70,6 @@ impl KeyPair {
             JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
             JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&crate::crypto::sha256, data),
             JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&crate::crypto::sha384, data),
-            JwsSignatureAlgorithm::Ed25519 => {
-                Err("Curve25519 signatures are not implemented yet".into())
-            }
         }
     }
 
@@ -107,7 +104,6 @@ impl KeyPair {
 
     fn get_jwk_public_key(&self, thumbprint: bool) -> Result<Value, Error> {
         match self.key_type {
-            KeyType::Curve25519 => Err("Curve25519 thumbprint are not implemented yet".into()),
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_nist_ec_jwk(thumbprint),
             KeyType::Rsa2048 | KeyType::Rsa4096 => self.get_rsa_jwk(thumbprint),
         }
@@ -198,7 +194,6 @@ fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
 
 pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
     let priv_key = match key_type {
-        KeyType::Curve25519 => Err(Error::from("")),
         KeyType::EcdsaP256 => gen_ec_pair(Nid::X9_62_PRIME256V1),
         KeyType::EcdsaP384 => gen_ec_pair(Nid::SECP384R1),
         KeyType::Rsa2048 => gen_rsa_pair(2048),

@@ -13,7 +13,9 @@ publish = false
 name = "acme_common"
 
 [features]
+default = []
 openssl_dyn = ["openssl", "openssl-sys"]
+ed25519 = []
 
 [dependencies]
 attohttpc = { version = "0.15", default-features = false }
