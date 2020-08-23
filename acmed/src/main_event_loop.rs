@@ -64,10 +64,10 @@ impl MainEventLoop {
                 env: crt.env.to_owned(),
                 id: i + 1,
             };
+            init_account(&cert, &endpoint)?;
             endpoints
                 .entry(endpoint_name)
                 .or_insert_with(|| Arc::new(RwLock::new(endpoint)));
-            init_account(&cert)?;
             certs.push(cert);
         }
 

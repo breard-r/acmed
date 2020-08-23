@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The account key type and signature algorithm can now be specified in the configuration.
+
 ### Fixed
 - The Makefile now works on FreeBSD. It should also work on other BSD although it has not been tested.
 

@@ -49,12 +49,11 @@ fn get_data(
 
 pub fn encode_jwk(
     key_pair: &KeyPair,
+    sign_alg: &JwsSignatureAlgorithm,
     payload: &[u8],
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    // TODO: allow to change the signature algo
-    let sign_alg = key_pair.key_type.get_default_signature_alg();
     let protected = JwsProtectedHeaderJwk {
         alg: sign_alg.to_string(),
         jwk: key_pair.jwk_public_key()?,
@@ -62,18 +61,17 @@ pub fn encode_jwk(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, &sign_alg, &protected, payload)
+    get_data(key_pair, sign_alg, &protected, payload)
 }
 
 pub fn encode_kid(
     key_pair: &KeyPair,
+    sign_alg: &JwsSignatureAlgorithm,
     key_id: &str,
     payload: &[u8],
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    // TODO: allow to change the signature algo
-    let sign_alg = key_pair.key_type.get_default_signature_alg();
     let protected = JwsProtectedHeaderKid {
         alg: sign_alg.to_string(),
         kid: key_id.to_string(),
@@ -81,7 +79,7 @@ pub fn encode_kid(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, &sign_alg, &protected, payload)
+    get_data(key_pair, sign_alg, &protected, payload)
 }
 
 #[cfg(test)]

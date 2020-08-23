@@ -117,7 +117,7 @@ An example service file is provided (see `contrib/acmed.service.example`). The f
 
 It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
 
-### Why is RSA 2048 the default?
+### Why is RSA 2048 the default certificate key type?
 
 Short answer: it is sufficiently secured, has good performances and is wildly supported.
 
@@ -128,3 +128,7 @@ Before choosing a different algorithm for your certificate's signature, you migh
 * Nowadays, every client support ECDSA support. So, unless you have very specific requirements, you can safely use it. At time of writing, EdDSA certificates are not yet supported, but it might become a thing in the future.
 
 Currently, security and client support aren't the main concerns since every possible type of certificates is good enough on those two points. The performances clearly favors ECDSA P-256, Ed25519 and RSA 2048. The later has been chosen as the default because it's the most wildly used as Certification Authorities root and intermediate certificates. This choice could change in favor of ECDSA once Let's Encrypt issues [a full ECDSA certificates chain](https://community.letsencrypt.org/t/lets-encrypt-new-hierarchy-plans/125517).
+
+### Why is ECDSA P-256 the default account key type?
+
+RFC 8555 section 6.2 defines ECDSA P-256 as the only account key type that any ACME servers must implement. It is therefore the best choice for the default value.

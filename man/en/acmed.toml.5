@@ -89,6 +89,29 @@ Set whether or not the user agrees to the Terms Of Service
 .Pq TOS .
 .It Cm url Ar string
 The endpoint's directory URL.
+.It Cm key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the client account's key pair. Possible values are :
+.Bl -dash -compact
+.It
+rsa2048
+.It
+rsa4096
+.It
+ecdsa_p256
+.Aq default
+.It
+ecdsa_p384
+.El
+.It Cm signature_algorithm Ar string
+Name of the signature algorithm used to sign the messages sent to the endpoint. The default value is derived from the key type. Possible values are:
+.Bl -dash -compact
+.It
+RS256
+.It
+ES256
+.It
+ES384
+.El
 .El
 .It Ic hook
 Array of table where each element defines a command that will be launched at a defined point. See section
@@ -186,7 +209,7 @@ The domain name.
 Table of environment variables that will be accessible from hooks.
 .El
 .It Ic algorithm Ar string
-Name of the asymetric cryptography algorithm used to generate the certificate's key pair. Possible values are :
+Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are :
 .Bl -dash -compact
 .It
 rsa2048
@@ -627,6 +650,13 @@ status: {{status}}"""
 .%A Yehuda Katz
 .%T Handlebars
 .%U https://handlebarsjs.com/
+.Re
+.It
+.Rs
+.%A M. Jones
+.%D May 2015
+.%R RFC 7518
+.%T JSON Web Algorithms (JWA)
 .Re
 .El
 .Sh AUTHORS

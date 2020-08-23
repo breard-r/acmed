@@ -181,6 +181,8 @@ pub struct Endpoint {
     pub tos_agreed: bool,
     #[serde(default)]
     pub rate_limits: Vec<String>,
+    pub key_type: Option<String>,
+    pub signature_algorithm: Option<String>,
 }
 
 impl Endpoint {
@@ -190,7 +192,14 @@ impl Endpoint {
             let (nb, timeframe) = cnf.get_rate_limit(&rl_name)?;
             limits.push((nb, timeframe));
         }
-        crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed, &limits)
+        crate::endpoint::Endpoint::new(
+            &self.name,
+            &self.url,
+            self.tos_agreed,
+            &limits,
+            &self.key_type,
+            &self.signature_algorithm,
+        )
     }
 }
 

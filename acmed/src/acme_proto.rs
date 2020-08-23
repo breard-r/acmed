@@ -58,7 +58,16 @@ impl PartialEq<structs::Challenge> for Challenge {
 
 macro_rules! set_data_builder {
     ($account: ident, $data: expr) => {
-        |n: &str, url: &str| encode_kid(&$account.key_pair, &$account.account_url, $data, url, n)
+        |n: &str, url: &str| {
+            encode_kid(
+                &$account.key_pair,
+                &$account.signature_algorithm,
+                &$account.account_url,
+                $data,
+                url,
+                n,
+            )
+        }
     };
 }
 macro_rules! set_empty_data_builder {

@@ -3,7 +3,7 @@ use crate::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum KeyType {
     Rsa2048,
     Rsa4096,
