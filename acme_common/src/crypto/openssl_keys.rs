@@ -174,15 +174,13 @@ impl KeyPair {
 }
 
 fn gen_rsa_pair(nb_bits: u32) -> Result<PKey<Private>, Error> {
-    // TODO: check if map_err is required
-    let priv_key = Rsa::generate(nb_bits).map_err(|_| Error::from(""))?;
+    let priv_key = Rsa::generate(nb_bits)?;
     let pk = PKey::from_rsa(priv_key).map_err(|_| Error::from(""))?;
     Ok(pk)
 }
 
 fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
-    // TODO: check if map_err is required
-    let mut group = EcGroup::from_curve_name(nid).map_err(|_| Error::from(""))?;
+    let mut group = EcGroup::from_curve_name(nid)?;
 
     // Use NAMED_CURVE format; OpenSSL 1.0.1 and 1.0.2 default to EXPLICIT_CURVE which won't work (see #9)
     group.set_asn1_flag(Asn1Flag::NAMED_CURVE);
