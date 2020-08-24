@@ -93,7 +93,9 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
     let uid = match uid {
         Some(u) => {
             if u.bytes().all(|b| b.is_ascii_digit()) {
-                let raw_uid = u.parse::<u32>().unwrap();
+                let raw_uid = u
+                    .parse::<u32>()
+                    .map_err(|_| Error::from("Unable to parse the UID"))?;
                 let nix_uid = nix::unistd::Uid::from_raw(raw_uid);
                 Some(nix_uid)
             } else {
@@ -106,7 +108,9 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
     let gid = match gid {
         Some(g) => {
             if g.bytes().all(|b| b.is_ascii_digit()) {
-                let raw_gid = g.parse::<u32>().unwrap();
+                let raw_gid = g
+                    .parse::<u32>()
+                    .map_err(|_| Error::from("Unable to parse the GID"))?;
                 let nix_gid = nix::unistd::Gid::from_raw(raw_gid);
                 Some(nix_gid)
             } else {
@@ -219,7 +223,10 @@ fn check_files(cert: &Certificate, file_types: &[FileType]) -> bool {
                 return false;
             }
         };
-        cert.trace(&format!("Testing file path: {}", path.to_str().unwrap()));
+        cert.trace(&format!(
+            "Testing file path: {}",
+            path.to_str().unwrap_or_default()
+        ));
         if !path.is_file() {
             return false;
         }

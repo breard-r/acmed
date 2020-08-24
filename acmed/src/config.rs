@@ -338,12 +338,17 @@ impl Certificate {
         }
     }
 
-    pub fn get_crt_name(&self) -> String {
-        match &self.name {
+    pub fn get_crt_name(&self) -> Result<String, Error> {
+        let name = match &self.name {
             Some(n) => n.to_string(),
-            None => self.domains.first().unwrap().dns.to_owned(),
-        }
-        .replace("*", "_")
+            None => self
+                .domains
+                .first()
+                .ok_or_else(|| Error::from("Certificate has no domain names."))?
+                .dns
+                .to_owned(),
+        };
+        Ok(name.replace("*", "_"))
     }
 
     pub fn get_crt_name_format(&self) -> String {

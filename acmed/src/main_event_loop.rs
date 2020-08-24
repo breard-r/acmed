@@ -53,7 +53,7 @@ impl MainEventLoop {
                 hooks: crt.get_hooks(&cnf)?,
                 account_directory: cnf.get_account_dir(),
                 crt_directory: crt.get_crt_dir(&cnf),
-                crt_name: crt.get_crt_name(),
+                crt_name: crt.get_crt_name()?,
                 crt_name_format: crt.get_crt_name_format(),
                 cert_file_mode: cnf.get_cert_file_mode(),
                 cert_file_owner: cnf.get_cert_file_user(),
@@ -109,7 +109,6 @@ impl MainEventLoop {
             let handle = thread::spawn(move || {
                 let mut endpoint = lock.write().unwrap();
                 for crt in certs_to_renew {
-                    //let root_certs = rc.clone();
                     renew_certificate(&crt, &rc, &mut endpoint);
                 }
             });

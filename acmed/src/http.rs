@@ -109,7 +109,7 @@ where
         let _ = new_nonce(endpoint, root_certs);
     }
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
-        let nonce = &endpoint.nonce.clone().unwrap();
+        let nonce = &endpoint.nonce.clone().unwrap_or_default();
         let body = data_builder(&nonce, url)?;
         rate_limit(endpoint);
         let response = session.post(url).text(&body).send()?;
