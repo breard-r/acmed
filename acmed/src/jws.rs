@@ -89,10 +89,17 @@ mod tests {
 
     #[test]
     fn test_default_jwk() {
-        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_type = KeyType::EcdsaP256;
+        let key_pair = gen_keypair(key_type).unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
-        let s = encode_jwk(&key_pair, payload.as_bytes(), "", "");
+        let s = encode_jwk(
+            &key_pair,
+            &key_type.get_default_signature_alg(),
+            payload.as_bytes(),
+            "",
+            "",
+        );
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));
@@ -103,11 +110,18 @@ mod tests {
 
     #[test]
     fn test_default_nopad_jwk() {
-        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_type = KeyType::EcdsaP256;
+        let key_pair = gen_keypair(key_type).unwrap();
         let payload = "Dummy payload";
         let payload_b64 = "RHVtbXkgcGF5bG9hZA";
         let payload_b64_pad = "RHVtbXkgcGF5bG9hZA==";
-        let s = encode_jwk(&key_pair, payload.as_bytes(), "", "");
+        let s = encode_jwk(
+            &key_pair,
+            &key_type.get_default_signature_alg(),
+            payload.as_bytes(),
+            "",
+            "",
+        );
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));
@@ -119,11 +133,19 @@ mod tests {
 
     #[test]
     fn test_default_kid() {
-        let key_pair = gen_keypair(KeyType::EcdsaP256).unwrap();
+        let key_type = KeyType::EcdsaP256;
+        let key_pair = gen_keypair(key_type).unwrap();
         let payload = "Dummy payload 1";
         let payload_b64 = "RHVtbXkgcGF5bG9hZCAx";
         let key_id = "0x2a";
-        let s = encode_kid(&key_pair, key_id, payload.as_bytes(), "", "");
+        let s = encode_kid(
+            &key_pair,
+            &key_type.get_default_signature_alg(),
+            key_id,
+            payload.as_bytes(),
+            "",
+            "",
+        );
         assert!(s.is_ok());
         let s = s.unwrap();
         assert!(s.contains("\"protected\""));
