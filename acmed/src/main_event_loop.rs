@@ -63,6 +63,7 @@ impl MainEventLoop {
                 pk_file_group: cnf.get_pk_file_group(),
                 env: crt.env.to_owned(),
                 id: i + 1,
+                renew_delay: crt.get_renew_delay(&cnf)?,
             };
             init_account(&cert, &endpoint)?;
             endpoints

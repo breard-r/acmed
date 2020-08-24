@@ -1,4 +1,5 @@
 use crate::certificate::Algorithm;
+use crate::duration::parse_duration;
 use crate::hooks;
 use acme_common::error::Error;
 use acme_common::to_idna;
@@ -9,6 +10,7 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 macro_rules! set_cfg_attr {
     ($to: expr, $from: expr) => {
@@ -171,6 +173,16 @@ pub struct GlobalOptions {
     pub pk_file_group: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub renew_delay: Option<String>,
+}
+
+impl GlobalOptions {
+    pub fn get_renew_delay(&self) -> Result<Duration, Error> {
+        match &self.renew_delay {
+            Some(d) => parse_duration(&d),
+            None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
+        }
+    }
 }
 
 #[derive(Clone, Deserialize)]
@@ -183,9 +195,20 @@ pub struct Endpoint {
     pub rate_limits: Vec<String>,
     pub key_type: Option<String>,
     pub signature_algorithm: Option<String>,
+    pub renew_delay: Option<String>,
 }
 
 impl Endpoint {
+    pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
+        match &self.renew_delay {
+            Some(d) => parse_duration(&d),
+            None => match &cnf.global {
+                Some(g) => g.get_renew_delay(),
+                None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
+            },
+        }
+    }
+
     fn to_generic(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
         let mut limits = vec![];
         for rl_name in self.rate_limits.iter() {
@@ -277,6 +300,7 @@ pub struct Certificate {
     pub hooks: Vec<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub renew_delay: Option<String>,
 }
 
 impl Certificate {
@@ -343,14 +367,18 @@ impl Certificate {
         crt_directory.to_string()
     }
 
-    pub fn get_endpoint(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+    fn do_get_endpoint(&self, cnf: &Config) -> Result<Endpoint, Error> {
         for endpoint in cnf.endpoint.iter() {
             if endpoint.name == self.endpoint {
-                let ep = endpoint.to_generic(cnf)?;
-                return Ok(ep);
+                return Ok(endpoint.clone());
             }
         }
         Err(format!("{}: unknown endpoint.", self.endpoint).into())
+    }
+
+    pub fn get_endpoint(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+        let endpoint = self.do_get_endpoint(cnf)?;
+        endpoint.to_generic(cnf)
     }
 
     pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
@@ -360,6 +388,16 @@ impl Certificate {
             res.append(&mut h);
         }
         Ok(res)
+    }
+
+    pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
+        match &self.renew_delay {
+            Some(d) => parse_duration(&d),
+            None => {
+                let endpoint = self.do_get_endpoint(cnf)?;
+                endpoint.get_renew_delay(cnf)
+            }
+        }
     }
 }
 

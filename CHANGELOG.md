@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - The account key type and signature algorithm can now be specified in the configuration.
+- The delay to renew a certificate before its expiration date can be specified in the configuration using the `renew_delay` parameter at either the certificate, endpoint and global level.
 
 ### Fixed
 - The Makefile now works on FreeBSD. It should also work on other BSD although it has not been tested.

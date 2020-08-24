@@ -62,6 +62,10 @@ for more details.
 Specify the group who will own newly-created private-key files. See
 .Xr chown 2
 for more details.
+.It Cm renew_delay Ar string
+Period of time between the certificate renewal and its expiration date. The format is described in the
+.Sx TIME PERIODS
+section. Default is 3w.
 .El
 .It Ic rate-limit
 Array of table where each element defines a HTTPS rate limit.
@@ -112,6 +116,10 @@ ES256
 .It
 ES384
 .El
+.It Cm renew_delay Ar string
+Period of time between the certificate renewal and its expiration date. The format is described in the
+.Sx TIME PERIODS
+section. Default is the value defined in the global section.
 .El
 .It Ic hook
 Array of table where each element defines a command that will be launched at a defined point. See section
@@ -227,6 +235,10 @@ Set whether or not the private key should be reused when renewing the certificat
 Path to the directory where certificates and their associated private keys are stored.
 .It Ic hooks Ar array
 Names of hooks that will be called when requesting a new certificate. The hooks are guaranteed to be called sequentially in the declaration order.
+.It Cm renew_delay Ar string
+Period of time between the certificate renewal and its expiration date. The format is described in the
+.Sx TIME PERIODS
+section. Default is the value defined in the associated endpoint.
 .El
 .Sh WRITING A HOOK
 When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every domains to be included: It requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: Although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.

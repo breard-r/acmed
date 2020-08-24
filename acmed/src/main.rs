@@ -6,6 +6,7 @@ use log::error;
 mod acme_proto;
 mod certificate;
 mod config;
+mod duration;
 mod endpoint;
 mod hooks;
 mod http;
@@ -23,6 +24,7 @@ pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{algo}}.{{file_type}}.{{ext}}";
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
+pub const DEFAULT_CERT_RENEW_DELAY: u64 = 1_814_400; // 1_814_400 is 3 weeks (3 * 7 * 24 * 60 * 60)
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_KP_REUSE: bool = false;
