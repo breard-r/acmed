@@ -479,10 +479,13 @@ fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
 
 fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
     info!("Loading configuration file: {}", path.display());
-    let mut file = File::open(path)?;
+    let mut file =
+        File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    let mut config: Config = toml::from_str(&contents)?;
+    file.read_to_string(&mut contents)
+        .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
+    let mut config: Config = toml::from_str(&contents)
+        .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     for cnf_name in config.include.iter() {
         for cnf_path in get_cnf_path(path, cnf_name)? {
             let mut add_cnf = read_cnf(&cnf_path)?;
