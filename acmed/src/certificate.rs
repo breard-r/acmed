@@ -107,8 +107,9 @@ impl Certificate {
     fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
         let expires_in = cert.expires_in()?;
         self.debug(&format!(
-            "Certificate expires in {} days",
-            expires_in.as_secs() / 86400
+            "Certificate expires in {} days ({} days delay)",
+            expires_in.as_secs() / 86400,
+            self.renew_delay.as_secs() / 86400,
         ));
         Ok(expires_in <= self.renew_delay)
     }
@@ -155,8 +156,15 @@ impl Certificate {
         }
         let cert = get_certificate(&self)?;
 
-        let renew = self.has_missing_identifiers(&cert);
-        let renew = renew || self.is_expiring(&cert)?;
+        let renew_ident = self.has_missing_identifiers(&cert);
+        if renew_ident {
+            self.debug("The current certificate doesn't include all the required identifiers.");
+        }
+        let renew_exp = self.is_expiring(&cert)?;
+        if renew_exp {
+            self.debug("The certificate is expiring.");
+        }
+        let renew = renew_ident || renew_exp;
 
         if renew {
             self.debug("The certificate will be renewed now");
