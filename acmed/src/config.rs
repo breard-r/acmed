@@ -459,12 +459,22 @@ fn init_directories(config: &Config) -> Result<(), Error> {
 }
 
 fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
-    let mut path = from.clone();
+    let mut path = from.clone().canonicalize()?;
     path.pop();
     path.push(file);
     let err = format!("{:?}: invalid UTF-8 path", path);
     let raw_path = path.to_str().ok_or(err)?;
-    Ok(glob(raw_path)?.filter_map(Result::ok).collect())
+    let g = glob(raw_path)?
+        .filter_map(Result::ok)
+        .collect::<Vec<PathBuf>>();
+    if g.is_empty() {
+        log::warn!(
+            "Pattern `{}` (expanded as `{}`): no matching configuration file found.",
+            file,
+            raw_path
+        );
+    }
+    Ok(g)
 }
 
 fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
