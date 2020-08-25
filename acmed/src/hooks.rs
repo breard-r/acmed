@@ -43,7 +43,7 @@ macro_rules! imple_hook_data_env {
 
 #[derive(Clone, Serialize)]
 pub struct PostOperationHookData {
-    pub domains: Vec<String>,
+    pub identifiers: Vec<String>,
     pub algorithm: String,
     pub status: String,
     pub is_success: bool,
@@ -54,7 +54,8 @@ imple_hook_data_env!(PostOperationHookData);
 
 #[derive(Clone, Serialize)]
 pub struct ChallengeHookData {
-    pub domain: String,
+    pub identifier: String,
+    pub identifier_tls_alpn: String,
     pub challenge: String,
     pub file_name: String,
     pub proof: String,

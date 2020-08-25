@@ -10,6 +10,7 @@ mod duration;
 mod endpoint;
 mod hooks;
 mod http;
+mod identifier;
 mod jws;
 mod main_event_loop;
 mod storage;

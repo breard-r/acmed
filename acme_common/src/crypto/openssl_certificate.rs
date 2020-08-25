@@ -8,6 +8,7 @@ use openssl::stack::Stack;
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
 use std::collections::HashSet;
+use std::net::IpAddr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const APP_ORG: &str = "ACMEd";
@@ -22,13 +23,16 @@ pub struct Csr {
 }
 
 impl Csr {
-    pub fn new(key_pair: &KeyPair, domains: &[String]) -> Result<Self, Error> {
+    pub fn new(key_pair: &KeyPair, domains: &[String], ips: &[String]) -> Result<Self, Error> {
         let mut builder = X509ReqBuilder::new()?;
         builder.set_pubkey(&key_pair.inner_key)?;
         let ctx = builder.x509v3_context(None);
         let mut san = SubjectAlternativeName::new();
         for dns in domains.iter() {
             san.dns(&dns);
+        }
+        for ip in ips.iter() {
+            san.ip(&ip);
         }
         let san = san.build(&ctx)?;
         let mut ext_stack = Stack::new()?;
@@ -83,8 +87,27 @@ impl X509Certificate {
         match self.inner_cert.subject_alt_names() {
             Some(s) => s
                 .iter()
-                .filter(|v| v.dnsname().is_some())
-                .map(|v| v.dnsname().unwrap().to_string())
+                .filter(|v| v.dnsname().is_some() || v.ipaddress().is_some())
+                .map(|v| match v.dnsname() {
+                    Some(d) => d.to_string(),
+                    None => match v.ipaddress() {
+                        Some(i) => match i.len() {
+                            4 => {
+                                let ipv4: [u8; 4] = [i[0], i[1], i[2], i[3]];
+                                IpAddr::from(ipv4).to_string()
+                            }
+                            16 => {
+                                let ipv6: [u8; 16] = [
+                                    i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9],
+                                    i[10], i[11], i[12], i[13], i[14], i[15],
+                                ];
+                                IpAddr::from(ipv6).to_string()
+                            }
+                            _ => String::new(),
+                        },
+                        None => String::new(),
+                    },
+                })
                 .collect(),
             None => HashSet::new(),
         }

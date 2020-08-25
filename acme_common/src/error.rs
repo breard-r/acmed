@@ -45,6 +45,12 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<std::net::AddrParseError> for Error {
+    fn from(error: std::net::AddrParseError) -> Self {
+        format!("{}", error).into()
+    }
+}
+
 impl From<std::string::FromUtf8Error> for Error {
     fn from(error: std::string::FromUtf8Error) -> Self {
         format!("UTF-8 error: {}", error).into()

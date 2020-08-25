@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - The account key type and signature algorithm can now be specified in the configuration.
 - The delay to renew a certificate before its expiration date can be specified in the configuration using the `renew_delay` parameter at either the certificate, endpoint and global level.
+- It is now possible to specify IP identifiers (RFC 8738).
+- The hook templates of type `challenge-*` have a new `identifier_tls_alpn` field which contains, if available, the identifier in a form that is suitable to the TLS ALPN challenge.
+
+### Changed
+- In the certificate configuration, the `domains` field has been renamed `identifiers`.
+- The `domain` hook template variable has been renamed `identifier`.
+- The default hooks have been updated.
 
 ### Fixed
 - The Makefile now works on FreeBSD. It should also work on other BSD although it has not been tested.

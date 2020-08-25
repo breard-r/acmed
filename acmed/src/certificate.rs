@@ -1,6 +1,7 @@
 use crate::acme_proto::Challenge;
-use crate::config::{Account, Domain};
+use crate::config::Account;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
+use crate::identifier::{Identifier, IdentifierType};
 use crate::storage::{certificate_files_exists, get_certificate};
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
@@ -44,7 +45,7 @@ impl fmt::Display for Algorithm {
 #[derive(Clone, Debug)]
 pub struct Certificate {
     pub account: Account,
-    pub domains: Vec<Domain>,
+    pub identifiers: Vec<Identifier>,
     pub algo: Algorithm,
     pub kp_reuse: bool,
     pub endpoint_name: String,
@@ -88,17 +89,19 @@ impl Certificate {
         trace!("{}: {}", &self, msg);
     }
 
-    pub fn get_domain_challenge(&self, domain_name: &str) -> Result<Challenge, Error> {
-        let domain_name = domain_name.to_string();
-        for d in self.domains.iter() {
-            // strip wildcards from domain before matching
-            let base_domain = d.dns.trim_start_matches("*.");
-            if base_domain == domain_name {
-                let c = Challenge::from_str(&d.challenge)?;
-                return Ok(c);
+    pub fn get_identifier_from_str(&self, identifier: &str) -> Result<Identifier, Error> {
+        let identifier = identifier.to_string();
+        for d in self.identifiers.iter() {
+            let val = match d.id_type {
+                // strip wildcards from domain before matching
+                IdentifierType::Dns => d.value.trim_start_matches("*.").to_string(),
+                IdentifierType::Ip => d.value.to_owned(),
+            };
+            if identifier == val {
+                return Ok(d.clone());
             }
         }
-        Err(format!("{}: domain name not found", domain_name).into())
+        Err(format!("{}: identifier not found", identifier).into())
     }
 
     fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
@@ -110,12 +113,12 @@ impl Certificate {
         Ok(expires_in <= self.renew_delay)
     }
 
-    fn has_missing_domains(&self, cert: &X509Certificate) -> bool {
+    fn has_missing_identifiers(&self, cert: &X509Certificate) -> bool {
         let cert_names = cert.subject_alt_names();
         let req_names = self
-            .domains
+            .identifiers
             .iter()
-            .map(|v| v.dns.to_owned())
+            .map(|v| v.value.to_owned())
             .collect::<HashSet<String>>();
         let has_miss = req_names.difference(&cert_names).count() != 0;
         if has_miss {
@@ -133,18 +136,18 @@ impl Certificate {
     }
 
     /// Return a comma-separated list of the domains this certificate is valid for.
-    pub fn domain_list(&self) -> String {
-        self.domains
+    pub fn identifier_list(&self) -> String {
+        self.identifiers
             .iter()
-            .map(|domain| &*domain.dns)
+            .map(|d| d.value.as_str())
             .collect::<Vec<&str>>()
             .join(",")
     }
 
     pub fn should_renew(&self) -> Result<bool, Error> {
         self.debug(&format!(
-            "Checking for renewal (domains: {})",
-            self.domain_list()
+            "Checking for renewal (identifiers: {})",
+            self.identifier_list()
         ));
         if !certificate_files_exists(&self) {
             self.debug("certificate does not exist: requesting one");
@@ -152,7 +155,7 @@ impl Certificate {
         }
         let cert = get_certificate(&self)?;
 
-        let renew = self.has_missing_domains(&cert);
+        let renew = self.has_missing_identifiers(&cert);
         let renew = renew || self.is_expiring(&cert)?;
 
         if renew {
@@ -167,22 +170,21 @@ impl Certificate {
         &self,
         file_name: &str,
         proof: &str,
-        domain: &str,
+        identifier: &str,
     ) -> Result<(ChallengeHookData, HookType), Error> {
-        let challenge = self.get_domain_challenge(domain)?;
+        let identifier = self.get_identifier_from_str(identifier)?;
         let mut hook_data = ChallengeHookData {
-            challenge: challenge.to_string(),
-            domain: domain.to_string(),
+            challenge: identifier.challenge.to_string(),
+            identifier: identifier.value.to_owned(),
+            identifier_tls_alpn: identifier.get_tls_alpn_name().unwrap_or_default(),
             file_name: file_name.to_string(),
             proof: proof.to_string(),
             is_clean_hook: false,
             env: HashMap::new(),
         };
         hook_data.set_env(&self.env);
-        for d in self.domains.iter().filter(|d| d.dns == domain) {
-            hook_data.set_env(&d.env);
-        }
-        let hook_type = match challenge {
+        hook_data.set_env(&identifier.env);
+        let hook_type = match identifier.challenge {
             Challenge::Http01 => (HookType::ChallengeHttp01, HookType::ChallengeHttp01Clean),
             Challenge::Dns01 => (HookType::ChallengeDns01, HookType::ChallengeDns01Clean),
             Challenge::TlsAlpn01 => (
@@ -203,13 +205,13 @@ impl Certificate {
     }
 
     pub fn call_post_operation_hooks(&self, status: &str, is_success: bool) -> Result<(), Error> {
-        let domains = self
-            .domains
+        let identifiers = self
+            .identifiers
             .iter()
-            .map(|d| format!("{} ({})", d.dns, d.challenge))
+            .map(|d| d.value.to_owned())
             .collect::<Vec<String>>();
         let mut hook_data = PostOperationHookData {
-            domains,
+            identifiers,
             algorithm: self.algo.to_string(),
             status: status.to_string(),
             is_success,

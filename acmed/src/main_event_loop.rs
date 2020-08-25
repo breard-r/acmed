@@ -46,7 +46,7 @@ impl MainEventLoop {
             let endpoint_name = endpoint.name.clone();
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
-                domains: crt.get_domains()?,
+                identifiers: crt.get_identifiers()?,
                 algo: crt.get_algorithm()?,
                 kp_reuse: crt.get_kp_reuse(),
                 endpoint_name: endpoint_name.clone(),

@@ -4,6 +4,7 @@ use crate::acme_proto::structs::{
 };
 use crate::certificate::Certificate;
 use crate::endpoint::Endpoint;
+use crate::identifier::IdentifierType;
 use crate::jws::encode_kid;
 use crate::storage;
 use acme_common::crypto::Csr;
@@ -16,7 +17,7 @@ mod certificate;
 mod http;
 pub mod structs;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Challenge {
     Http01,
     Dns01,
@@ -81,11 +82,6 @@ pub fn request_certificate(
     root_certs: &[String],
     endpoint: &mut Endpoint,
 ) -> Result<(), Error> {
-    let domains = cert
-        .domains
-        .iter()
-        .map(|d| d.dns.to_owned())
-        .collect::<Vec<String>>();
     let mut hook_datas = vec![];
 
     // Refresh the directory
@@ -95,7 +91,7 @@ pub fn request_certificate(
     let account = AccountManager::new(endpoint, root_certs, cert)?;
 
     // Create a new order
-    let new_order = NewOrder::new(&domains);
+    let new_order = NewOrder::new(&cert.identifiers);
     let new_order = serde_json::to_string(&new_order)?;
     let data_builder = set_data_builder!(account, new_order.as_bytes());
     let (order, order_url) = http::new_order(endpoint, root_certs, &data_builder)?;
@@ -123,15 +119,16 @@ pub fn request_certificate(
         }
 
         // Fetch the associated challenges
-        let current_challenge = cert.get_domain_challenge(&auth.identifier.value)?;
+        let current_identifier = cert.get_identifier_from_str(&auth.identifier.value)?;
+        let current_challenge = current_identifier.challenge;
         for challenge in auth.challenges.iter() {
             if current_challenge == *challenge {
                 let proof = challenge.get_proof(&account.key_pair)?;
                 let file_name = challenge.get_file_name();
-                let domain = auth.identifier.value.to_owned();
+                let identifier = auth.identifier.value.to_owned();
 
                 // Call the challenge hook in order to complete it
-                let mut data = cert.call_challenge_hooks(&file_name, &proof, &domain)?;
+                let mut data = cert.call_challenge_hooks(&file_name, &proof, &identifier)?;
                 data.0.is_clean_hook = true;
                 hook_datas.push(data);
 
@@ -162,9 +159,20 @@ pub fn request_certificate(
 
     // Finalize the order by sending the CSR
     let key_pair = certificate::get_key_pair(cert)?;
-    let domains: Vec<String> = cert.domains.iter().map(|e| e.dns.to_owned()).collect();
+    let domains: Vec<String> = cert
+        .identifiers
+        .iter()
+        .filter(|e| e.id_type == IdentifierType::Dns)
+        .map(|e| e.value.to_owned())
+        .collect();
+    let ips: Vec<String> = cert
+        .identifiers
+        .iter()
+        .filter(|e| e.id_type == IdentifierType::Ip)
+        .map(|e| e.value.to_owned())
+        .collect();
     let csr = json!({
-        "csr": Csr::new(&key_pair, domains.as_slice())?.to_der_base64()?,
+        "csr": Csr::new(&key_pair, domains.as_slice(), ips.as_slice())?.to_der_base64()?,
     });
     let csr = csr.to_string();
     let data_builder = set_data_builder!(account, csr.as_bytes());
@@ -187,8 +195,8 @@ pub fn request_certificate(
     storage::write_certificate(cert, &crt.as_bytes())?;
 
     cert.info(&format!(
-        "Certificate renewed (domains: {})",
-        cert.domain_list()
+        "Certificate renewed (identifiers: {})",
+        cert.identifier_list()
     ));
     Ok(())
 }

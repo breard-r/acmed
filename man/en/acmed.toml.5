@@ -190,7 +190,7 @@ The email address used to contact the account's holder.
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.
 .Pp
-Note that certificates are identified by the first domain in the list of domains. That means that if you reorder the domains so that a different domain is at the first position, a new certificate with a new name will be issued.
+Note that certificates are identified by the first identifier in the list of identifiers. That means that if you reorder the identifiers so that a different identifier is at the first position, a new certificate with a new name will be issued.
 .Bl -tag
 .It Ic account Ar string
 Name of the account to use.
@@ -198,11 +198,15 @@ Name of the account to use.
 Name of the endpoint to use.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
-.It Ic domains Ar array
-Array of tables listing the domains that should be included in the certificate along with the challenge to use for each one.
+.It Ic identifiers Ar array
+Array of tables listing the identifiers that should be included in the certificate along with the challenge to use for each one. The
+.Em dns
+and
+.Em ip
+fields are mutually exclusive.
 .Bl -tag
 .It Ic challenge Ar string
-The name of the challenge to use to prove the domain's ownership. Possible values are:
+The name of the challenge to use to prove the identifier's ownership. Possible values are:
 .Bl -dash -compact
 .It
 http-01
@@ -213,6 +217,8 @@ tls-alpn-01
 .El
 .It Ic dns Ar string
 The domain name.
+.It Ic ip Ar string
+The IP address.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
 .El
@@ -241,7 +247,7 @@ Period of time between the certificate renewal and its expiration date. The form
 section. Default is the value defined in the associated endpoint.
 .El
 .Sh WRITING A HOOK
-When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every domains to be included: It requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: Although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
+When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every identifier to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
 .Pp
 In order to allow full automation of the three above steps without imposing arbitrary restrictions or methods,
 .Xr acmed 8
@@ -271,7 +277,7 @@ specifications.
 The available types and the associated template variable are described below.
 .Bl -tag
 .It Ic challenge-http-01
-Invoked when the ownership of a domain must be proved using the
+Invoked when the ownership of an identifier must be proved using the
 .Em http-01
 challenge. The available template variables are:
 .Bl -tag -compact
@@ -279,8 +285,10 @@ challenge. The available template variables are:
 The name of the challenge type
 .Aq http-01 .
 Mostly used in hooks with multiple types.
-.It Cm domain Ar string
-The domain name whom ownership is currently being validated.
+.It Cm identifier Ar string
+The identifier name whom ownership is currently being validated.
+.It Cm identifier_tls_alpn Ar string
+The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
 .It Cm env Ar array
 Array containing all the environment variables.
 .It Cm file_name Ar string
@@ -294,7 +302,7 @@ The content of the proof that must be written to
 .Em file_name .
 .El
 .It Ic challenge-http-01-clean
-Invoked once a domain ownership has been proven using the
+Invoked once an identifier ownership has been proven using the
 .Em http-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-http-01
@@ -303,7 +311,7 @@ hook, excepted
 which is set to
 .Em true .
 .It Ic challenge-dns-01
-Invoked when the ownership of a domain must be proved using the
+Invoked when the ownership of an identifier must be proved using the
 .Em dns-01
 challenge. The available template variables are:
 .Bl -tag -compact
@@ -311,8 +319,10 @@ challenge. The available template variables are:
 The name of the challenge type
 .Aq dns-01 .
 Mostly used in hooks with multiple types.
-.It Cm domain Ar string
-The domain name whom ownership is currently being validated.
+.It Cm identifier Ar string
+The identifier name whom ownership is currently being validated.
+.It Cm identifier_tls_alpn Ar string
+The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
 .It Cm env Ar array
 Array containing all the environment variables.
 .It Cm is_clean_hook Ar bool
@@ -325,7 +335,7 @@ entry of the DNS zone for the
 subdomain.
 .El
 .It Ic challenge-dns-01-clean
-Invoked once a domain ownership has been proven using the
+Invoked once an identifier ownership has been proven using the
 .Em dns-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-dns-01
@@ -334,7 +344,7 @@ hook, excepted
 which is set to
 .Em true .
 .It Ic challenge-tls-alpn-01
-Invoked when the ownership of a domain must be proved using the
+Invoked when the ownership of an identifier must be proved using the
 .Em tls-alpn-01
 challenge. The available template variables are:
 .Bl -tag -compact
@@ -342,8 +352,10 @@ challenge. The available template variables are:
 The name of the challenge type
 .Aq tls-alpn-01 .
 Mostly used in hooks with multiple types.
-.It Cm domain Ar string
-The domain name whom ownership is currently being validated.
+.It Cm identifier Ar string
+The identifier name whom ownership is currently being validated.
+.It Cm identifier_tls_alpn Ar string
+The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
 .It Cm env Ar array
 Array containing all the environment variables.
 .It Cm is_clean_hook Ar bool
@@ -359,7 +371,7 @@ will not generate the certificate itself since it can be done using
 .Xr tacd 8 .
 .El
 .It Ic challenge-tls-alpn-01-clean
-Invoked once a domain ownership has been proven using the
+Invoked once an identifier ownership has been proven using the
 .Em tls-alpn-01
 challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
 .Em challenge-tls-alpn-01
@@ -412,8 +424,8 @@ Invoked at the end of the certificate request process. The available template va
 .Bl -tag -compact
 .It Cm algorithm Ar string
 Name of the algorithm used in the certificate.
-.It Cm domains Ar string
-Array containing the domain names included in the requested certificate.
+.It Cm identifiers Ar string
+Array containing the identifiers included in the requested certificate.
 .It Cm env Ar array
 Array containing all the environment variables.
 .It Cm is_success Ar boolean
@@ -435,10 +447,10 @@ and
 environment variables.
 .It Pa http-01-echo
 This hook is designed to solve the http-01 challenge. For this purpose, it will write the proof into
-.Pa {{env.HTTP_ROOT}}/{{domain}}/.well-known/acme-challenge/{{file_name}} .
+.Pa {{env.HTTP_ROOT}}/{{identifier}}/.well-known/acme-challenge/{{file_name}} .
 .Pp
 The web server must be configured so the file
-.Pa http://{{domain}}/.well-known/acme-challenge/{{file_name}}
+.Pa http://{{identifier}}/.well-known/acme-challenge/{{file_name}}
 can be accessed from the CA.
 .Pp
 If
@@ -457,13 +469,13 @@ option.
 .Xr tacd 8
 will listen on the host defined by the
 .Ev TACD_HOST
-environment variable (default is the domain to be validated) and on the port defined by the
+environment variable (default is the identifier to be validated) and on the port defined by the
 .Ev TACD_PORT
 environment variable (default is 5001).
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa {{TACD_PID_ROOT}}/tacd_{{domain}}.pid .
+.Pa {{TACD_PID_ROOT}}/tacd_{{identifier}}.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -479,7 +491,7 @@ option.
 .Pp
 .Xr tacd 8
 will listen on the unix socket
-.Pa {{env.TACD_SOCK_ROOT}}/tacd_{{domain}}.sock .
+.Pa {{env.TACD_SOCK_ROOT}}/tacd_{{identifier}}.sock .
 If
 .Ev TACD_SOCK_ROOT
 is not specified, it will be set to
@@ -487,7 +499,7 @@ is not specified, it will be set to
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa {{TACD_PID_ROOT}}/tacd_{{domain}}.pid .
+.Pa {{TACD_PID_ROOT}}/tacd_{{identifier}}.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -537,7 +549,7 @@ Default accounts private and public keys directory.
 .It Pa /etc/acmed/certs
 Default certificates and associated private keys directory.
 .Sh EXAMPLES
-The following example defines a typical endpoint, account and certificate for a domain and several subdomains.
+The following example defines a typical endpoint, account and certificate for a domain, several subdomains and an IP address.
 .Bd -literal -offset indent
 [[endpoint]]
 name = "example name"
@@ -551,11 +563,12 @@ email = "certs@exemple.net"
 [[certificate]]
 endpoint = "example name"
 account = "my test account"
-domains = [
+identifiers = [
     { dns = "exemple.net", challenge = "http-01"},
     { dns = "1.exemple.net", challenge = "dns-01"},
     { dns = "2.exemple.net", challenge = "tls-alpn-01", env.TACD_PORT="5010"},
     { dns = "3.exemple.net", challenge = "tls-alpn-01", env.TACD_PORT="5011"},
+    { ip = "203.0.113.1", challenge = "http-01"},
 ]
 hooks = ["git", "http-01-echo", "tls-alpn-01-tacd-tcp", "some-dns-01-hook"]
 env.HTTP_ROOT = "/srv/http"
@@ -579,7 +592,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge"
+    "-p", "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge"
 ]
 
 [[hook]]
@@ -587,7 +600,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+stdout = "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -595,7 +608,7 @@ type = ["challenge-http-01-clean"]
 cmd = "chmod"
 args = [
     "a+r",
-    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 ]
 
 [[hook]]
@@ -604,7 +617,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 ]
 .Ed
 .Pp
@@ -638,10 +651,10 @@ args = [
     "-f", "noreply.certs@example.net",
     "contact@example.net"
 ]
-stdin_str = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{domains.[0]}}
+stdin_str = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{identifiers.[0]}}
 
 The following certificate has {{#unless is_success}}*not* {{/unless}}been renewed.
-domains: {{#each domains}}{{#if @index}}, {{/if}}{{this}}{{/each}}
+identifiers: {{#each identifiers}}{{#if @index}}, {{/if}}{{this}}{{/each}}
 algorithm: {{algorithm}}
 status: {{status}}"""
 .Ed

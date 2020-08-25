@@ -1,4 +1,5 @@
 use crate::acme_proto::structs::{ApiError, HttpApiError};
+use crate::identifier::{self, IdentifierType};
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -12,9 +13,12 @@ pub struct NewOrder {
 }
 
 impl NewOrder {
-    pub fn new(domains: &[String]) -> Self {
+    pub fn new(identifiers: &[identifier::Identifier]) -> Self {
         NewOrder {
-            identifiers: domains.iter().map(|n| Identifier::new_dns(n)).collect(),
+            identifiers: identifiers
+                .iter()
+                .map(|n| Identifier::from_generic(n))
+                .collect(),
             not_before: None,
             not_after: None,
         }
@@ -74,10 +78,10 @@ pub struct Identifier {
 }
 
 impl Identifier {
-    pub fn new_dns(value: &str) -> Self {
+    pub fn from_generic(id: &identifier::Identifier) -> Self {
         Identifier {
-            id_type: IdentifierType::Dns,
-            value: value.to_string(),
+            id_type: id.id_type.to_owned(),
+            value: id.value.to_owned(),
         }
     }
 }
@@ -87,21 +91,6 @@ deserialize_from_str!(Identifier);
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}:{}", self.id_type, self.value)
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Eq, PartialEq)]
-pub enum IdentifierType {
-    #[serde(rename = "dns")]
-    Dns,
-}
-
-impl fmt::Display for IdentifierType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            IdentifierType::Dns => "dns",
-        };
-        write!(f, "{}", s)
     }
 }
 

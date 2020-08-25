@@ -1,8 +1,8 @@
 use crate::certificate::Algorithm;
 use crate::duration::parse_duration;
 use crate::hooks;
+use crate::identifier::IdentifierType;
 use acme_common::error::Error;
-use acme_common::to_idna;
 use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -290,7 +290,7 @@ pub struct Account {
 pub struct Certificate {
     pub account: String,
     pub endpoint: String,
-    pub domains: Vec<Domain>,
+    pub identifiers: Vec<Identifier>,
     pub algorithm: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
@@ -321,12 +321,10 @@ impl Certificate {
         Algorithm::from_str(algo)
     }
 
-    pub fn get_domains(&self) -> Result<Vec<Domain>, Error> {
+    pub fn get_identifiers(&self) -> Result<Vec<crate::identifier::Identifier>, Error> {
         let mut ret = vec![];
-        for d in self.domains.iter() {
-            let mut nd = d.clone();
-            nd.dns = to_idna(&nd.dns)?;
-            ret.push(nd);
+        for id in self.identifiers.iter() {
+            ret.push(id.to_generic()?);
         }
         Ok(ret)
     }
@@ -341,14 +339,16 @@ impl Certificate {
     pub fn get_crt_name(&self) -> Result<String, Error> {
         let name = match &self.name {
             Some(n) => n.to_string(),
-            None => self
-                .domains
-                .first()
-                .ok_or_else(|| Error::from("Certificate has no domain names."))?
-                .dns
-                .to_owned(),
+            None => {
+                let id = self
+                    .identifiers
+                    .first()
+                    .ok_or_else(|| Error::from("Certificate has no identifiers."))?;
+                id.to_string()
+            }
         };
-        Ok(name.replace("*", "_"))
+        let name = name.replace("*", "_").replace(":", "_");
+        Ok(name)
     }
 
     pub fn get_crt_name_format(&self) -> String {
@@ -408,16 +408,34 @@ impl Certificate {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Domain {
+pub struct Identifier {
     pub challenge: String,
-    pub dns: String,
+    pub dns: Option<String>,
+    pub ip: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
 }
 
-impl fmt::Display for Domain {
+impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.dns)
+        let s = String::new();
+        let msg = self.dns.as_ref().or_else(|| self.ip.as_ref()).unwrap_or(&s);
+        write!(f, "{}", msg)
+    }
+}
+
+impl Identifier {
+    fn to_generic(&self) -> Result<crate::identifier::Identifier, Error> {
+        let (t, v) = match &self.dns {
+            Some(d) => (IdentifierType::Dns, d),
+            None => match &self.ip {
+                Some(ip) => (IdentifierType::Ip, ip),
+                None => {
+                    return Err("No identifier found.".into());
+                }
+            },
+        };
+        crate::identifier::Identifier::new(t, &v, &self.challenge, &self.env)
     }
 }
 

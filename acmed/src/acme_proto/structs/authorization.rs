@@ -175,7 +175,7 @@ pub enum ChallengeStatus {
 #[cfg(test)]
 mod tests {
     use super::{Authorization, AuthorizationStatus, Challenge, ChallengeStatus};
-    use crate::acme_proto::structs::IdentifierType;
+    use crate::identifier::IdentifierType;
     use std::str::FromStr;
 
     #[test]

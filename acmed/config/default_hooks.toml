@@ -12,7 +12,7 @@
 
 
 #
-# http-01 challenge in "/var/www/{{domain}}/"
+# http-01 challenge in "/var/www/{{identifier}}/"
 #
 
 [[hook]]
@@ -21,7 +21,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge"
+    "-p", "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge"
 ]
 allow_failure = true
 
@@ -30,7 +30,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{{proof}}"]
-stdout = "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+stdout = "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -38,7 +38,7 @@ type = ["challenge-http-01"]
 cmd = "chmod"
 args = [
     "a+r",
-    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 ]
 allow_failure = true
 
@@ -48,7 +48,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{domain}}/.well-known/acme-challenge/{{file_name}}"
+    "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
 ]
 allow_failure = true
 
@@ -71,10 +71,10 @@ name = "tls-alpn-01-tacd-start-tcp"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
-    "--domain", "{{domain}}",
+    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{identifier}}.pid",
+    "--domain", "{{identifier_tls_alpn}}",
     "--acme-ext", "{{proof}}",
-    "--listen", "{{#if env.TACD_HOST}}{{env.TACD_HOST}}{{else}}{{domain}}{{/if}}:{{#if env.TACD_PORT}}{{env.TACD_PORT}}{{else}}5001{{/if}}"
+    "--listen", "{{#if env.TACD_HOST}}{{env.TACD_HOST}}{{else}}{{identifier}}{{/if}}:{{#if env.TACD_PORT}}{{env.TACD_PORT}}{{else}}5001{{/if}}"
 ]
 
 [[hook]]
@@ -82,10 +82,10 @@ name = "tls-alpn-01-tacd-start-unix"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
-    "--domain", "{{domain}}",
+    "--pid-file", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{identifier}}.pid",
+    "--domain", "{{identifier_tls_alpn}}",
     "--acme-ext", "{{proof}}",
-    "--listen", "unix:{{#if env.TACD_SOCK_ROOT}}{{env.TACD_SOCK_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.sock"
+    "--listen", "unix:{{#if env.TACD_SOCK_ROOT}}{{env.TACD_SOCK_ROOT}}{{else}}/run{{/if}}/tacd_{{identifier}}.sock"
 ]
 
 [[hook]]
@@ -93,7 +93,7 @@ name = "tls-alpn-01-tacd-kill"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "pkill"
 args = [
-    "-F", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
+    "-F", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{identifier}}.pid",
 ]
 allow_failure = true
 
@@ -102,7 +102,7 @@ name = "tls-alpn-01-tacd-rm"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "rm"
 args = [
-    "-f", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{domain}}.pid",
+    "-f", "{{#if env.TACD_PID_ROOT}}{{env.TACD_PID_ROOT}}{{else}}/run{{/if}}/tacd_{{identifier}}.pid",
 ]
 allow_failure = true
 
