@@ -95,29 +95,6 @@ Set whether or not the user agrees to the Terms Of Service
 .Pq TOS .
 .It Cm url Ar string
 The endpoint's directory URL.
-.It Cm key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the client account's key pair. Possible values are :
-.Bl -dash -compact
-.It
-rsa2048
-.It
-rsa4096
-.It
-ecdsa_p256
-.Aq default
-.It
-ecdsa_p384
-.El
-.It Cm signature_algorithm Ar string
-Name of the signature algorithm used to sign the messages sent to the endpoint. The default value is derived from the key type. Possible values are:
-.Bl -dash -compact
-.It
-RS256
-.It
-ES256
-.It
-ES384
-.El
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
@@ -182,12 +159,37 @@ The name the group is registered under. This name is considered as a hook name. 
 Array containing the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
 .El
 .It Ic account
-Array of table representing an account on one or several CA.
+Array of table representing an account on one or several endpoint.
 .Bl -tag
 .It Ic name Ar string
 The name the account is registered under. Must be unique.
 .It Ic email Ar string
 The email address used to contact the account's holder.
+.It Cm key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are :
+.Bl -dash -compact
+.It
+rsa2048
+.It
+rsa4096
+.It
+ecdsa_p256
+.Aq default
+.It
+ecdsa_p384
+.El
+.It Cm signature_algorithm Ar string
+Name of the signature algorithm used to sign the messages sent to the endpoint as defined in
+.Em RFC 7518 .
+The default value is derived from the key type. Possible values are:
+.Bl -dash -compact
+.It
+RS256
+.It
+ES256
+.It
+ES384
+.El
 .El
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.

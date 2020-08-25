@@ -65,10 +65,10 @@ impl MainEventLoop {
                 id: i + 1,
                 renew_delay: crt.get_renew_delay(&cnf)?,
             };
-            init_account(&cert, &endpoint)?;
             endpoints
                 .entry(endpoint_name)
                 .or_insert_with(|| Arc::new(RwLock::new(endpoint)));
+            init_account(&cert)?;
             certs.push(cert);
         }
 

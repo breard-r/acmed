@@ -22,7 +22,7 @@ impl AccountManager {
     ) -> Result<Self, Error> {
         // TODO: store the key id (account url)
         let key_pair = storage::get_account_keypair(cert)?;
-        let signature_algorithm = endpoint.signature_algorithm;
+        let signature_algorithm = cert.account.signature_algorithm;
         let kp_ref = &key_pair;
         let account = Account::new(cert, endpoint);
         let account = serde_json::to_string(&account)?;
@@ -42,20 +42,28 @@ impl AccountManager {
     }
 }
 
-pub fn init_account(cert: &Certificate, endpoint: &Endpoint) -> Result<(), Error> {
+pub fn init_account(cert: &Certificate) -> Result<(), Error> {
     if !storage::account_files_exists(cert) {
-        let key_pair = gen_keypair(endpoint.key_type)?;
+        cert.info(&format!(
+            "Account {} does not exists. Creating it.",
+            &cert.account.name
+        ));
+        let key_pair = gen_keypair(cert.account.key_type)?;
         storage::set_account_keypair(cert, &key_pair)?;
-        cert.info(&format!("Account {} created", &cert.account.name));
+        cert.debug(&format!("Account {} created.", &cert.account.name));
     } else {
         let key_pair = storage::get_account_keypair(cert)?;
-        if key_pair.key_type != endpoint.key_type {
-            cert.debug(&format!("Account {} has a key pair of type {} while {} was expected. Creating a new {} key pair.", &cert.account.name, key_pair.key_type, endpoint.key_type, endpoint.key_type));
-            // TODO: Do a propper key rollover?
-            let key_pair = gen_keypair(endpoint.key_type)?;
+        if key_pair.key_type != cert.account.key_type {
+            cert.info(&format!("Account {name} has a key pair of type {kt_has} while {kt_want} was expected. Creating a new {kt_want} key pair.", name=&cert.account.name, kt_has=key_pair.key_type, kt_want=cert.account.key_type));
+            // TODO: Do a propper key rollover
+            let key_pair = gen_keypair(cert.account.key_type)?;
             storage::set_account_keypair(cert, &key_pair)?;
+            cert.debug(&format!(
+                "Account {} updated with a new {} key pair.",
+                &cert.account.name, cert.account.key_type
+            ));
         } else {
-            cert.debug(&format!("Account {} already exists", &cert.account.name));
+            cert.debug(&format!("Account {} already exists.", &cert.account.name));
         }
     }
     Ok(())

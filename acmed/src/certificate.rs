@@ -1,5 +1,5 @@
+use crate::account::Account;
 use crate::acme_proto::Challenge;
-use crate::config::Account;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::identifier::{Identifier, IdentifierType};
 use crate::storage::{certificate_files_exists, get_certificate};

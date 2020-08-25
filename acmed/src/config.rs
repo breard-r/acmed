@@ -195,8 +195,6 @@ pub struct Endpoint {
     pub tos_agreed: bool,
     #[serde(default)]
     pub rate_limits: Vec<String>,
-    pub key_type: Option<String>,
-    pub signature_algorithm: Option<String>,
     pub renew_delay: Option<String>,
 }
 
@@ -217,14 +215,7 @@ impl Endpoint {
             let (nb, timeframe) = cnf.get_rate_limit(&rl_name)?;
             limits.push((nb, timeframe));
         }
-        crate::endpoint::Endpoint::new(
-            &self.name,
-            &self.url,
-            self.tos_agreed,
-            &limits,
-            &self.key_type,
-            &self.signature_algorithm,
-        )
+        crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed, &limits)
     }
 }
 
@@ -285,6 +276,19 @@ pub struct Group {
 pub struct Account {
     pub name: String,
     pub email: String,
+    pub key_type: Option<String>,
+    pub signature_algorithm: Option<String>,
+}
+
+impl Account {
+    pub fn to_generic(&self) -> Result<crate::account::Account, Error> {
+        crate::account::Account::new(
+            &self.name,
+            &self.email,
+            &self.key_type,
+            &self.signature_algorithm,
+        )
+    }
 }
 
 #[derive(Deserialize)]
@@ -306,10 +310,11 @@ pub struct Certificate {
 }
 
 impl Certificate {
-    pub fn get_account(&self, cnf: &Config) -> Result<Account, Error> {
+    pub fn get_account(&self, cnf: &Config) -> Result<crate::account::Account, Error> {
         for account in cnf.account.iter() {
             if account.name == self.account {
-                return Ok(account.clone());
+                let acc = account.to_generic()?;
+                return Ok(acc);
             }
         }
         Err(format!("{}: account not found", self.account).into())

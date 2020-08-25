@@ -1,9 +1,7 @@
 use crate::acme_proto::structs::Directory;
 use crate::duration::parse_duration;
-use acme_common::crypto::{JwsSignatureAlgorithm, KeyType};
 use acme_common::error::Error;
 use std::cmp;
-use std::str::FromStr;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -15,8 +13,6 @@ pub struct Endpoint {
     pub nonce: Option<String>,
     pub rl: RateLimit,
     pub dir: Directory,
-    pub key_type: KeyType,
-    pub signature_algorithm: JwsSignatureAlgorithm,
 }
 
 impl Endpoint {
@@ -25,25 +21,13 @@ impl Endpoint {
         url: &str,
         tos_agreed: bool,
         limits: &[(usize, String)],
-        key_type: &Option<String>,
-        signature_algorithm: &Option<String>,
     ) -> Result<Self, Error> {
-        let rl = RateLimit::new(limits)?;
-        let key_type = match key_type {
-            Some(kt) => KeyType::from_str(&kt)?,
-            None => crate::DEFAULT_ACCOUNT_KEY_TYPE,
-        };
-        let signature_algorithm = match signature_algorithm {
-            Some(sa) => JwsSignatureAlgorithm::from_str(&sa)?,
-            None => key_type.get_default_signature_alg(),
-        };
-        let _ = key_type.check_alg_compatibility(&signature_algorithm)?;
         Ok(Self {
             name: name.to_string(),
             url: url.to_string(),
             tos_agreed,
             nonce: None,
-            rl,
+            rl: RateLimit::new(limits)?,
             dir: Directory {
                 meta: None,
                 new_nonce: String::new(),
@@ -53,8 +37,6 @@ impl Endpoint {
                 revoke_cert: String::new(),
                 key_change: String::new(),
             },
-            key_type,
-            signature_algorithm,
         })
     }
 }

@@ -3,6 +3,7 @@ use acme_common::{clean_pid_file, crypto, init_server};
 use clap::{App, Arg};
 use log::error;
 
+mod account;
 mod acme_proto;
 mod certificate;
 mod config;
