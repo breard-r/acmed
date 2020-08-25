@@ -3,6 +3,7 @@ use crate::duration::parse_duration;
 use crate::hooks;
 use crate::identifier::IdentifierType;
 use acme_common::error::Error;
+use glob::glob;
 use log::info;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -10,6 +11,7 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::result::Result;
 use std::time::Duration;
 
 macro_rules! set_cfg_attr {
@@ -456,11 +458,13 @@ fn init_directories(config: &Config) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_cnf_path(from: &PathBuf, file: &str) -> PathBuf {
+fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
     let mut path = from.clone();
     path.pop();
     path.push(file);
-    path
+    let err = format!("{:?}: invalid UTF-8 path", path);
+    let raw_path = path.to_str().ok_or(err)?;
+    Ok(glob(raw_path)?.filter_map(Result::ok).collect())
 }
 
 fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
@@ -470,30 +474,31 @@ fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
     file.read_to_string(&mut contents)?;
     let mut config: Config = toml::from_str(&contents)?;
     for cnf_name in config.include.iter() {
-        let cnf_path = get_cnf_path(path, cnf_name);
-        let mut add_cnf = read_cnf(&cnf_path)?;
-        config.endpoint.append(&mut add_cnf.endpoint);
-        config.rate_limit.append(&mut add_cnf.rate_limit);
-        config.hook.append(&mut add_cnf.hook);
-        config.group.append(&mut add_cnf.group);
-        config.account.append(&mut add_cnf.account);
-        config.certificate.append(&mut add_cnf.certificate);
-        if config.global.is_none() {
-            config.global = add_cnf.global;
-        } else if let Some(new_glob) = add_cnf.global {
-            let mut tmp_glob = config.global.clone().unwrap();
-            set_cfg_attr!(tmp_glob.accounts_directory, new_glob.accounts_directory);
-            set_cfg_attr!(
-                tmp_glob.certificates_directory,
-                new_glob.certificates_directory
-            );
-            set_cfg_attr!(tmp_glob.cert_file_mode, new_glob.cert_file_mode);
-            set_cfg_attr!(tmp_glob.cert_file_user, new_glob.cert_file_user);
-            set_cfg_attr!(tmp_glob.cert_file_group, new_glob.cert_file_group);
-            set_cfg_attr!(tmp_glob.pk_file_mode, new_glob.pk_file_mode);
-            set_cfg_attr!(tmp_glob.pk_file_user, new_glob.pk_file_user);
-            set_cfg_attr!(tmp_glob.pk_file_group, new_glob.pk_file_group);
-            config.global = Some(tmp_glob);
+        for cnf_path in get_cnf_path(path, cnf_name)? {
+            let mut add_cnf = read_cnf(&cnf_path)?;
+            config.endpoint.append(&mut add_cnf.endpoint);
+            config.rate_limit.append(&mut add_cnf.rate_limit);
+            config.hook.append(&mut add_cnf.hook);
+            config.group.append(&mut add_cnf.group);
+            config.account.append(&mut add_cnf.account);
+            config.certificate.append(&mut add_cnf.certificate);
+            if config.global.is_none() {
+                config.global = add_cnf.global;
+            } else if let Some(new_glob) = add_cnf.global {
+                let mut tmp_glob = config.global.clone().unwrap();
+                set_cfg_attr!(tmp_glob.accounts_directory, new_glob.accounts_directory);
+                set_cfg_attr!(
+                    tmp_glob.certificates_directory,
+                    new_glob.certificates_directory
+                );
+                set_cfg_attr!(tmp_glob.cert_file_mode, new_glob.cert_file_mode);
+                set_cfg_attr!(tmp_glob.cert_file_user, new_glob.cert_file_user);
+                set_cfg_attr!(tmp_glob.cert_file_group, new_glob.cert_file_group);
+                set_cfg_attr!(tmp_glob.pk_file_mode, new_glob.pk_file_mode);
+                set_cfg_attr!(tmp_glob.pk_file_user, new_glob.pk_file_user);
+                set_cfg_attr!(tmp_glob.pk_file_group, new_glob.pk_file_group);
+                config.global = Some(tmp_glob);
+            }
         }
     }
     Ok(config)

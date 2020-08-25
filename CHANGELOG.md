@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The delay to renew a certificate before its expiration date can be specified in the configuration using the `renew_delay` parameter at either the certificate, endpoint and global level.
 - It is now possible to specify IP identifiers (RFC 8738).
 - The hook templates of type `challenge-*` have a new `identifier_tls_alpn` field which contains, if available, the identifier in a form that is suitable to the TLS ALPN challenge.
+- Globing is now supported for configuration files inclusion.
 
 ### Changed
 - In the certificate configuration, the `domains` field has been renamed `identifiers`.

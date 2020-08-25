@@ -20,6 +20,7 @@ openssl_dyn = ["acme_common/openssl_dyn", "attohttpc/tls"]
 acme_common = { path = "../acme_common" }
 attohttpc = { version = "0.15", default-features = false, features = ["charsets", "json"] }
 clap = "2.32"
+glob = "0.3"
 handlebars = "3.0"
 log = "0.4"
 nom = "5.0"
