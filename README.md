@@ -94,17 +94,32 @@ The man pages, the default hooks configuration file, the `CHANGELOG.md` and the 
 
 Short answer: No.
 
-Long answer: At some points in a certificate's life, ACMEd triggers hook in order to let you customize how some actions are done, therefore you can use those hooks to modify any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
+Long answer: At some points in a certificate's life, ACMEd triggers some hooks in order to let you customize how some actions are done, therefore you can use those hooks to modify any server configuration you wish. However, this may not be what you are looking for since it cannot proactively detect which certificates should be emitted since ACMEd only manages certificates that have already been declared in the configuration files.
 
 ### How should I configure my TLS server?
 
 You decide. ACMEd only retrieve the certificate for you, it does not impose any specific configuration or limitation on how to use it. For the record, if you are looking for security recommendations on TLS deployment, you can follow the [ANSSI TLS guide](https://www.ssi.gouv.fr/en/guide/security-recommendations-for-tls/) (the english version might not be the latest version of this document, if possible use [the french one](https://www.ssi.gouv.fr/entreprise/guide/recommandations-de-securite-relatives-a-tls/)).
 
+### Is it suitable for beginners?
+
+It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
+
+### It doesn't work!
+
+ACMEd releases do work properly. Knowing that new users tend to shoot themselves in the foot with hooks, you might want to check those before considering moving away to a different software. Files path and permissions are very common traps, you definitely want to check those.
+
+By the way, don't forget to change the log verbosity using `--log-level debug`.
+
 ### Should ACMEd run as root?
 
 Running ACMEd as root is the simplest configuration since you do not have to worry about access rights, especially within hooks (Eg: restart a service).
 
-However, if you are concerned with safety, you should create a dedicated user for ACMEd. Before doing so, please consider the following points: "Will your services be able to read both the private key and the certificate?" and "Will the ACMEd user be able to execute the hooks?". The later could be achieved using sudo or Polkit.
+However, if you are concerned with safety, you should create a dedicated user for ACMEd. Before doing so, please consider the following points:
+
+* Will my services be able to read both the private key and the certificate?
+* Will the ACMEd user be able to execute the hooks?
+
+The last one could be achieved using either sudo or Polkit.
 
 ### Why is there no option to run ACMEd as a specific user or group?
 
@@ -113,10 +128,6 @@ The reason some services has such an option is because at startup they may have 
 ### How can I run ACMEd with systemd?
 
 An example service file is provided (see `contrib/acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
-
-### Is it suitable for beginners?
-
-It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
 
 ### Why is RSA 2048 the default certificate key type?
 
