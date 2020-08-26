@@ -171,8 +171,15 @@ pub fn request_certificate(
         .filter(|e| e.id_type == IdentifierType::Ip)
         .map(|e| e.value.to_owned())
         .collect();
+    let csr = Csr::new(
+        &key_pair,
+        cert.csr_digest,
+        domains.as_slice(),
+        ips.as_slice(),
+    )?;
+    cert.trace(&format!("New CSR:\n{}", csr.to_pem()?));
     let csr = json!({
-        "csr": Csr::new(&key_pair, domains.as_slice(), ips.as_slice())?.to_der_base64()?,
+        "csr": csr.to_der_base64()?,
     });
     let csr = csr.to_string();
     let data_builder = set_data_builder!(account, csr.as_bytes());

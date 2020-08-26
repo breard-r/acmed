@@ -19,12 +19,32 @@ const CRT_SERIAL_NB_BITS: i32 = 32;
 const CRT_NB_DAYS_VALIDITY: u32 = 7;
 const INVALID_EXT_MSG: &str = "Invalid acmeIdentifier extension.";
 
+fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
+    #[cfg(not(any(ed25519, ed448)))]
+    let digest = digest.native_digest();
+    let _ = key_pair;
+    #[cfg(any(ed25519, ed448))]
+    let digest = match key_pair.key_type {
+        #[cfg(ed25519)]
+        KeyType::Ed25519 => MessageDigest::null(),
+        #[cfg(ed448)]
+        KeyType::Ed448 => MessageDigest::null(),
+        _ => digest.native_digest(),
+    };
+    digest
+}
+
 pub struct Csr {
     inner_csr: X509Req,
 }
 
 impl Csr {
-    pub fn new(key_pair: &KeyPair, domains: &[String], ips: &[String]) -> Result<Self, Error> {
+    pub fn new(
+        key_pair: &KeyPair,
+        digest: HashFunction,
+        domains: &[String],
+        ips: &[String],
+    ) -> Result<Self, Error> {
         let mut builder = X509ReqBuilder::new()?;
         builder.set_pubkey(&key_pair.inner_key)?;
         let ctx = builder.x509v3_context(None);
@@ -39,7 +59,8 @@ impl Csr {
         let mut ext_stack = Stack::new()?;
         ext_stack.push(san)?;
         builder.add_extensions(&ext_stack)?;
-        builder.sign(&key_pair.inner_key, MessageDigest::sha256())?;
+        let digest = get_digest(digest, key_pair);
+        builder.sign(&key_pair.inner_key, digest)?;
         Ok(Csr {
             inner_csr: builder.build(),
         })
@@ -49,6 +70,11 @@ impl Csr {
         let csr = self.inner_csr.to_der()?;
         let csr = b64_encode(&csr);
         Ok(csr)
+    }
+
+    pub fn to_pem(&self) -> Result<String, Error> {
+        let csr = self.inner_csr.to_pem()?;
+        Ok(String::from_utf8(csr)?)
     }
 }
 
@@ -74,16 +100,7 @@ impl X509Certificate {
         digest: HashFunction,
     ) -> Result<(KeyPair, Self), Error> {
         let key_pair = gen_keypair(key_type)?;
-        #[cfg(not(any(ed25519, ed448)))]
-        let digest = digest.native_digest();
-        #[cfg(any(ed25519, ed448))]
-        let digest = match key_pair.key_type {
-            #[cfg(ed25519)]
-            KeyType::Ed25519 => MessageDigest::null(),
-            #[cfg(ed448)]
-            KeyType::Ed448 => MessageDigest::null(),
-            _ => digest.native_digest(),
-        };
+        let digest = get_digest(digest, &key_pair);
         let inner_cert = gen_certificate(domain, &key_pair, &digest, acme_ext)?;
         let cert = X509Certificate { inner_cert };
         Ok((key_pair, cert))

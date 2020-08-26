@@ -1,4 +1,5 @@
 use crate::main_event_loop::MainEventLoop;
+use acme_common::crypto::HashFunction;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, crypto, init_server};
 use clap::{App, Arg};
@@ -26,6 +27,7 @@ pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";
 pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{algo}}.{{file_type}}.{{ext}}";
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
+pub const DEFAULT_CSR_DIGEST: HashFunction = HashFunction::Sha256;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
 pub const DEFAULT_CERT_RENEW_DELAY: u64 = 1_814_400; // 1_814_400 is 3 weeks (3 * 7 * 24 * 60 * 60)
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;

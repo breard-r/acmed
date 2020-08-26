@@ -3,7 +3,7 @@ use crate::acme_proto::Challenge;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::identifier::{Identifier, IdentifierType};
 use crate::storage::{certificate_files_exists, get_certificate};
-use acme_common::crypto::X509Certificate;
+use acme_common::crypto::{HashFunction, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
 use std::collections::{HashMap, HashSet};
@@ -47,6 +47,7 @@ pub struct Certificate {
     pub account: Account,
     pub identifiers: Vec<Identifier>,
     pub algo: Algorithm,
+    pub csr_digest: HashFunction,
     pub kp_reuse: bool,
     pub endpoint_name: String,
     pub hooks: Vec<Hook>,

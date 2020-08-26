@@ -2,6 +2,7 @@ use crate::certificate::Algorithm;
 use crate::duration::parse_duration;
 use crate::hooks;
 use crate::identifier::IdentifierType;
+use acme_common::crypto::HashFunction;
 use acme_common::error::Error;
 use glob::glob;
 use log::info;
@@ -298,6 +299,7 @@ pub struct Certificate {
     pub endpoint: String,
     pub identifiers: Vec<Identifier>,
     pub algorithm: Option<String>,
+    pub csr_digest: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
     pub name: Option<String>,
@@ -326,6 +328,13 @@ impl Certificate {
             None => acme_common::crypto::DEFAULT_ALGO,
         };
         Algorithm::from_str(algo)
+    }
+
+    pub fn get_csr_digest(&self) -> Result<HashFunction, Error> {
+        match &self.csr_digest {
+            Some(d) => d.parse(),
+            None => Ok(crate::DEFAULT_CSR_DIGEST),
+        }
     }
 
     pub fn get_identifiers(&self) -> Result<Vec<crate::identifier::Identifier>, Error> {

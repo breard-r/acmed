@@ -239,6 +239,17 @@ ecdsa_p256
 .It
 ecdsa_p384
 .El
+.It Ic csr_digest Ar string
+Name of the certificate's signing request digest algorithm. Possible values are :
+.Bl -dash -compact
+.It
+sha256
+.Aq default
+.It
+sha384
+.It
+sha512
+.El
 .It Ic kp_reuse Ar boolean
 Set whether or not the private key should be reused when renewing the certificate. Default is false.
 .It Ic directory Ar string

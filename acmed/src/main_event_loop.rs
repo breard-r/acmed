@@ -48,6 +48,7 @@ impl MainEventLoop {
                 account: crt.get_account(&cnf)?,
                 identifiers: crt.get_identifiers()?,
                 algo: crt.get_algorithm()?,
+                csr_digest: crt.get_csr_digest()?,
                 kp_reuse: crt.get_kp_reuse(),
                 endpoint_name: endpoint_name.clone(),
                 hooks: crt.get_hooks(&cnf)?,
