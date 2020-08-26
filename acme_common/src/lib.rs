@@ -14,7 +14,7 @@ macro_rules! exit_match {
         match $e {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Error: {}", e);
+                log::error!("Error: {}", e);
                 std::process::exit(3);
             }
         }
@@ -47,7 +47,7 @@ pub fn init_server(foreground: bool, pid_file: Option<&str>, default_pid_file: &
         let daemonize = Daemonize::new().pid_file(pid_file.unwrap_or(default_pid_file));
         exit_match!(daemonize.start());
     } else if let Some(f) = pid_file {
-        exit_match!(write_pid_file(f));
+        exit_match!(write_pid_file(f).map_err(|e| e.prefix(f)));
     }
 }
 
