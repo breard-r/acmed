@@ -79,7 +79,7 @@ fn main() {
                 .help("Host and port to listen on")
                 .takes_value(true)
                 .value_name("host:port|unix:path")
-                .default_value(&DEFAULT_LISTEN_ADDR)
+                .default_value(&DEFAULT_LISTEN_ADDR),
         )
         .arg(
             Arg::with_name("domain")
@@ -88,7 +88,7 @@ fn main() {
                 .help("The domain that is being validated")
                 .takes_value(true)
                 .value_name("STRING")
-                .conflicts_with("domain-file")
+                .conflicts_with("domain-file"),
         )
         .arg(
             Arg::with_name("domain-file")
@@ -96,7 +96,7 @@ fn main() {
                 .help("File from which is read the domain that is being validated")
                 .takes_value(true)
                 .value_name("FILE")
-                .conflicts_with("domain")
+                .conflicts_with("domain"),
         )
         .arg(
             Arg::with_name("acme-ext")
@@ -105,7 +105,7 @@ fn main() {
                 .help("The acmeIdentifier extension to set in the self-signed certificate")
                 .takes_value(true)
                 .value_name("STRING")
-                .conflicts_with("acme-ext-file")
+                .conflicts_with("acme-ext-file"),
         )
         .arg(
             Arg::with_name("acme-ext-file")
@@ -113,7 +113,7 @@ fn main() {
                 .help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
                 .takes_value(true)
                 .value_name("FILE")
-                .conflicts_with("acme-ext")
+                .conflicts_with("acme-ext"),
         )
         .arg(
             Arg::with_name("crt-signature-alg")
@@ -122,7 +122,7 @@ fn main() {
                 .takes_value(true)
                 .value_name("STRING")
                 .possible_values(&KeyType::list_possible_values())
-                .default_value(&default_crt_key_type)
+                .default_value(&default_crt_key_type),
         )
         .arg(
             Arg::with_name("crt-digest")
@@ -131,7 +131,7 @@ fn main() {
                 .takes_value(true)
                 .value_name("STRING")
                 .possible_values(&HashFunction::list_possible_values())
-                .default_value(&default_crt_digest)
+                .default_value(&default_crt_digest),
         )
         .arg(
             Arg::with_name("log-level")
@@ -140,7 +140,7 @@ fn main() {
                 .takes_value(true)
                 .value_name("LEVEL")
                 .possible_values(&["error", "warn", "info", "debug", "trace"])
-                .default_value(&default_log_level)
+                .default_value(&default_log_level),
         )
         .arg(
             Arg::with_name("to-syslog")
@@ -158,7 +158,7 @@ fn main() {
             Arg::with_name("foreground")
                 .long("foreground")
                 .short("f")
-                .help("Runs in the foreground")
+                .help("Runs in the foreground"),
         )
         .arg(
             Arg::with_name("pid-file")
@@ -166,7 +166,7 @@ fn main() {
                 .help("Path to the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(&DEFAULT_PID_FILE)
+                .default_value(&DEFAULT_PID_FILE),
         )
         .get_matches();
 
