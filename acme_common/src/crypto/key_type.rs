@@ -47,13 +47,26 @@ impl KeyType {
             Err(err_msg.into())
         }
     }
+
+    pub fn list_possible_values() -> Vec<&'static str> {
+        vec![
+            "rsa2048",
+            "rsa4096",
+            "ecdsa-p256",
+            "ecdsa-p384",
+            #[cfg(ed25519)]
+            "ed25519",
+            #[cfg(ed448)]
+            "ed448",
+        ]
+    }
 }
 
 impl FromStr for KeyType {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Error> {
-        match s.to_lowercase().as_str() {
+        match s.to_lowercase().replace("-", "_").as_str() {
             "rsa2048" => Ok(KeyType::Rsa2048),
             "rsa4096" => Ok(KeyType::Rsa4096),
             "ecdsa_p256" => Ok(KeyType::EcdsaP256),

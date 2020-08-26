@@ -50,13 +50,18 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
     let domain = to_idna(&domain)?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
     let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
-    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, DEFAULT_CRT_KEY_TYPE)?;
+    let crt_signature_alg = match cnf.value_of("crt-signature-alg") {
+        Some(alg) => alg.parse()?,
+        None => DEFAULT_CRT_KEY_TYPE,
+    };
+    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg)?;
     info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
     server_start(listen_addr, &cert, &pk)?;
     Ok(())
 }
 
 fn main() {
+    let default_crt_key_type = DEFAULT_CRT_KEY_TYPE.to_string();
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
         .arg(
@@ -100,6 +105,15 @@ fn main() {
                 .takes_value(true)
                 .value_name("FILE")
                 .conflicts_with("acme-ext")
+        )
+        .arg(
+            Arg::with_name("crt-signature-alg")
+                .long("crt-signature-alg")
+                .help("The certificate's signature algorithm")
+                .takes_value(true)
+                .value_name("STRING")
+                .possible_values(&KeyType::list_possible_values())
+                .default_value(&default_crt_key_type)
         )
         .arg(
             Arg::with_name("log-level")
