@@ -1,5 +1,5 @@
 use crate::b64_encode;
-use crate::crypto::{JwsSignatureAlgorithm, KeyType};
+use crate::crypto::{HashFunction, JwsSignatureAlgorithm, KeyType};
 use crate::error::Error;
 use openssl::bn::{BigNum, BigNumContext};
 use openssl::ec::{Asn1Flag, EcGroup, EcKey};
@@ -72,8 +72,8 @@ impl KeyPair {
         let _ = self.key_type.check_alg_compatibility(alg)?;
         match alg {
             JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
-            JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&crate::crypto::sha256, data),
-            JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&crate::crypto::sha384, data),
+            JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&HashFunction::Sha256, data),
+            JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&HashFunction::Sha384, data),
             #[cfg(ed25519)]
             JwsSignatureAlgorithm::Ed25519 => self.sign_eddsa(data),
             #[cfg(ed448)]
@@ -88,12 +88,8 @@ impl KeyPair {
         Ok(signature)
     }
 
-    fn sign_ecdsa(
-        &self,
-        hash_func: &dyn Fn(&[u8]) -> Vec<u8>,
-        data: &[u8],
-    ) -> Result<Vec<u8>, Error> {
-        let fingerprint = hash_func(data);
+    fn sign_ecdsa(&self, hash_func: &HashFunction, data: &[u8]) -> Result<Vec<u8>, Error> {
+        let fingerprint = hash_func.hash(data);
         let signature = EcdsaSig::sign(&fingerprint, self.inner_key.ec_key()?.as_ref())?;
         let r = signature.r().to_vec();
         let mut s = signature.s().to_vec();
