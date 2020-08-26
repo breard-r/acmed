@@ -1,7 +1,7 @@
 use crate::main_event_loop::MainEventLoop;
-use acme_common::crypto::HashFunction;
+use acme_common::crypto::{HashFunction, KeyType, TLS_LIB_NAME, TLS_LIB_VERSION};
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
-use acme_common::{clean_pid_file, crypto, init_server};
+use acme_common::{clean_pid_file, init_server};
 use clap::{App, Arg};
 use log::error;
 
@@ -28,12 +28,13 @@ pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{algo}}.{{file_type}}.{{ext}}";
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CSR_DIGEST: HashFunction = HashFunction::Sha256;
+pub const DEFAULT_CERT_KEY_TYPE: KeyType = KeyType::Rsa2048;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
 pub const DEFAULT_CERT_RENEW_DELAY: u64 = 1_814_400; // 1_814_400 is 3 weeks (3 * 7 * 24 * 60 * 60)
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_KP_REUSE: bool = false;
-pub const DEFAULT_ACCOUNT_KEY_TYPE: crypto::KeyType = crypto::KeyType::EcdsaP256;
+pub const DEFAULT_ACCOUNT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
 pub const DEFAULT_POOL_NB_TRIES: usize = 20;
 pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
 pub const DEFAULT_HTTP_FAIL_NB_RETRY: usize = 10;
@@ -47,8 +48,8 @@ fn main() {
         "{} {}\n\nCompiled with:\n  {} {}\n  {} {}",
         APP_VERSION,
         env!("ACMED_TARGET"),
-        crypto::TLS_LIB_NAME,
-        crypto::TLS_LIB_VERSION,
+        TLS_LIB_NAME,
+        TLS_LIB_VERSION,
         env!("ACMED_HTTP_LIB_NAME"),
         env!("ACMED_HTTP_LIB_VERSION")
     );

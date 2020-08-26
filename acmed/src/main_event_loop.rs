@@ -47,7 +47,7 @@ impl MainEventLoop {
             let cert = Certificate {
                 account: crt.get_account(&cnf)?,
                 identifiers: crt.get_identifiers()?,
-                algo: crt.get_algorithm()?,
+                key_type: crt.get_key_type()?,
                 csr_digest: crt.get_csr_digest()?,
                 kp_reuse: crt.get_kp_reuse(),
                 endpoint_name: endpoint_name.clone(),

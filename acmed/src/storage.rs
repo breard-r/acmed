@@ -53,7 +53,7 @@ fn get_file_full_path(
             format!(
                 "{name}_{algo}.{file_type}.{ext}",
                 name = cert.crt_name,
-                algo = cert.algo.to_string(),
+                algo = cert.key_type.to_string(),
                 file_type = file_type.to_string(),
                 ext = "pem"
             )

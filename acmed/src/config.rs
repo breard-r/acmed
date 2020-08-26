@@ -1,8 +1,7 @@
-use crate::certificate::Algorithm;
 use crate::duration::parse_duration;
 use crate::hooks;
 use crate::identifier::IdentifierType;
-use acme_common::crypto::HashFunction;
+use acme_common::crypto::{HashFunction, KeyType};
 use acme_common::error::Error;
 use glob::glob;
 use log::info;
@@ -298,7 +297,7 @@ pub struct Certificate {
     pub account: String,
     pub endpoint: String,
     pub identifiers: Vec<Identifier>,
-    pub algorithm: Option<String>,
+    pub key_type: Option<String>,
     pub csr_digest: Option<String>,
     pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
@@ -322,12 +321,11 @@ impl Certificate {
         Err(format!("{}: account not found", self.account).into())
     }
 
-    pub fn get_algorithm(&self) -> Result<Algorithm, Error> {
-        let algo = match &self.algorithm {
-            Some(a) => &a,
-            None => acme_common::crypto::DEFAULT_ALGO,
-        };
-        Algorithm::from_str(algo)
+    pub fn get_key_type(&self) -> Result<KeyType, Error> {
+        match &self.key_type {
+            Some(a) => a.parse(),
+            None => Ok(crate::DEFAULT_CERT_KEY_TYPE),
+        }
     }
 
     pub fn get_csr_digest(&self) -> Result<HashFunction, Error> {

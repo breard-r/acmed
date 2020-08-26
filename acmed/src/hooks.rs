@@ -44,7 +44,7 @@ macro_rules! imple_hook_data_env {
 #[derive(Clone, Serialize)]
 pub struct PostOperationHookData {
     pub identifiers: Vec<String>,
-    pub algorithm: String,
+    pub key_type: String,
     pub status: String,
     pub is_success: bool,
     pub env: HashMap<String, String>,

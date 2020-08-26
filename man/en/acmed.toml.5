@@ -226,7 +226,7 @@ The IP address.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
 .El
-.It Ic algorithm Ar string
+.It Ic key_type Ar string
 Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are :
 .Bl -dash -compact
 .It
@@ -437,8 +437,8 @@ type.
 .It Ic post-operation
 Invoked at the end of the certificate request process. The available template variables are:
 .Bl -tag -compact
-.It Cm algorithm Ar string
-Name of the algorithm used in the certificate.
+.It Cm key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the certificate's key pair.
 .It Cm identifiers Ar string
 Array containing the identifiers included in the requested certificate.
 .It Cm env Ar array
@@ -670,7 +670,7 @@ stdin_str = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}f
 
 The following certificate has {{#unless is_success}}*not* {{/unless}}been renewed.
 identifiers: {{#each identifiers}}{{#if @index}}, {{/if}}{{this}}{{/each}}
-algorithm: {{algorithm}}
+key type: {{key_type}}
 status: {{status}}"""
 .Ed
 .Sh SEE ALSO

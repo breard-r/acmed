@@ -3,7 +3,7 @@ use crate::acme_proto::Challenge;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::identifier::{Identifier, IdentifierType};
 use crate::storage::{certificate_files_exists, get_certificate};
-use acme_common::crypto::{HashFunction, X509Certificate};
+use acme_common::crypto::{HashFunction, KeyType, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
 use std::collections::{HashMap, HashSet};
@@ -11,42 +11,10 @@ use std::fmt;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
-pub enum Algorithm {
-    Rsa2048,
-    Rsa4096,
-    EcdsaP256,
-    EcdsaP384,
-}
-
-impl Algorithm {
-    pub fn from_str(s: &str) -> Result<Self, Error> {
-        match s.to_lowercase().as_str() {
-            "rsa2048" => Ok(Algorithm::Rsa2048),
-            "rsa4096" => Ok(Algorithm::Rsa4096),
-            "ecdsa_p256" => Ok(Algorithm::EcdsaP256),
-            "ecdsa_p384" => Ok(Algorithm::EcdsaP384),
-            _ => Err(format!("{}: unknown algorithm.", s).into()),
-        }
-    }
-}
-
-impl fmt::Display for Algorithm {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            Algorithm::Rsa2048 => "rsa2048",
-            Algorithm::Rsa4096 => "rsa4096",
-            Algorithm::EcdsaP256 => "ecdsa-p256",
-            Algorithm::EcdsaP384 => "ecdsa-p384",
-        };
-        write!(f, "{}", s)
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct Certificate {
     pub account: Account,
     pub identifiers: Vec<Identifier>,
-    pub algo: Algorithm,
+    pub key_type: KeyType,
     pub csr_digest: HashFunction,
     pub kp_reuse: bool,
     pub endpoint_name: String,
@@ -221,7 +189,7 @@ impl Certificate {
             .collect::<Vec<String>>();
         let mut hook_data = PostOperationHookData {
             identifiers,
-            algorithm: self.algo.to_string(),
+            key_type: self.key_type.to_string(),
             status: status.to_string(),
             is_success,
             env: HashMap::new(),

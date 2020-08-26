@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - In the certificate configuration, the `domains` field has been renamed `identifiers`.
+- The `algorithm` certificate configuration field has been renamed `key_type`.
+- The `algorithm` hook template variable has been renamed `key_type`.
 - The `domain` hook template variable has been renamed `identifier`.
 - The default hooks have been updated.
 
