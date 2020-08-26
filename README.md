@@ -133,3 +133,7 @@ Currently, security and client support aren't the main concerns since every poss
 ### Why is ECDSA P-256 the default account key type?
 
 RFC 8555 section 6.2 defines ECDSA P-256 as the only account key type that any ACME servers must implement. It is therefore the best choice for the default value.
+
+### Why can I chose the CSR's digest type but not the certificate's?
+
+Well, you sign the CSR, so obviously you can chose which digest to use. However, the certificate is signed by the certificate authority, so its digest choice is up to your CA. I agree that being able to chose the CSR's digest type is of low importance, sorry if it gave you false hopes about the certificate.
