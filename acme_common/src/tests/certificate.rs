@@ -1,4 +1,4 @@
-use crate::crypto::{KeyType, X509Certificate};
+use crate::crypto::{HashFunction, KeyType, X509Certificate};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -85,38 +85,50 @@ fn test_san_domains_and_ip() {
 
 #[test]
 fn generate_rsa2048_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa2048).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa2048, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::Rsa2048);
 }
 
 #[test]
 fn generate_rsa4096_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa4096).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa4096, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::Rsa4096);
 }
 
 #[test]
 fn generate_ecdsa_p256_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::EcdsaP256);
 }
 
 #[test]
 fn generate_ecdsa_p384_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP384).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP384, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::EcdsaP384);
 }
 
 #[cfg(ed25519)]
 #[test]
 fn generate_ed25519_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::Ed25519).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::Ed25519, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::Ed25519);
 }
 
 #[cfg(ed448)]
 #[test]
 fn generate_ed448_certificate() {
-    let (kp, _) = X509Certificate::from_acme_ext("example.org", "", KeyType::Ed448).unwrap();
+    let (kp, _) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::Ed448, HashFunction::Sha256)
+            .unwrap();
     assert_eq!(kp.key_type, KeyType::Ed448);
 }
