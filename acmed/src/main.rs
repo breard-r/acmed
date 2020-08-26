@@ -1,4 +1,5 @@
 use crate::main_event_loop::MainEventLoop;
+use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, crypto, init_server};
 use clap::{App, Arg};
 use log::error;
@@ -49,6 +50,7 @@ fn main() {
         env!("ACMED_HTTP_LIB_NAME"),
         env!("ACMED_HTTP_LIB_VERSION")
     );
+    let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
         .long_version(full_version.as_str())
@@ -56,9 +58,10 @@ fn main() {
             Arg::with_name("config")
                 .short("c")
                 .long("config")
-                .help("Specify an alternative configuration file")
+                .help("Path to the main configuration file")
                 .takes_value(true)
-                .value_name("FILE"),
+                .value_name("FILE")
+                .default_value(&DEFAULT_CONFIG_FILE),
         )
         .arg(
             Arg::with_name("log-level")
@@ -66,7 +69,8 @@ fn main() {
                 .help("Specify the log level")
                 .takes_value(true)
                 .value_name("LEVEL")
-                .possible_values(&["error", "warn", "info", "debug", "trace"]),
+                .possible_values(&["error", "warn", "info", "debug", "trace"])
+                .default_value(&default_log_level),
         )
         .arg(
             Arg::with_name("to-syslog")
@@ -89,21 +93,22 @@ fn main() {
         .arg(
             Arg::with_name("pid-file")
                 .long("pid-file")
-                .help("Specifies the location of the PID file")
+                .help("Path to the PID file")
                 .takes_value(true)
-                .value_name("FILE"),
+                .value_name("FILE")
+                .default_value(&DEFAULT_PID_FILE),
         )
         .arg(
             Arg::with_name("root-cert")
                 .long("root-cert")
-                .help("Add a root certificate to the trust store")
+                .help("Add a root certificate to the trust store (can be set multiple times)")
                 .takes_value(true)
                 .multiple(true)
                 .value_name("FILE"),
         )
         .get_matches();
 
-    match acme_common::logs::set_log_system(
+    match set_log_system(
         matches.value_of("log-level"),
         matches.is_present("log-syslog"),
         matches.is_present("to-stderr"),

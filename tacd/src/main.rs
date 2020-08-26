@@ -3,6 +3,7 @@ mod openssl_server;
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::{KeyType, X509Certificate};
 use acme_common::error::Error;
+use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
 use clap::{App, Arg, ArgMatches};
 use log::{debug, error, info};
@@ -62,15 +63,17 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
 
 fn main() {
     let default_crt_key_type = DEFAULT_CRT_KEY_TYPE.to_string();
+    let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
         .arg(
             Arg::with_name("listen")
                 .long("listen")
                 .short("l")
-                .help("Specifies the host and port to listen on")
+                .help("Host and port to listen on")
                 .takes_value(true)
-                .value_name("host:port|unix:path"),
+                .value_name("host:port|unix:path")
+                .default_value(&DEFAULT_LISTEN_ADDR)
         )
         .arg(
             Arg::with_name("domain")
@@ -121,7 +124,8 @@ fn main() {
                 .help("Specify the log level")
                 .takes_value(true)
                 .value_name("LEVEL")
-                .possible_values(&["error", "warn", "info", "debug", "trace"]),
+                .possible_values(&["error", "warn", "info", "debug", "trace"])
+                .default_value(&default_log_level)
         )
         .arg(
             Arg::with_name("to-syslog")
@@ -133,24 +137,25 @@ fn main() {
             Arg::with_name("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
-                .conflicts_with("log-syslog"),
+                .conflicts_with("to-syslog"),
         )
         .arg(
             Arg::with_name("foreground")
                 .long("foreground")
                 .short("f")
-                .help("Runs in the foreground"),
+                .help("Runs in the foreground")
         )
         .arg(
             Arg::with_name("pid-file")
                 .long("pid-file")
-                .help("Specifies the location of the PID file")
+                .help("Path to the PID file")
                 .takes_value(true)
-                .value_name("FILE"),
+                .value_name("FILE")
+                .default_value(&DEFAULT_PID_FILE)
         )
         .get_matches();
 
-    match acme_common::logs::set_log_system(
+    match set_log_system(
         matches.value_of("log-level"),
         matches.is_present("log-syslog"),
         matches.is_present("to-stderr"),

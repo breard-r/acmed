@@ -3,8 +3,8 @@ use env_logger::Builder;
 use log::LevelFilter;
 use syslog::Facility;
 
-const DEFAULT_LOG_SYSTEM: LogSystem = LogSystem::SysLog;
-const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
+pub const DEFAULT_LOG_SYSTEM: LogSystem = LogSystem::SysLog;
+pub const DEFAULT_LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum LogSystem {
