@@ -76,7 +76,10 @@ impl X509Certificate {
         let digest = MessageDigest::sha256();
         #[cfg(any(ed25519, ed448))]
         let digest = match key_pair.key_type {
-            KeyType::Ed25519 | KeyType::Ed448 => MessageDigest::null(),
+            #[cfg(ed25519)]
+            KeyType::Ed25519 => MessageDigest::null(),
+            #[cfg(ed448)]
+            KeyType::Ed448 => MessageDigest::null(),
             _ => MessageDigest::sha256(),
         };
         let inner_cert = gen_certificate(domain, &key_pair, &digest, acme_ext)?;
