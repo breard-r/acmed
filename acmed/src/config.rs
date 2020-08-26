@@ -5,7 +5,7 @@ use acme_common::crypto::{HashFunction, KeyType};
 use acme_common::error::Error;
 use glob::glob;
 use log::info;
-use serde::Deserialize;
+use serde::{de, Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::{self, File};
@@ -421,6 +421,7 @@ impl Certificate {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(remote = "Self")]
 #[serde(deny_unknown_fields)]
 pub struct Identifier {
     pub challenge: String,
@@ -428,6 +429,26 @@ pub struct Identifier {
     pub ip: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+}
+
+impl<'de> Deserialize<'de> for Identifier {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let unchecked = Identifier::deserialize(deserializer)?;
+        let filled_nb: u8 = [unchecked.dns.is_some(), unchecked.ip.is_some()]
+            .iter()
+            .copied()
+            .map(u8::from)
+            .sum();
+        if filled_nb != 1 {
+            return Err(de::Error::custom(
+                "one and only one of `dns` or `ip` must be specified",
+            ));
+        }
+        Ok(unchecked)
+    }
 }
 
 impl fmt::Display for Identifier {
