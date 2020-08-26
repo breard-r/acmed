@@ -14,6 +14,7 @@
 .Nm
 .Op Fl e|--acme-ext Ar STRING
 .Op Fl -acme-ext-file Ar FILE
+.Op Fl -crt-digest Ar STRING
 .Op Fl -crt-signature-alg Ar STRING
 .Op Fl d|--domain Ar STRING
 .Op Fl -domain-file Ar STRING
@@ -50,6 +51,16 @@ The options are as follows:
 The acmeIdentifier extension to set in the self-signed certificate.
 .It Fl -acme-ext-file Ar FILE
 File from which is read the acmeIdentifier extension to set in the self-signed certificate.
+.It Fl -crt-digest Ar STRING
+Set the certificate's digest algorithm. Possible values are:
+.Bl -dash -compact
+.It
+sha256
+.It
+sha384
+.It
+sha512
+.El
 .It Fl -crt-signature-alg Ar STRING
 Set the certificate's signature algorithm. Possible values depends on the cryptographic library support and can be listed using the
 .Em --help

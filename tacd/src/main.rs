@@ -1,7 +1,7 @@
 mod openssl_server;
 
 use crate::openssl_server::start as server_start;
-use acme_common::crypto::{KeyType, X509Certificate};
+use acme_common::crypto::{HashFunction, KeyType, X509Certificate};
 use acme_common::error::Error;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
@@ -15,6 +15,7 @@ const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const DEFAULT_PID_FILE: &str = "/var/run/tacd.pid";
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
 const DEFAULT_CRT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
+const DEFAULT_CRT_DIGEST: HashFunction = HashFunction::Sha256;
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
 fn read_line(path: Option<&str>) -> Result<String, Error> {
@@ -55,7 +56,11 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
         Some(alg) => alg.parse()?,
         None => DEFAULT_CRT_KEY_TYPE,
     };
-    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg)?;
+    let crt_digest = match cnf.value_of("crt-digest") {
+        Some(alg) => alg.parse()?,
+        None => DEFAULT_CRT_DIGEST,
+    };
+    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg, crt_digest)?;
     info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
     server_start(listen_addr, &cert, &pk)?;
     Ok(())
@@ -63,6 +68,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
 
 fn main() {
     let default_crt_key_type = DEFAULT_CRT_KEY_TYPE.to_string();
+    let default_crt_digest = DEFAULT_CRT_DIGEST.to_string();
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
@@ -117,6 +123,15 @@ fn main() {
                 .value_name("STRING")
                 .possible_values(&KeyType::list_possible_values())
                 .default_value(&default_crt_key_type)
+        )
+        .arg(
+            Arg::with_name("crt-digest")
+                .long("crt-digest")
+                .help("The certificate's digest algorithm")
+                .takes_value(true)
+                .value_name("STRING")
+                .possible_values(&HashFunction::list_possible_values())
+                .default_value(&default_crt_digest)
         )
         .arg(
             Arg::with_name("log-level")

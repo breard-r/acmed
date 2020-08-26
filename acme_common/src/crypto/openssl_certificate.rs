@@ -1,5 +1,6 @@
 use super::{gen_keypair, KeyPair, KeyType};
 use crate::b64_encode;
+use crate::crypto::HashFunction;
 use crate::error::Error;
 use openssl::asn1::Asn1Time;
 use openssl::bn::{BigNum, MsbOption};
@@ -70,17 +71,18 @@ impl X509Certificate {
         domain: &str,
         acme_ext: &str,
         key_type: KeyType,
+        digest: HashFunction,
     ) -> Result<(KeyPair, Self), Error> {
         let key_pair = gen_keypair(key_type)?;
         #[cfg(not(any(ed25519, ed448)))]
-        let digest = MessageDigest::sha256();
+        let digest = digest.native_digest();
         #[cfg(any(ed25519, ed448))]
         let digest = match key_pair.key_type {
             #[cfg(ed25519)]
             KeyType::Ed25519 => MessageDigest::null(),
             #[cfg(ed448)]
             KeyType::Ed448 => MessageDigest::null(),
-            _ => MessageDigest::sha256(),
+            _ => digest.native_digest(),
         };
         let inner_cert = gen_certificate(domain, &key_pair, &digest, acme_ext)?;
         let cert = X509Certificate { inner_cert };

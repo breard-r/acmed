@@ -19,6 +19,12 @@ pub enum BaseHashFunction {
     Sha512,
 }
 
+impl BaseHashFunction {
+    pub fn list_possible_values() -> Vec<&'static str> {
+        vec!["sha256", "sha384", "sha512"]
+    }
+}
+
 impl FromStr for BaseHashFunction {
     type Err = Error;
 
