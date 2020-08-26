@@ -66,9 +66,20 @@ impl X509Certificate {
         Ok(native_tls::Certificate::from_pem(pem_data)?)
     }
 
-    pub fn from_acme_ext(domain: &str, acme_ext: &str) -> Result<(KeyPair, Self), Error> {
-        let key_pair = gen_keypair(KeyType::EcdsaP256)?;
-        let inner_cert = gen_certificate(domain, &key_pair, acme_ext)?;
+    pub fn from_acme_ext(
+        domain: &str,
+        acme_ext: &str,
+        key_type: KeyType,
+    ) -> Result<(KeyPair, Self), Error> {
+        let key_pair = gen_keypair(key_type)?;
+        #[cfg(not(any(ed25519, ed448)))]
+        let digest = MessageDigest::sha256();
+        #[cfg(any(ed25519, ed448))]
+        let digest = match key_pair.key_type {
+            KeyType::Ed25519 | KeyType::Ed448 => MessageDigest::null(),
+            _ => MessageDigest::sha256(),
+        };
+        let inner_cert = gen_certificate(domain, &key_pair, &digest, acme_ext)?;
         let cert = X509Certificate { inner_cert };
         Ok((key_pair, cert))
     }
@@ -114,7 +125,12 @@ impl X509Certificate {
     }
 }
 
-fn gen_certificate(domain: &str, key_pair: &KeyPair, acme_ext: &str) -> Result<X509, Error> {
+fn gen_certificate(
+    domain: &str,
+    key_pair: &KeyPair,
+    digest: &MessageDigest,
+    acme_ext: &str,
+) -> Result<X509, Error> {
     let mut x509_name = X509NameBuilder::new()?;
     x509_name.append_entry_by_text("O", APP_ORG)?;
     let ca_name = format!("{} TLS-ALPN-01 Authority", APP_NAME);
@@ -142,19 +158,22 @@ fn gen_certificate(domain: &str, key_pair: &KeyPair, acme_ext: &str) -> Result<X
     let san_ext = SubjectAlternativeName::new().dns(domain).build(&ctx)?;
     builder.append_extension(san_ext)?;
 
-    let ctx = builder.x509v3_context(None, None);
-    let mut v: Vec<&str> = acme_ext.split('=').collect();
-    let value = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
-    let acme_ext_name = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
-    if !v.is_empty() {
-        return Err(Error::from(INVALID_EXT_MSG));
+    if !acme_ext.is_empty() {
+        let ctx = builder.x509v3_context(None, None);
+        let mut v: Vec<&str> = acme_ext.split('=').collect();
+        let value = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
+        let acme_ext_name = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
+        if !v.is_empty() {
+            return Err(Error::from(INVALID_EXT_MSG));
+        }
+        let acme_ext = X509Extension::new(None, Some(&ctx), &acme_ext_name, &value)
+            .map_err(|_| Error::from(INVALID_EXT_MSG))?;
+        builder
+            .append_extension(acme_ext)
+            .map_err(|_| Error::from(INVALID_EXT_MSG))?;
     }
-    let acme_ext = X509Extension::new(None, Some(&ctx), &acme_ext_name, &value)
-        .map_err(|_| Error::from(INVALID_EXT_MSG))?;
-    builder
-        .append_extension(acme_ext)
-        .map_err(|_| Error::from(INVALID_EXT_MSG))?;
-    builder.sign(&key_pair.inner_key, MessageDigest::sha256())?;
+
+    builder.sign(&key_pair.inner_key, *digest)?;
     let cert = builder.build();
     Ok(cert)
 }

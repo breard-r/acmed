@@ -1,7 +1,7 @@
 mod openssl_server;
 
 use crate::openssl_server::start as server_start;
-use acme_common::crypto::X509Certificate;
+use acme_common::crypto::{KeyType, X509Certificate};
 use acme_common::error::Error;
 use acme_common::{clean_pid_file, to_idna};
 use clap::{App, Arg, ArgMatches};
@@ -13,6 +13,7 @@ const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 const DEFAULT_PID_FILE: &str = "/var/run/tacd.pid";
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
+const DEFAULT_CRT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
 fn read_line(path: Option<&str>) -> Result<String, Error> {
@@ -49,7 +50,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
     let domain = to_idna(&domain)?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
     let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
-    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext)?;
+    let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, DEFAULT_CRT_KEY_TYPE)?;
     info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
     server_start(listen_addr, &cert, &pk)?;
     Ok(())

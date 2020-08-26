@@ -13,6 +13,13 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ## Work on dependencies
 
+### rust-openssl
+
+Although OpenSSL supports (Ed|X)(25519|448) since version 1.1.1, the `EVP_PKEY_get1_(ED|X)(25519|448)` functions, which are required for ACMEd, will only land in version 3.0.0. Being new function, bindings have to be written in the `openssl` crate. At first sight, such bindings should be added in the `openssl::pkey::PKey` struct along with the other `EVP_PKEY_get1_*` bindings.
+
+- https://github.com/sfackler/rust-openssl/issues/1263
+- https://github.com/openssl/openssl/commit/7c664b1f1b5f60bf896f5fdea5c08c401c541dfe
+
 ### botan and botan-sys
 
 Although Botan isn't a dependency, it is considered for the replacement of OpenSSL as the default cryptographic API (although OpenSSL will be kept as an alternative). But before this can be done, the Botan crate need to support a few features:
@@ -22,17 +29,9 @@ Although Botan isn't a dependency, it is considered for the replacement of OpenS
 - Self-signed certificate generation (via `botan_sys::botan_x509_cert_gen_selfsigned`).
 - CSR (requires to add bindings to [create_cert_req](https://botan.randombit.net/handbook/api_ref/x509.html#creating-pkcs-10-requests)) with DER export.
 
-
 ### attohttpc
 
 Add an optional Botan support as the cryptographic library.
-
-### rust-openssl
-
-An improvement that would be appreciable is to add Curve 25519 support to the [openssl](https://crates.io/crates/openssl) crate.
-
-- https://github.com/sfackler/rust-openssl/issues/947
-- https://github.com/sfackler/rust-openssl/pull/1275
 
 ### Find or create a good template engine
 

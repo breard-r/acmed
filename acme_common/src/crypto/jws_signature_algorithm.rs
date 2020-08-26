@@ -7,8 +7,10 @@ pub enum JwsSignatureAlgorithm {
     Rs256,
     Es256,
     Es384,
-    #[cfg(feature = "ed25519")]
+    #[cfg(ed25519)]
     Ed25519,
+    #[cfg(ed448)]
+    Ed448,
 }
 
 impl FromStr for JwsSignatureAlgorithm {
@@ -19,8 +21,10 @@ impl FromStr for JwsSignatureAlgorithm {
             "rs256" => Ok(JwsSignatureAlgorithm::Rs256),
             "es256" => Ok(JwsSignatureAlgorithm::Es256),
             "es384" => Ok(JwsSignatureAlgorithm::Es384),
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             "ed25519" => Ok(JwsSignatureAlgorithm::Ed25519),
+            #[cfg(ed448)]
+            "ed448" => Ok(JwsSignatureAlgorithm::Ed448),
             _ => Err(format!("{}: unknown algorithm.", s).into()),
         }
     }
@@ -32,8 +36,10 @@ impl fmt::Display for JwsSignatureAlgorithm {
             JwsSignatureAlgorithm::Rs256 => "RS256",
             JwsSignatureAlgorithm::Es256 => "ES256",
             JwsSignatureAlgorithm::Es384 => "ES384",
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             JwsSignatureAlgorithm::Ed25519 => "Ed25519",
+            #[cfg(ed448)]
+            JwsSignatureAlgorithm::Ed448 => "Ed448",
         };
         write!(f, "{}", s)
     }

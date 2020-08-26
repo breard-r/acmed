@@ -1,13 +1,5 @@
 use crate::crypto::KeyPair;
 
-const KEY_ECDSA_P256_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
-MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCCQc9OXwvygYqOFT4fN
-NpXynr1lu+1sSplFdYoWu7hE4g==
------END PRIVATE KEY-----"#;
-const KEY_ECDSA_P384_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
-ME4CAQAwEAYHKoZIzj0CAQYFK4EEACIENzA1AgEBBDCMsN9kHPueLABk+0PKi7WO
-PO2/53dpt/yV5zOPrYPEoKs4t973nbt46IUN19lLF/s=
------END PRIVATE KEY-----"#;
 const KEY_RSA_2048_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzfwZGF8zKNAg2
 9mdZ9ieE7V2clY3oeI+2V7eV5kUwOGqhhpDaDyDmju+l0dKFwF8xeDeeGmTSED10
@@ -88,6 +80,95 @@ Q2ZTyps7X64dx6yOIRv6pPd3qZGRz2VoKW2x/sLoeErPsVtUW0u+NSKgR6O5sh7v
 Mc5vg/2W9HWaAXdjyrXIJyypitp0Q9M1cSowzt/BaWNvb3i/En8uEXR5zZjl/CFG
 yr9E4nQyE5YlYlPUK6iIRBu9j1N2MhY=
 -----END PRIVATE KEY-----"#;
+const KEY_ECDSA_P256_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
+MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCCQc9OXwvygYqOFT4fN
+NpXynr1lu+1sSplFdYoWu7hE4g==
+-----END PRIVATE KEY-----"#;
+const KEY_ECDSA_P384_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
+ME4CAQAwEAYHKoZIzj0CAQYFK4EEACIENzA1AgEBBDCMsN9kHPueLABk+0PKi7WO
+PO2/53dpt/yV5zOPrYPEoKs4t973nbt46IUN19lLF/s=
+-----END PRIVATE KEY-----"#;
+#[cfg(ed25519)]
+const KEY_ECDSA_ED25519_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIJhpRNsiUzoWqNkpJKCtKV5++Tttz3locu1gQKkQnrOa
+-----END PRIVATE KEY-----"#;
+#[cfg(ed448)]
+const KEY_ECDSA_ED448_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
+MEcCAQAwBQYDK2VxBDsEOcFBwsH4zU7u5RgFh48MgJPzXyjN5uXxDapZv4rG6opU
+uMXco2JR1CSjKWgqgu1CAKadJIYiv2EgIw==
+-----END PRIVATE KEY-----"#;
+
+#[test]
+fn test_rsa_2048_jwk() {
+    let k = KeyPair::from_pem(KEY_RSA_2048_PEM.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 5);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("e"));
+    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("use"));
+    assert!(jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "RSA");
+    assert_eq!(jwk.get("e").unwrap(), "AQAB");
+    assert_eq!(jwk.get("n").unwrap(), "s38GRhfMyjQINvZnWfYnhO1dnJWN6HiPtle3leZFMDhqoYaQ2g8g5o7vpdHShcBfMXg3nhpk0hA9dHt_GbB6iRdHGaig6wd4TngwLJ-2erLR3_0WaM0DubAJmaTe4ND9JYVyZ8gK_li-fF-NZFrrn4j1W71EUL_7St8jdivqwujHWdpS7C3piosAJW8hqz31M7lXOnV61PCb15JMLiKQMhBCezk13QWk-FQBx7ZtmA1iMFvt-Drcqdhb20iWLCMCYwtNLez4ZmofWzI4sqQmQejpJ2Ve1gGeeY2hf68qQEQf8804nksp-EIv1Y4qVhO5zvxo7m8s6ybUJqvqOz5u9Q");
+    assert_eq!(jwk.get("use").unwrap(), "sig");
+    assert_eq!(jwk.get("alg").unwrap(), "RS256");
+}
+
+#[test]
+fn test_rsa_2048_jwk_thumbprint() {
+    let k = KeyPair::from_pem(KEY_RSA_2048_PEM.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key_thumbprint().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 3);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("e"));
+    assert!(jwk.contains_key("n"));
+    assert!(!jwk.contains_key("use"));
+    assert!(!jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "RSA");
+    assert_eq!(jwk.get("e").unwrap(), "AQAB");
+    assert_eq!(jwk.get("n").unwrap(), "s38GRhfMyjQINvZnWfYnhO1dnJWN6HiPtle3leZFMDhqoYaQ2g8g5o7vpdHShcBfMXg3nhpk0hA9dHt_GbB6iRdHGaig6wd4TngwLJ-2erLR3_0WaM0DubAJmaTe4ND9JYVyZ8gK_li-fF-NZFrrn4j1W71EUL_7St8jdivqwujHWdpS7C3piosAJW8hqz31M7lXOnV61PCb15JMLiKQMhBCezk13QWk-FQBx7ZtmA1iMFvt-Drcqdhb20iWLCMCYwtNLez4ZmofWzI4sqQmQejpJ2Ve1gGeeY2hf68qQEQf8804nksp-EIv1Y4qVhO5zvxo7m8s6ybUJqvqOz5u9Q");
+}
+
+#[test]
+fn test_rsa_4096_jwk() {
+    let k = KeyPair::from_pem(KEY_RSA_4096_PEM.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 5);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("e"));
+    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("use"));
+    assert!(jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "RSA");
+    assert_eq!(jwk.get("e").unwrap(), "AQAB");
+    assert_eq!(jwk.get("n").unwrap(), "jm0Jh8Zk-aRqUxME0yLeHhBtdDFq6IvVesr_ffFwGqtlI4tIa6MqYuuOE5qlqoBrxt1fpccqGF82j47JqeoWerkNdZxYh1uKGQa9G2vB4OBOFHxYujT-NNPPlwnVPrp1_pjxK0hiOGzZRliNhO65lMbEueQCaLbQ6wstr4aVsWKiw8O4MG8Cc2ZegkWlYg0ZHOAn-uJlAt17NJfX8x576XRwX2KCssPYeyiwBukRne3ahVVqrc35EmV9JH3CxDaG9MeBLo7FUV5P1GNOIs313cbAgdMYV6Ahr2LvsaLucFvhSwmHh42--meDui-0wdFILjrz7MsITZy4xXjl8_zqMZ2dBaO38wP5o9VCfCXaVlD3IYB9A4-Y9IQ6wEVeodzGloPQyddUZ70kZ7O3E1kYu0tBKhoAL1VcKiUvOj1ABGooqf8QIAWCiAWqDqkZJ5HiR61NC9lJ3MH-aqYXzeHUuOxdlfr3oWPQKlRyYoUW93xD4dXjHQyHsIS4gWYE9ZJ9aIomNHj93UPNfR8ScxQTQBJV9Ttgl_vOUdmlasTmo0OXbTLMexzWCVISvUuoBoTcTY4DXCFeYHz3EE3ijJ9fnDkX3SsvV43x8X58py9rEyAQnRxfeahpWEoxW6TA5qBxg1GMBQu6CY2MupqsmI0XHTXzy8xCt4Pqd_a5zP6Wh_E");
+    assert_eq!(jwk.get("use").unwrap(), "sig");
+    assert_eq!(jwk.get("alg").unwrap(), "RS256");
+}
+
+#[test]
+fn test_rsa_4096_jwk_thumbprint() {
+    let k = KeyPair::from_pem(KEY_RSA_4096_PEM.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key_thumbprint().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 3);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("e"));
+    assert!(jwk.contains_key("n"));
+    assert!(!jwk.contains_key("use"));
+    assert!(!jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "RSA");
+    assert_eq!(jwk.get("e").unwrap(), "AQAB");
+    assert_eq!(jwk.get("n").unwrap(), "jm0Jh8Zk-aRqUxME0yLeHhBtdDFq6IvVesr_ffFwGqtlI4tIa6MqYuuOE5qlqoBrxt1fpccqGF82j47JqeoWerkNdZxYh1uKGQa9G2vB4OBOFHxYujT-NNPPlwnVPrp1_pjxK0hiOGzZRliNhO65lMbEueQCaLbQ6wstr4aVsWKiw8O4MG8Cc2ZegkWlYg0ZHOAn-uJlAt17NJfX8x576XRwX2KCssPYeyiwBukRne3ahVVqrc35EmV9JH3CxDaG9MeBLo7FUV5P1GNOIs313cbAgdMYV6Ahr2LvsaLucFvhSwmHh42--meDui-0wdFILjrz7MsITZy4xXjl8_zqMZ2dBaO38wP5o9VCfCXaVlD3IYB9A4-Y9IQ6wEVeodzGloPQyddUZ70kZ7O3E1kYu0tBKhoAL1VcKiUvOj1ABGooqf8QIAWCiAWqDqkZJ5HiR61NC9lJ3MH-aqYXzeHUuOxdlfr3oWPQKlRyYoUW93xD4dXjHQyHsIS4gWYE9ZJ9aIomNHj93UPNfR8ScxQTQBJV9Ttgl_vOUdmlasTmo0OXbTLMexzWCVISvUuoBoTcTY4DXCFeYHz3EE3ijJ9fnDkX3SsvV43x8X58py9rEyAQnRxfeahpWEoxW6TA5qBxg1GMBQu6CY2MupqsmI0XHTXzy8xCt4Pqd_a5zP6Wh_E");
+}
 
 #[test]
 fn test_ecdsa_p256_jwk() {
@@ -193,74 +274,90 @@ fn test_ecdsa_p384_jwk_thumbprint() {
     );
 }
 
+#[cfg(ed25519)]
 #[test]
-fn test_rsa_2048_jwk() {
-    let k = KeyPair::from_pem(KEY_RSA_2048_PEM.as_bytes()).unwrap();
+fn test_ed25519_jwk() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM.as_bytes()).unwrap();
     let jwk = k.jwk_public_key().unwrap();
     assert!(jwk.is_object());
     let jwk = jwk.as_object().unwrap();
     assert_eq!(jwk.len(), 5);
     assert!(jwk.contains_key("kty"));
-    assert!(jwk.contains_key("e"));
-    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
     assert!(jwk.contains_key("use"));
     assert!(jwk.contains_key("alg"));
-    assert_eq!(jwk.get("kty").unwrap(), "RSA");
-    assert_eq!(jwk.get("e").unwrap(), "AQAB");
-    assert_eq!(jwk.get("n").unwrap(), "s38GRhfMyjQINvZnWfYnhO1dnJWN6HiPtle3leZFMDhqoYaQ2g8g5o7vpdHShcBfMXg3nhpk0hA9dHt_GbB6iRdHGaig6wd4TngwLJ-2erLR3_0WaM0DubAJmaTe4ND9JYVyZ8gK_li-fF-NZFrrn4j1W71EUL_7St8jdivqwujHWdpS7C3piosAJW8hqz31M7lXOnV61PCb15JMLiKQMhBCezk13QWk-FQBx7ZtmA1iMFvt-Drcqdhb20iWLCMCYwtNLez4ZmofWzI4sqQmQejpJ2Ve1gGeeY2hf68qQEQf8804nksp-EIv1Y4qVhO5zvxo7m8s6ybUJqvqOz5u9Q");
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed25519");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "DUX9ja8pq2wfkxuIaHzmhkdcVXMav_3rk5Y5ozOcp4o"
+    );
     assert_eq!(jwk.get("use").unwrap(), "sig");
-    assert_eq!(jwk.get("alg").unwrap(), "RS256");
+    assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
 }
 
+#[cfg(ed25519)]
 #[test]
-fn test_rsa_2048_jwk_thumbprint() {
-    let k = KeyPair::from_pem(KEY_RSA_2048_PEM.as_bytes()).unwrap();
+fn test_ed25519_jwk_thumbprint() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM.as_bytes()).unwrap();
     let jwk = k.jwk_public_key_thumbprint().unwrap();
     assert!(jwk.is_object());
     let jwk = jwk.as_object().unwrap();
     assert_eq!(jwk.len(), 3);
     assert!(jwk.contains_key("kty"));
-    assert!(jwk.contains_key("e"));
-    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
     assert!(!jwk.contains_key("use"));
     assert!(!jwk.contains_key("alg"));
-    assert_eq!(jwk.get("kty").unwrap(), "RSA");
-    assert_eq!(jwk.get("e").unwrap(), "AQAB");
-    assert_eq!(jwk.get("n").unwrap(), "s38GRhfMyjQINvZnWfYnhO1dnJWN6HiPtle3leZFMDhqoYaQ2g8g5o7vpdHShcBfMXg3nhpk0hA9dHt_GbB6iRdHGaig6wd4TngwLJ-2erLR3_0WaM0DubAJmaTe4ND9JYVyZ8gK_li-fF-NZFrrn4j1W71EUL_7St8jdivqwujHWdpS7C3piosAJW8hqz31M7lXOnV61PCb15JMLiKQMhBCezk13QWk-FQBx7ZtmA1iMFvt-Drcqdhb20iWLCMCYwtNLez4ZmofWzI4sqQmQejpJ2Ve1gGeeY2hf68qQEQf8804nksp-EIv1Y4qVhO5zvxo7m8s6ybUJqvqOz5u9Q");
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed25519");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "DUX9ja8pq2wfkxuIaHzmhkdcVXMav_3rk5Y5ozOcp4o"
+    );
 }
 
+#[cfg(ed448)]
 #[test]
-fn test_rsa_4096_jwk() {
-    let k = KeyPair::from_pem(KEY_RSA_4096_PEM.as_bytes()).unwrap();
+fn test_ed448_jwk() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED448_PEM.as_bytes()).unwrap();
     let jwk = k.jwk_public_key().unwrap();
     assert!(jwk.is_object());
     let jwk = jwk.as_object().unwrap();
     assert_eq!(jwk.len(), 5);
     assert!(jwk.contains_key("kty"));
-    assert!(jwk.contains_key("e"));
-    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
     assert!(jwk.contains_key("use"));
     assert!(jwk.contains_key("alg"));
-    assert_eq!(jwk.get("kty").unwrap(), "RSA");
-    assert_eq!(jwk.get("e").unwrap(), "AQAB");
-    assert_eq!(jwk.get("n").unwrap(), "jm0Jh8Zk-aRqUxME0yLeHhBtdDFq6IvVesr_ffFwGqtlI4tIa6MqYuuOE5qlqoBrxt1fpccqGF82j47JqeoWerkNdZxYh1uKGQa9G2vB4OBOFHxYujT-NNPPlwnVPrp1_pjxK0hiOGzZRliNhO65lMbEueQCaLbQ6wstr4aVsWKiw8O4MG8Cc2ZegkWlYg0ZHOAn-uJlAt17NJfX8x576XRwX2KCssPYeyiwBukRne3ahVVqrc35EmV9JH3CxDaG9MeBLo7FUV5P1GNOIs313cbAgdMYV6Ahr2LvsaLucFvhSwmHh42--meDui-0wdFILjrz7MsITZy4xXjl8_zqMZ2dBaO38wP5o9VCfCXaVlD3IYB9A4-Y9IQ6wEVeodzGloPQyddUZ70kZ7O3E1kYu0tBKhoAL1VcKiUvOj1ABGooqf8QIAWCiAWqDqkZJ5HiR61NC9lJ3MH-aqYXzeHUuOxdlfr3oWPQKlRyYoUW93xD4dXjHQyHsIS4gWYE9ZJ9aIomNHj93UPNfR8ScxQTQBJV9Ttgl_vOUdmlasTmo0OXbTLMexzWCVISvUuoBoTcTY4DXCFeYHz3EE3ijJ9fnDkX3SsvV43x8X58py9rEyAQnRxfeahpWEoxW6TA5qBxg1GMBQu6CY2MupqsmI0XHTXzy8xCt4Pqd_a5zP6Wh_E");
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed448");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "ib9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
+    );
     assert_eq!(jwk.get("use").unwrap(), "sig");
-    assert_eq!(jwk.get("alg").unwrap(), "RS256");
+    assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
 }
 
+#[cfg(ed448)]
 #[test]
-fn test_rsa_4096_jwk_thumbprint() {
-    let k = KeyPair::from_pem(KEY_RSA_4096_PEM.as_bytes()).unwrap();
+fn test_ed448_jwk_thumbprint() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED448_PEM.as_bytes()).unwrap();
     let jwk = k.jwk_public_key_thumbprint().unwrap();
     assert!(jwk.is_object());
     let jwk = jwk.as_object().unwrap();
     assert_eq!(jwk.len(), 3);
     assert!(jwk.contains_key("kty"));
-    assert!(jwk.contains_key("e"));
-    assert!(jwk.contains_key("n"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
     assert!(!jwk.contains_key("use"));
     assert!(!jwk.contains_key("alg"));
-    assert_eq!(jwk.get("kty").unwrap(), "RSA");
-    assert_eq!(jwk.get("e").unwrap(), "AQAB");
-    assert_eq!(jwk.get("n").unwrap(), "jm0Jh8Zk-aRqUxME0yLeHhBtdDFq6IvVesr_ffFwGqtlI4tIa6MqYuuOE5qlqoBrxt1fpccqGF82j47JqeoWerkNdZxYh1uKGQa9G2vB4OBOFHxYujT-NNPPlwnVPrp1_pjxK0hiOGzZRliNhO65lMbEueQCaLbQ6wstr4aVsWKiw8O4MG8Cc2ZegkWlYg0ZHOAn-uJlAt17NJfX8x576XRwX2KCssPYeyiwBukRne3ahVVqrc35EmV9JH3CxDaG9MeBLo7FUV5P1GNOIs313cbAgdMYV6Ahr2LvsaLucFvhSwmHh42--meDui-0wdFILjrz7MsITZy4xXjl8_zqMZ2dBaO38wP5o9VCfCXaVlD3IYB9A4-Y9IQ6wEVeodzGloPQyddUZ70kZ7O3E1kYu0tBKhoAL1VcKiUvOj1ABGooqf8QIAWCiAWqDqkZJ5HiR61NC9lJ3MH-aqYXzeHUuOxdlfr3oWPQKlRyYoUW93xD4dXjHQyHsIS4gWYE9ZJ9aIomNHj93UPNfR8ScxQTQBJV9Ttgl_vOUdmlasTmo0OXbTLMexzWCVISvUuoBoTcTY4DXCFeYHz3EE3ijJ9fnDkX3SsvV43x8X58py9rEyAQnRxfeahpWEoxW6TA5qBxg1GMBQu6CY2MupqsmI0XHTXzy8xCt4Pqd_a5zP6Wh_E");
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed448");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "ib9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
+    );
 }

@@ -37,6 +37,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 ## Planned features
 
 - STAR certificates [RFC 8739](https://tools.ietf.org/html/rfc8739)
+- EdDSA support: Ed25519 and Ed448 account keys and certificates
 - Daemon and certificates management via the `acmectl` tool
 - Nonce scoping configuration
 - HTTP/2 support

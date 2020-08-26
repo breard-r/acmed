@@ -9,8 +9,10 @@ pub enum KeyType {
     Rsa4096,
     EcdsaP256,
     EcdsaP384,
-    #[cfg(feature = "ed25519")]
+    #[cfg(ed25519)]
     Ed25519,
+    #[cfg(ed448)]
+    Ed448,
 }
 
 impl KeyType {
@@ -19,8 +21,10 @@ impl KeyType {
             KeyType::Rsa2048 | KeyType::Rsa4096 => JwsSignatureAlgorithm::Rs256,
             KeyType::EcdsaP256 => JwsSignatureAlgorithm::Es256,
             KeyType::EcdsaP384 => JwsSignatureAlgorithm::Es384,
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             KeyType::Ed25519 => JwsSignatureAlgorithm::Ed25519,
+            #[cfg(ed448)]
+            KeyType::Ed448 => JwsSignatureAlgorithm::Ed448,
         }
     }
 
@@ -28,8 +32,10 @@ impl KeyType {
         let ok = match self {
             KeyType::Rsa2048 | KeyType::Rsa4096 => *alg == JwsSignatureAlgorithm::Rs256,
             KeyType::EcdsaP256 | KeyType::EcdsaP384 => *alg == self.get_default_signature_alg(),
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             KeyType::Ed25519 => *alg == self.get_default_signature_alg(),
+            #[cfg(ed448)]
+            KeyType::Ed448 => *alg == self.get_default_signature_alg(),
         };
         if ok {
             Ok(())
@@ -52,8 +58,10 @@ impl FromStr for KeyType {
             "rsa4096" => Ok(KeyType::Rsa4096),
             "ecdsa_p256" => Ok(KeyType::EcdsaP256),
             "ecdsa_p384" => Ok(KeyType::EcdsaP384),
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             "ed25519" => Ok(KeyType::Ed25519),
+            #[cfg(ed448)]
+            "ed448" => Ok(KeyType::Ed448),
             _ => Err(format!("{}: unknown algorithm.", s).into()),
         }
     }
@@ -66,8 +74,10 @@ impl fmt::Display for KeyType {
             KeyType::Rsa4096 => "rsa4096",
             KeyType::EcdsaP256 => "ecdsa-p256",
             KeyType::EcdsaP384 => "ecdsa-p384",
-            #[cfg(feature = "ed25519")]
+            #[cfg(ed25519)]
             KeyType::Ed25519 => "ed25519",
+            #[cfg(ed448)]
+            KeyType::Ed448 => "ed448",
         };
         write!(f, "{}", s)
     }
