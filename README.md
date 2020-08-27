@@ -82,7 +82,7 @@ To build ACMEd and tacd inside a temporary Docker container, use the `contrib/bu
 
 ### Why this project?
 
-After testing multiple ACME clients, I found out none supported all the features I wished for (see the key features above). It may have been possible to contribute or fork an existing project, however I believe those project made architectural choices incompatible with what i wanted, and therefore it would be as much or less work to start a new project from scratch.
+After testing multiple ACME clients, I found out none of them supported all the features I expected (see the key features above). It may have been possible to contribute or fork an existing project, however I believe those project made architectural choices incompatible with what i wanted, and therefore it would be as much or less work to start a new project from scratch.
 
 ### Is it free and open-source software?
 
@@ -102,7 +102,7 @@ You decide. ACMEd only retrieve the certificate for you, it does not impose any 
 
 ### Is it suitable for beginners?
 
-It depends on your definition of a beginner. This software is intended to be used by system administrator with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
+It depends on your definition of a beginner. This software is intended to be used by system administrators with a certain knowledge of their environment. Furthermore, it is also expected to know the bases of the ACME protocol. Let's Encrypt wrote a nice article about [how it works](https://letsencrypt.org/how-it-works/).
 
 ### It doesn't work!
 
