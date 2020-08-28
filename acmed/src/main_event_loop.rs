@@ -3,6 +3,9 @@ use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
 use crate::config;
 use crate::endpoint::Endpoint;
+use crate::hooks::HookType;
+use crate::logs::HasLogger;
+use crate::storage::FileManager;
 use acme_common::error::Error;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -38,33 +41,71 @@ pub struct MainEventLoop {
 impl MainEventLoop {
     pub fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
         let cnf = config::from_file(config_file)?;
+        let file_hooks = vec![
+            HookType::FilePreCreate,
+            HookType::FilePostCreate,
+            HookType::FilePreEdit,
+            HookType::FilePostEdit,
+        ]
+        .into_iter()
+        .collect();
+        let cert_hooks = vec![
+            HookType::ChallengeHttp01,
+            HookType::ChallengeHttp01Clean,
+            HookType::ChallengeDns01,
+            HookType::ChallengeDns01Clean,
+            HookType::ChallengeTlsAlpn01,
+            HookType::ChallengeTlsAlpn01Clean,
+            HookType::PostOperation,
+        ]
+        .into_iter()
+        .collect();
 
         let mut certs = Vec::new();
         let mut endpoints = HashMap::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
             let endpoint = crt.get_endpoint(&cnf)?;
             let endpoint_name = endpoint.name.clone();
-            let cert = Certificate {
-                account: crt.get_account(&cnf)?,
-                identifiers: crt.get_identifiers()?,
-                key_type: crt.get_key_type()?,
-                csr_digest: crt.get_csr_digest()?,
-                kp_reuse: crt.get_kp_reuse(),
-                endpoint_name: endpoint_name.clone(),
-                hooks: crt.get_hooks(&cnf)?,
+            let crt_name = crt.get_crt_name()?;
+            let key_type = crt.get_key_type()?;
+            let hooks = crt.get_hooks(&cnf)?;
+            let fm = FileManager {
                 account_directory: cnf.get_account_dir(),
-                crt_directory: crt.get_crt_dir(&cnf),
-                crt_name: crt.get_crt_name()?,
+                account_name: crt.account.to_owned(),
+                crt_name: crt_name.clone(),
                 crt_name_format: crt.get_crt_name_format(),
+                crt_directory: crt.get_crt_dir(&cnf),
+                crt_key_type: key_type.to_string(),
                 cert_file_mode: cnf.get_cert_file_mode(),
                 cert_file_owner: cnf.get_cert_file_user(),
                 cert_file_group: cnf.get_cert_file_group(),
                 pk_file_mode: cnf.get_pk_file_mode(),
                 pk_file_owner: cnf.get_pk_file_user(),
                 pk_file_group: cnf.get_pk_file_group(),
+                hooks: hooks
+                    .iter()
+                    .filter(|h| !h.hook_type.is_disjoint(&file_hooks))
+                    .map(|e| e.to_owned())
+                    .collect(),
+                env: crt.env.clone(),
+            };
+            let cert = Certificate {
+                account: crt.get_account(&cnf, &fm)?,
+                identifiers: crt.get_identifiers()?,
+                key_type,
+                csr_digest: crt.get_csr_digest()?,
+                kp_reuse: crt.get_kp_reuse(),
+                endpoint_name: endpoint_name.clone(),
+                hooks: hooks
+                    .iter()
+                    .filter(|h| !h.hook_type.is_disjoint(&cert_hooks))
+                    .map(|e| e.to_owned())
+                    .collect(),
+                crt_name,
                 env: crt.env.to_owned(),
                 id: i + 1,
                 renew_delay: crt.get_renew_delay(&cnf)?,
+                file_manager: fm,
             };
             endpoints
                 .entry(endpoint_name)

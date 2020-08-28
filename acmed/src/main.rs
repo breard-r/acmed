@@ -15,6 +15,7 @@ mod hooks;
 mod http;
 mod identifier;
 mod jws;
+mod logs;
 mod main_event_loop;
 mod storage;
 

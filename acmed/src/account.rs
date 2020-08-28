@@ -1,3 +1,4 @@
+use crate::storage::FileManager;
 use acme_common::crypto::{JwsSignatureAlgorithm, KeyType};
 use acme_common::error::Error;
 use std::str::FromStr;
@@ -12,6 +13,7 @@ pub struct Account {
 
 impl Account {
     pub fn new(
+        _file_manager: &FileManager,
         name: &str,
         email: &str,
         key_type: &Option<String>,

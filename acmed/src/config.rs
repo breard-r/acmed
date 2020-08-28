@@ -1,6 +1,7 @@
 use crate::duration::parse_duration;
 use crate::hooks;
 use crate::identifier::IdentifierType;
+use crate::storage::FileManager;
 use acme_common::crypto::{HashFunction, KeyType};
 use acme_common::error::Error;
 use glob::glob;
@@ -87,7 +88,7 @@ impl Config {
             if name == hook.name {
                 let h = hooks::Hook {
                     name: hook.name.to_owned(),
-                    hook_type: hook.hook_type.to_owned(),
+                    hook_type: hook.hook_type.iter().map(|e| e.to_owned()).collect(),
                     cmd: hook.cmd.to_owned(),
                     args: hook.args.to_owned(),
                     stdin: get_stdin(&hook)?,
@@ -242,7 +243,7 @@ pub struct Hook {
     pub allow_failure: Option<bool>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum HookType {
     FilePreCreate,
@@ -281,8 +282,9 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn to_generic(&self) -> Result<crate::account::Account, Error> {
+    pub fn to_generic(&self, file_manager: &FileManager) -> Result<crate::account::Account, Error> {
         crate::account::Account::new(
+            file_manager,
             &self.name,
             &self.email,
             &self.key_type,
@@ -311,10 +313,14 @@ pub struct Certificate {
 }
 
 impl Certificate {
-    pub fn get_account(&self, cnf: &Config) -> Result<crate::account::Account, Error> {
+    pub fn get_account(
+        &self,
+        cnf: &Config,
+        file_manager: &FileManager,
+    ) -> Result<crate::account::Account, Error> {
         for account in cnf.account.iter() {
             if account.name == self.account {
-                let acc = account.to_generic()?;
+                let acc = account.to_generic(file_manager)?;
                 return Ok(acc);
             }
         }

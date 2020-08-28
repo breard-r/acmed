@@ -1,5 +1,5 @@
-use crate::certificate::Certificate;
-use crate::hooks::{self, FileStorageHookData, HookEnvData, HookType};
+use crate::hooks::{self, FileStorageHookData, Hook, HookEnvData, HookType};
+use crate::logs::HasLogger;
 use acme_common::b64_encode;
 use acme_common::crypto::{KeyPair, X509Certificate};
 use acme_common::error::Error;
@@ -11,6 +11,42 @@ use std::path::PathBuf;
 
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::OpenOptionsExt;
+
+#[derive(Clone, Debug)]
+pub struct FileManager {
+    pub account_name: String,
+    pub account_directory: String,
+    pub crt_name: String,
+    pub crt_name_format: String,
+    pub crt_directory: String,
+    pub crt_key_type: String,
+    pub cert_file_mode: u32,
+    pub cert_file_owner: Option<String>,
+    pub cert_file_group: Option<String>,
+    pub pk_file_mode: u32,
+    pub pk_file_owner: Option<String>,
+    pub pk_file_group: Option<String>,
+    pub hooks: Vec<Hook>,
+    pub env: HashMap<String, String>,
+}
+
+impl HasLogger for FileManager {
+    fn warn(&self, msg: &str) {
+        log::warn!("{}: {}", &self.crt_name, msg);
+    }
+
+    fn info(&self, msg: &str) {
+        log::info!("{}: {}", &self.crt_name, msg);
+    }
+
+    fn debug(&self, msg: &str) {
+        log::debug!("{}: {}", &self.crt_name, msg);
+    }
+
+    fn trace(&self, msg: &str) {
+        log::trace!("{}: {}", &self.crt_name, msg);
+    }
+}
 
 #[derive(Clone)]
 enum FileType {
@@ -33,27 +69,27 @@ impl fmt::Display for FileType {
 }
 
 fn get_file_full_path(
-    cert: &Certificate,
+    fm: &FileManager,
     file_type: FileType,
 ) -> Result<(String, String, PathBuf), Error> {
     let base_path = match file_type {
-        FileType::AccountPrivateKey | FileType::AccountPublicKey => &cert.account_directory,
-        FileType::PrivateKey => &cert.crt_directory,
-        FileType::Certificate => &cert.crt_directory,
+        FileType::AccountPrivateKey | FileType::AccountPublicKey => &fm.account_directory,
+        FileType::PrivateKey => &fm.crt_directory,
+        FileType::Certificate => &fm.crt_directory,
     };
     let file_name = match file_type {
         FileType::AccountPrivateKey | FileType::AccountPublicKey => format!(
             "{account}.{file_type}.{ext}",
-            account = b64_encode(&cert.account.name),
+            account = b64_encode(&fm.account_name),
             file_type = file_type.to_string(),
             ext = "pem"
         ),
         FileType::PrivateKey | FileType::Certificate => {
-            // TODO: use cert.crt_name_format instead of a string literal
+            // TODO: use fm.crt_name_format instead of a string literal
             format!(
                 "{name}_{algo}.{file_type}.{ext}",
-                name = cert.crt_name,
-                algo = cert.key_type.to_string(),
+                name = fm.crt_name,
+                algo = fm.crt_key_type,
                 file_type = file_type.to_string(),
                 ext = "pem"
             )
@@ -64,13 +100,13 @@ fn get_file_full_path(
     Ok((base_path.to_string(), file_name, path))
 }
 
-fn get_file_path(cert: &Certificate, file_type: FileType) -> Result<PathBuf, Error> {
-    let (_, _, path) = get_file_full_path(cert, file_type)?;
+fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error> {
+    let (_, _, path) = get_file_full_path(fm, file_type)?;
     Ok(path)
 }
 
-fn read_file(cert: &Certificate, path: &PathBuf) -> Result<Vec<u8>, Error> {
-    cert.trace(&format!("Reading file {:?}", path));
+fn read_file(fm: &FileManager, path: &PathBuf) -> Result<Vec<u8>, Error> {
+    fm.trace(&format!("Reading file {:?}", path));
     let mut file = File::open(path)?;
     let mut contents = vec![];
     file.read_to_end(&mut contents)?;
@@ -78,15 +114,12 @@ fn read_file(cert: &Certificate, path: &PathBuf) -> Result<Vec<u8>, Error> {
 }
 
 #[cfg(unix)]
-fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<(), Error> {
+fn set_owner(fm: &FileManager, path: &PathBuf, file_type: FileType) -> Result<(), Error> {
     let (uid, gid) = match file_type {
-        FileType::Certificate => (
-            cert.cert_file_owner.to_owned(),
-            cert.cert_file_group.to_owned(),
-        ),
-        FileType::PrivateKey => (cert.pk_file_owner.to_owned(), cert.pk_file_group.to_owned()),
+        FileType::Certificate => (fm.cert_file_owner.to_owned(), fm.cert_file_group.to_owned()),
+        FileType::PrivateKey => (fm.pk_file_owner.to_owned(), fm.pk_file_group.to_owned()),
         FileType::AccountPrivateKey | FileType::AccountPublicKey => {
-            // The account private and public keys does not need to be accessible to users other different from the current one.
+            // The account file does not need to be accessible to users other different from the current one.
             return Ok(());
         }
     };
@@ -121,12 +154,12 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
         None => None,
     };
     match uid {
-        Some(u) => cert.trace(&format!("{:?}: setting the uid to {}", path, u.as_raw())),
-        None => cert.trace(&format!("{:?}: uid unchanged", path)),
+        Some(u) => fm.trace(&format!("{:?}: setting the uid to {}", path, u.as_raw())),
+        None => fm.trace(&format!("{:?}: uid unchanged", path)),
     };
     match gid {
-        Some(g) => cert.trace(&format!("{:?}: setting the gid to {}", path, g.as_raw())),
-        None => cert.trace(&format!("{:?}: gid unchanged", path)),
+        Some(g) => fm.trace(&format!("{:?}: setting the gid to {}", path, g.as_raw())),
+        None => fm.trace(&format!("{:?}: gid unchanged", path)),
     };
     match nix::unistd::chown(path, uid, gid) {
         Ok(_) => Ok(()),
@@ -134,29 +167,29 @@ fn set_owner(cert: &Certificate, path: &PathBuf, file_type: FileType) -> Result<
     }
 }
 
-fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<(), Error> {
-    let (file_directory, file_name, path) = get_file_full_path(cert, file_type.clone())?;
+fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), Error> {
+    let (file_directory, file_name, path) = get_file_full_path(fm, file_type.clone())?;
     let mut hook_data = FileStorageHookData {
         file_name,
         file_directory,
         file_path: path.to_owned(),
         env: HashMap::new(),
     };
-    hook_data.set_env(&cert.env);
+    hook_data.set_env(&fm.env);
     let is_new = !path.is_file();
 
     if is_new {
-        hooks::call(cert, &hook_data, HookType::FilePreCreate)?;
+        hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreCreate)?;
     } else {
-        hooks::call(cert, &hook_data, HookType::FilePreEdit)?;
+        hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreEdit)?;
     }
 
-    cert.trace(&format!("Writing file {:?}", path));
+    fm.trace(&format!("Writing file {:?}", path));
     let mut file = if cfg!(unix) {
         let mut options = OpenOptions::new();
         options.mode(match &file_type {
-            FileType::Certificate => cert.cert_file_mode,
-            FileType::PrivateKey => cert.pk_file_mode,
+            FileType::Certificate => fm.cert_file_mode,
+            FileType::PrivateKey => fm.pk_file_mode,
             FileType::AccountPublicKey => crate::DEFAULT_ACCOUNT_FILE_MODE,
             FileType::AccountPrivateKey => crate::DEFAULT_ACCOUNT_FILE_MODE,
         });
@@ -166,64 +199,64 @@ fn write_file(cert: &Certificate, file_type: FileType, data: &[u8]) -> Result<()
     };
     file.write_all(data)?;
     if cfg!(unix) {
-        set_owner(cert, &path, file_type)?;
+        set_owner(fm, &path, file_type)?;
     }
 
     if is_new {
-        hooks::call(cert, &hook_data, HookType::FilePostCreate)?;
+        hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostCreate)?;
     } else {
-        hooks::call(cert, &hook_data, HookType::FilePostEdit)?;
+        hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostEdit)?;
     }
     Ok(())
 }
 
-pub fn get_account_keypair(cert: &Certificate) -> Result<KeyPair, Error> {
-    let path = get_file_path(cert, FileType::AccountPrivateKey)?;
-    let raw_key = read_file(cert, &path)?;
+pub fn get_account_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
+    let path = get_file_path(fm, FileType::AccountPrivateKey)?;
+    let raw_key = read_file(fm, &path)?;
     let key = KeyPair::from_pem(&raw_key)?;
     Ok(key)
 }
 
-pub fn set_account_keypair(cert: &Certificate, key_pair: &KeyPair) -> Result<(), Error> {
+pub fn set_account_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Error> {
     let pem_pub_key = key_pair.private_key_to_pem()?;
     let pem_priv_key = key_pair.public_key_to_pem()?;
-    write_file(cert, FileType::AccountPublicKey, &pem_priv_key)?;
-    write_file(cert, FileType::AccountPrivateKey, &pem_pub_key)?;
+    write_file(fm, FileType::AccountPublicKey, &pem_priv_key)?;
+    write_file(fm, FileType::AccountPrivateKey, &pem_pub_key)?;
     Ok(())
 }
 
-pub fn get_keypair(cert: &Certificate) -> Result<KeyPair, Error> {
-    let path = get_file_path(cert, FileType::PrivateKey)?;
-    let raw_key = read_file(cert, &path)?;
+pub fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
+    let path = get_file_path(fm, FileType::PrivateKey)?;
+    let raw_key = read_file(fm, &path)?;
     let key = KeyPair::from_pem(&raw_key)?;
     Ok(key)
 }
 
-pub fn set_keypair(cert: &Certificate, key_pair: &KeyPair) -> Result<(), Error> {
+pub fn set_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Error> {
     let data = key_pair.private_key_to_pem()?;
-    write_file(cert, FileType::PrivateKey, &data)
+    write_file(fm, FileType::PrivateKey, &data)
 }
 
-pub fn get_certificate(cert: &Certificate) -> Result<X509Certificate, Error> {
-    let path = get_file_path(cert, FileType::Certificate)?;
-    let raw_crt = read_file(cert, &path)?;
+pub fn get_certificate(fm: &FileManager) -> Result<X509Certificate, Error> {
+    let path = get_file_path(fm, FileType::Certificate)?;
+    let raw_crt = read_file(fm, &path)?;
     let crt = X509Certificate::from_pem(&raw_crt)?;
     Ok(crt)
 }
 
-pub fn write_certificate(cert: &Certificate, data: &[u8]) -> Result<(), Error> {
-    write_file(cert, FileType::Certificate, data)
+pub fn write_certificate(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
+    write_file(fm, FileType::Certificate, data)
 }
 
-fn check_files(cert: &Certificate, file_types: &[FileType]) -> bool {
+fn check_files(fm: &FileManager, file_types: &[FileType]) -> bool {
     for t in file_types.to_vec() {
-        let path = match get_file_path(cert, t) {
+        let path = match get_file_path(fm, t) {
             Ok(p) => p,
             Err(_) => {
                 return false;
             }
         };
-        cert.trace(&format!(
+        fm.trace(&format!(
             "Testing file path: {}",
             path.to_str().unwrap_or_default()
         ));
@@ -234,12 +267,12 @@ fn check_files(cert: &Certificate, file_types: &[FileType]) -> bool {
     true
 }
 
-pub fn account_files_exists(cert: &Certificate) -> bool {
+pub fn account_files_exists(fm: &FileManager) -> bool {
     let file_types = vec![FileType::AccountPrivateKey, FileType::AccountPublicKey];
-    check_files(cert, &file_types)
+    check_files(fm, &file_types)
 }
 
-pub fn certificate_files_exists(cert: &Certificate) -> bool {
+pub fn certificate_files_exists(fm: &FileManager) -> bool {
     let file_types = vec![FileType::PrivateKey, FileType::Certificate];
-    check_files(cert, &file_types)
+    check_files(fm, &file_types)
 }

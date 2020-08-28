@@ -5,12 +5,12 @@ use acme_common::error::Error;
 
 fn gen_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
     let key_pair = gen_keypair(cert.key_type)?;
-    storage::set_keypair(cert, &key_pair)?;
+    storage::set_keypair(&cert.file_manager, &key_pair)?;
     Ok(key_pair)
 }
 
 fn read_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
-    storage::get_keypair(cert)
+    storage::get_keypair(&cert.file_manager)
 }
 
 pub fn get_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {

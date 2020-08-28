@@ -6,6 +6,7 @@ use crate::certificate::Certificate;
 use crate::endpoint::Endpoint;
 use crate::identifier::IdentifierType;
 use crate::jws::encode_kid;
+use crate::logs::HasLogger;
 use crate::storage;
 use acme_common::crypto::Csr;
 use acme_common::error::Error;
@@ -199,7 +200,7 @@ pub fn request_certificate(
         .ok_or_else(|| Error::from("No certificate available for download."))?;
     let data_builder = set_empty_data_builder!(account);
     let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)?;
-    storage::write_certificate(cert, &crt.as_bytes())?;
+    storage::write_certificate(&cert.file_manager, &crt.as_bytes())?;
 
     cert.info(&format!(
         "Certificate renewed (identifiers: {})",

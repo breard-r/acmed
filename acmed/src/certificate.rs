@@ -2,7 +2,8 @@ use crate::account::Account;
 use crate::acme_proto::Challenge;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::identifier::{Identifier, IdentifierType};
-use crate::storage::{certificate_files_exists, get_certificate};
+use crate::logs::HasLogger;
+use crate::storage::{certificate_files_exists, get_certificate, FileManager};
 use acme_common::crypto::{HashFunction, KeyType, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
@@ -19,19 +20,11 @@ pub struct Certificate {
     pub kp_reuse: bool,
     pub endpoint_name: String,
     pub hooks: Vec<Hook>,
-    pub account_directory: String,
-    pub crt_directory: String,
     pub crt_name: String,
-    pub crt_name_format: String,
-    pub cert_file_mode: u32,
-    pub cert_file_owner: Option<String>,
-    pub cert_file_group: Option<String>,
-    pub pk_file_mode: u32,
-    pub pk_file_owner: Option<String>,
-    pub pk_file_group: Option<String>,
     pub env: HashMap<String, String>,
     pub id: usize,
     pub renew_delay: Duration,
+    pub file_manager: FileManager,
 }
 
 impl fmt::Display for Certificate {
@@ -41,23 +34,25 @@ impl fmt::Display for Certificate {
     }
 }
 
-impl Certificate {
-    pub fn warn(&self, msg: &str) {
+impl HasLogger for Certificate {
+    fn warn(&self, msg: &str) {
         warn!("{}: {}", &self, msg);
     }
 
-    pub fn info(&self, msg: &str) {
+    fn info(&self, msg: &str) {
         info!("{}: {}", &self, msg);
     }
 
-    pub fn debug(&self, msg: &str) {
+    fn debug(&self, msg: &str) {
         debug!("{}: {}", &self, msg);
     }
 
-    pub fn trace(&self, msg: &str) {
+    fn trace(&self, msg: &str) {
         trace!("{}: {}", &self, msg);
     }
+}
 
+impl Certificate {
     pub fn get_identifier_from_str(&self, identifier: &str) -> Result<Identifier, Error> {
         let identifier = identifier.to_string();
         for d in self.identifiers.iter() {
@@ -119,11 +114,11 @@ impl Certificate {
             "Checking for renewal (identifiers: {})",
             self.identifier_list()
         ));
-        if !certificate_files_exists(&self) {
+        if !certificate_files_exists(&self.file_manager) {
             self.debug("certificate does not exist: requesting one");
             return Ok(true);
         }
-        let cert = get_certificate(&self)?;
+        let cert = get_certificate(&self.file_manager)?;
 
         let renew_ident = self.has_missing_identifiers(&cert);
         if renew_ident {
@@ -169,7 +164,7 @@ impl Certificate {
                 HookType::ChallengeTlsAlpn01Clean,
             ),
         };
-        hooks::call(self, &hook_data, hook_type.0)?;
+        hooks::call(self, &self.hooks, &hook_data, hook_type.0)?;
         Ok((hook_data, hook_type.1))
     }
 
@@ -178,7 +173,7 @@ impl Certificate {
         data: &ChallengeHookData,
         hook_type: HookType,
     ) -> Result<(), Error> {
-        hooks::call(self, data, hook_type)
+        hooks::call(self, &self.hooks, data, hook_type)
     }
 
     pub fn call_post_operation_hooks(&self, status: &str, is_success: bool) -> Result<(), Error> {
@@ -195,7 +190,7 @@ impl Certificate {
             env: HashMap::new(),
         };
         hook_data.set_env(&self.env);
-        hooks::call(self, &hook_data, HookType::PostOperation)?;
+        hooks::call(self, &self.hooks, &hook_data, HookType::PostOperation)?;
         Ok(())
     }
 }
