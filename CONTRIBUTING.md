@@ -15,10 +15,7 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ### rust-openssl
 
-Although OpenSSL supports (Ed|X)(25519|448) since version 1.1.1, the `EVP_PKEY_get1_(ED|X)(25519|448)` functions, which are required for ACMEd, will only land in version 3.0.0. Being new function, bindings have to be written in the `openssl` crate. At first sight, such bindings should be added in the `openssl::pkey::PKey` struct along with the other `EVP_PKEY_get1_*` bindings.
-
-- https://github.com/sfackler/rust-openssl/issues/1263
-- https://github.com/openssl/openssl/commit/7c664b1f1b5f60bf896f5fdea5c08c401c541dfe
+See issue #36.
 
 ### botan and botan-sys
 
