@@ -15,7 +15,7 @@ Since the author is not a native English speaker, some of the texts used in this
 
 ### rust-openssl
 
-See issue #36.
+See [issue #36](https://github.com/breard-r/acmed/issues/36).
 
 ### botan and botan-sys
 
