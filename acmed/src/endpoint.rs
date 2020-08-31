@@ -5,7 +5,7 @@ use std::cmp;
 use std::thread;
 use std::time::{Duration, Instant};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Endpoint {
     pub name: String,
     pub url: String,

@@ -13,6 +13,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- The `contacts` account configuration field has been added.
+
+### Changed
+- The `email` account configuration field has been removed. In replacement, use the `contacts` field.
+- Accounts now have their own hooks and environment.
+- Accounts are now stored in a single binary file.
+
+
 ## [0.10.0] - 2020-08-27
 
 ### Added

@@ -1,4 +1,3 @@
-use crate::account::Account;
 use crate::acme_proto::Challenge;
 use crate::hooks::{self, ChallengeHookData, Hook, HookEnvData, HookType, PostOperationHookData};
 use crate::identifier::{Identifier, IdentifierType};
@@ -13,7 +12,7 @@ use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct Certificate {
-    pub account: Account,
+    pub account_name: String,
     pub identifiers: Vec<Identifier>,
     pub key_type: KeyType,
     pub csr_digest: HashFunction,
@@ -36,19 +35,19 @@ impl fmt::Display for Certificate {
 
 impl HasLogger for Certificate {
     fn warn(&self, msg: &str) {
-        warn!("{}: {}", &self, msg);
+        warn!("certificate \"{}\": {}", &self, msg);
     }
 
     fn info(&self, msg: &str) {
-        info!("{}: {}", &self, msg);
+        info!("certificate \"{}\": {}", &self, msg);
     }
 
     fn debug(&self, msg: &str) {
-        debug!("{}: {}", &self, msg);
+        debug!("certificate \"{}\": {}", &self, msg);
     }
 
     fn trace(&self, msg: &str) {
-        trace!("{}: {}", &self, msg);
+        trace!("certificate \"{}\": {}", &self, msg);
     }
 }
 

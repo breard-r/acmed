@@ -163,8 +163,14 @@ Array of table representing an account on one or several endpoint.
 .Bl -tag
 .It Ic name Ar string
 The name the account is registered under. Must be unique.
-.It Ic email Ar string
-The email address used to contact the account's holder.
+.It Ic contacts Ar array
+Array of tables describing describing the account holder's contact information. Each table must have one and only one key-value pair. Possible keys and their associated values are:
+.Bl -tag
+.It Ic mailto Ar string
+A mailto URI as defined by
+.Em RFC 6068 .
+This URI cannot contains neither "hfields" nor more than one "addr-spec" in the "to" component.
+.El
 .It Cm key_type Ar string
 Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are :
 .Bl -dash -compact
@@ -190,6 +196,10 @@ ES256
 .It
 ES384
 .El
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
+.It Ic hooks Ar array
+Names of hooks that will be called during operations on the account storage file. The hooks are guaranteed to be called sequentially in the declaration order.
 .El
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.

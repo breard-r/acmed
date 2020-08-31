@@ -32,26 +32,36 @@ pub struct FileManager {
 
 impl HasLogger for FileManager {
     fn warn(&self, msg: &str) {
-        log::warn!("{}: {}", &self.crt_name, msg);
+        log::warn!("{}: {}", self, msg);
     }
 
     fn info(&self, msg: &str) {
-        log::info!("{}: {}", &self.crt_name, msg);
+        log::info!("{}: {}", self, msg);
     }
 
     fn debug(&self, msg: &str) {
-        log::debug!("{}: {}", &self.crt_name, msg);
+        log::debug!("{}: {}", self, msg);
     }
 
     fn trace(&self, msg: &str) {
-        log::trace!("{}: {}", &self.crt_name, msg);
+        log::trace!("{}: {}", self, msg);
+    }
+}
+
+impl fmt::Display for FileManager {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = if !self.crt_name.is_empty() {
+            format!("certificate \"{}\"", self.crt_name)
+        } else {
+            format!("account \"{}\"", self.account_name)
+        };
+        write!(f, "{}", s)
     }
 }
 
 #[derive(Clone)]
 enum FileType {
-    AccountPrivateKey,
-    AccountPublicKey,
+    Account,
     PrivateKey,
     Certificate,
 }
@@ -59,8 +69,7 @@ enum FileType {
 impl fmt::Display for FileType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
-            FileType::AccountPrivateKey => "priv-key",
-            FileType::AccountPublicKey => "pub-key",
+            FileType::Account => "account",
             FileType::PrivateKey => "pk",
             FileType::Certificate => "crt",
         };
@@ -73,16 +82,16 @@ fn get_file_full_path(
     file_type: FileType,
 ) -> Result<(String, String, PathBuf), Error> {
     let base_path = match file_type {
-        FileType::AccountPrivateKey | FileType::AccountPublicKey => &fm.account_directory,
+        FileType::Account => &fm.account_directory,
         FileType::PrivateKey => &fm.crt_directory,
         FileType::Certificate => &fm.crt_directory,
     };
     let file_name = match file_type {
-        FileType::AccountPrivateKey | FileType::AccountPublicKey => format!(
+        FileType::Account => format!(
             "{account}.{file_type}.{ext}",
             account = b64_encode(&fm.account_name),
             file_type = file_type.to_string(),
-            ext = "pem"
+            ext = "bin"
         ),
         FileType::PrivateKey | FileType::Certificate => {
             // TODO: use fm.crt_name_format instead of a string literal
@@ -118,7 +127,7 @@ fn set_owner(fm: &FileManager, path: &PathBuf, file_type: FileType) -> Result<()
     let (uid, gid) = match file_type {
         FileType::Certificate => (fm.cert_file_owner.to_owned(), fm.cert_file_group.to_owned()),
         FileType::PrivateKey => (fm.pk_file_owner.to_owned(), fm.pk_file_group.to_owned()),
-        FileType::AccountPrivateKey | FileType::AccountPublicKey => {
+        FileType::Account => {
             // The account file does not need to be accessible to users other different from the current one.
             return Ok(());
         }
@@ -190,8 +199,7 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
         options.mode(match &file_type {
             FileType::Certificate => fm.cert_file_mode,
             FileType::PrivateKey => fm.pk_file_mode,
-            FileType::AccountPublicKey => crate::DEFAULT_ACCOUNT_FILE_MODE,
-            FileType::AccountPrivateKey => crate::DEFAULT_ACCOUNT_FILE_MODE,
+            FileType::Account => crate::DEFAULT_ACCOUNT_FILE_MODE,
         });
         options.write(true).create(true).open(&path)?
     } else {
@@ -210,19 +218,13 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
     Ok(())
 }
 
-pub fn get_account_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
-    let path = get_file_path(fm, FileType::AccountPrivateKey)?;
-    let raw_key = read_file(fm, &path)?;
-    let key = KeyPair::from_pem(&raw_key)?;
-    Ok(key)
+pub fn get_account_data(fm: &FileManager) -> Result<Vec<u8>, Error> {
+    let path = get_file_path(fm, FileType::Account)?;
+    read_file(fm, &path)
 }
 
-pub fn set_account_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Error> {
-    let pem_pub_key = key_pair.private_key_to_pem()?;
-    let pem_priv_key = key_pair.public_key_to_pem()?;
-    write_file(fm, FileType::AccountPublicKey, &pem_priv_key)?;
-    write_file(fm, FileType::AccountPrivateKey, &pem_pub_key)?;
-    Ok(())
+pub fn set_account_data(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
+    write_file(fm, FileType::Account, data)
 }
 
 pub fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
@@ -268,7 +270,7 @@ fn check_files(fm: &FileManager, file_types: &[FileType]) -> bool {
 }
 
 pub fn account_files_exists(fm: &FileManager) -> bool {
-    let file_types = vec![FileType::AccountPrivateKey, FileType::AccountPublicKey];
+    let file_types = vec![FileType::Account];
     check_files(fm, &file_types)
 }
 

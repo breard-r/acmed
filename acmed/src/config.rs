@@ -276,20 +276,53 @@ pub struct Group {
 #[serde(deny_unknown_fields)]
 pub struct Account {
     pub name: String,
-    pub email: String,
+    pub contacts: Vec<AccountContact>,
     pub key_type: Option<String>,
     pub signature_algorithm: Option<String>,
+    pub hooks: Vec<String>,
+    #[serde(default)]
+    pub env: HashMap<String, String>,
 }
 
 impl Account {
+    pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
+        let mut res = vec![];
+        for name in self.hooks.iter() {
+            let mut h = cnf.get_hook(&name)?;
+            res.append(&mut h);
+        }
+        Ok(res)
+    }
+
     pub fn to_generic(&self, file_manager: &FileManager) -> Result<crate::account::Account, Error> {
-        crate::account::Account::new(
+        let contacts: Vec<(String, String)> = self
+            .contacts
+            .iter()
+            .map(|e| (e.get_type(), e.get_value()))
+            .collect();
+        crate::account::Account::load(
             file_manager,
             &self.name,
-            &self.email,
+            &contacts,
             &self.key_type,
             &self.signature_algorithm,
         )
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AccountContact {
+    pub mailto: String,
+}
+
+impl AccountContact {
+    pub fn get_type(&self) -> String {
+        "mailto".to_string()
+    }
+
+    pub fn get_value(&self) -> String {
+        self.mailto.clone()
     }
 }
 
@@ -313,20 +346,6 @@ pub struct Certificate {
 }
 
 impl Certificate {
-    pub fn get_account(
-        &self,
-        cnf: &Config,
-        file_manager: &FileManager,
-    ) -> Result<crate::account::Account, Error> {
-        for account in cnf.account.iter() {
-            if account.name == self.account {
-                let acc = account.to_generic(file_manager)?;
-                return Ok(acc);
-            }
-        }
-        Err(format!("{}: account not found", self.account).into())
-    }
-
     pub fn get_key_type(&self) -> Result<KeyType, Error> {
         match &self.key_type {
             Some(a) => a.parse(),

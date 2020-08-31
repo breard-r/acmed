@@ -43,12 +43,22 @@ macro_rules! get_key_type {
     };
 }
 
+#[derive(Clone, Debug)]
 pub struct KeyPair {
     pub key_type: KeyType,
     pub inner_key: PKey<Private>,
 }
 
 impl KeyPair {
+    pub fn from_der(der_data: &[u8]) -> Result<Self, Error> {
+        let inner_key = PKey::private_key_from_der(der_data)?;
+        let key_type = get_key_type!(inner_key);
+        Ok(KeyPair {
+            key_type,
+            inner_key,
+        })
+    }
+
     pub fn from_pem(pem_data: &[u8]) -> Result<Self, Error> {
         let inner_key = PKey::private_key_from_pem(pem_data)?;
         let key_type = get_key_type!(inner_key);
@@ -56,6 +66,10 @@ impl KeyPair {
             key_type,
             inner_key,
         })
+    }
+
+    pub fn private_key_to_der(&self) -> Result<Vec<u8>, Error> {
+        self.inner_key.private_key_to_der().map_err(Error::from)
     }
 
     pub fn private_key_to_pem(&self) -> Result<Vec<u8>, Error> {

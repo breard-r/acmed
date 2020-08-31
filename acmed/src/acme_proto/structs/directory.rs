@@ -2,7 +2,7 @@ use acme_common::error::Error;
 use serde::Deserialize;
 use std::str::FromStr;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DirectoryMeta {
     pub terms_of_service: Option<String>,
@@ -11,7 +11,7 @@ pub struct DirectoryMeta {
     pub external_account_required: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Directory {
     pub meta: Option<DirectoryMeta>,
