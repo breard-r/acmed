@@ -56,9 +56,9 @@ pub struct AccountKeyRollover {
 }
 
 impl AccountKeyRollover {
-    pub fn new(account: &crate::account::Account, old_key: &KeyPair) -> Result<Self, Error> {
+    pub fn new(account_str: &str, old_key: &KeyPair) -> Result<Self, Error> {
         Ok(AccountKeyRollover {
-            account: account.name.clone(),
+            account: account_str.to_string(),
             old_key: old_key.jwk_public_key()?,
         })
     }

@@ -104,15 +104,25 @@ pub fn update_account_key(
     let ep = account.get_endpoint(&endpoint_name)?;
     let old_account_key = account.get_past_key(&ep.key_hash)?;
     let old_key = &old_account_key.key;
-    let rollover_struct = AccountKeyRollover::new(account, &old_key)?;
+    let account_url = account.get_endpoint(&endpoint_name)?.account_url.clone();
+    let rollover_struct = AccountKeyRollover::new(&account_url, &old_key)?;
     let rollover_struct = serde_json::to_string(&rollover_struct)?;
     let rollover_payload = encode_jwk_no_nonce(
-        &old_key,
-        &old_account_key.signature_algorithm,
+        &account.current_key.key,
+        &account.current_key.signature_algorithm,
         rollover_struct.as_bytes(),
         &url,
     )?;
-    let data_builder = set_data_builder!(account, endpoint_name, rollover_payload.as_bytes());
+    let data_builder = |n: &str, url: &str| {
+        encode_kid(
+            &old_key,
+            &old_account_key.signature_algorithm,
+            &account_url,
+            rollover_payload.as_bytes(),
+            url,
+            n,
+        )
+    };
     create_account_if_does_not_exist!(
         http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
         endpoint,
