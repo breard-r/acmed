@@ -19,19 +19,22 @@ macro_rules! pool_object {
     }};
 }
 
-pub fn refresh_directory(endpoint: &mut Endpoint, root_certs: &[String]) -> Result<(), Error> {
+pub fn refresh_directory(
+    endpoint: &mut Endpoint,
+    root_certs: &[String],
+) -> Result<(), http::HttpError> {
     let url = endpoint.url.clone();
     let response = http::get(endpoint, root_certs, &url)?;
     endpoint.dir = response.json::<Directory>()?;
     Ok(())
 }
 
-pub fn post_no_response<F>(
+pub fn post_jose_no_response<F>(
     endpoint: &mut Endpoint,
     root_certs: &[String],
     data_builder: &F,
     url: &str,
-) -> Result<(), Error>
+) -> Result<(), http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -43,7 +46,7 @@ pub fn new_account<F>(
     endpoint: &mut Endpoint,
     root_certs: &[String],
     data_builder: &F,
-) -> Result<(AccountResponse, String), Error>
+) -> Result<(AccountResponse, String), http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -62,7 +65,7 @@ pub fn new_order<F>(
     endpoint: &mut Endpoint,
     root_certs: &[String],
     data_builder: &F,
-) -> Result<(Order, String), Error>
+) -> Result<(Order, String), http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -82,7 +85,7 @@ pub fn get_authorization<F>(
     root_certs: &[String],
     data_builder: &F,
     url: &str,
-) -> Result<Authorization, Error>
+) -> Result<Authorization, http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -97,7 +100,7 @@ pub fn pool_authorization<F, S>(
     data_builder: &F,
     break_fn: &S,
     url: &str,
-) -> Result<Authorization, Error>
+) -> Result<Authorization, http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
     S: Fn(&Authorization) -> bool,
@@ -119,7 +122,7 @@ pub fn pool_order<F, S>(
     data_builder: &F,
     break_fn: &S,
     url: &str,
-) -> Result<Order, Error>
+) -> Result<Order, http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
     S: Fn(&Order) -> bool,
@@ -140,7 +143,7 @@ pub fn finalize_order<F>(
     root_certs: &[String],
     data_builder: &F,
     url: &str,
-) -> Result<Order, Error>
+) -> Result<Order, http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -154,7 +157,7 @@ pub fn get_certificate<F>(
     root_certs: &[String],
     data_builder: &F,
     url: &str,
-) -> Result<String, Error>
+) -> Result<String, http::HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {

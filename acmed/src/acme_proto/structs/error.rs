@@ -7,7 +7,7 @@ pub trait ApiError {
     fn get_error(&self) -> Option<Error>;
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AcmeError {
     AccountDoesNotExist,
     AlreadyRevoked,
@@ -127,7 +127,7 @@ impl From<AcmeError> for Error {
     }
 }
 
-#[derive(Clone, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct HttpApiError {
     #[serde(rename = "type")]
     error_type: Option<String>,

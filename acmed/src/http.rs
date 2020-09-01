@@ -13,6 +13,51 @@ pub const CONTENT_TYPE_PEM: &str = "application/pem-certificate-chain";
 pub const HEADER_NONCE: &str = "Replay-Nonce";
 pub const HEADER_LOCATION: &str = "Location";
 
+#[derive(Clone, Debug)]
+pub enum HttpError {
+    ApiError(HttpApiError),
+    GenericError(Error),
+}
+
+impl HttpError {
+    pub fn in_err(error: HttpError) -> Error {
+        match error {
+            HttpError::ApiError(e) => e.to_string().into(),
+            HttpError::GenericError(e) => e,
+        }
+    }
+}
+
+impl From<Error> for HttpError {
+    fn from(error: Error) -> Self {
+        HttpError::GenericError(error)
+    }
+}
+
+impl From<HttpApiError> for HttpError {
+    fn from(error: HttpApiError) -> Self {
+        HttpError::ApiError(error)
+    }
+}
+
+impl From<&str> for HttpError {
+    fn from(error: &str) -> Self {
+        HttpError::GenericError(error.into())
+    }
+}
+
+impl From<String> for HttpError {
+    fn from(error: String) -> Self {
+        HttpError::GenericError(error.into())
+    }
+}
+
+impl From<attohttpc::Error> for HttpError {
+    fn from(error: attohttpc::Error) -> Self {
+        HttpError::GenericError(error.into())
+    }
+}
+
 fn is_nonce(data: &str) -> bool {
     !data.is_empty()
         && data
@@ -20,7 +65,7 @@ fn is_nonce(data: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
 }
 
-fn new_nonce(endpoint: &mut Endpoint, root_certs: &[String]) -> Result<(), Error> {
+fn new_nonce(endpoint: &mut Endpoint, root_certs: &[String]) -> Result<(), HttpError> {
     rate_limit(endpoint);
     let url = endpoint.dir.new_nonce.clone();
     let _ = get(endpoint, root_certs, &url)?;
@@ -81,7 +126,11 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
     Ok(session)
 }
 
-pub fn get(endpoint: &mut Endpoint, root_certs: &[String], url: &str) -> Result<Response, Error> {
+pub fn get(
+    endpoint: &mut Endpoint,
+    root_certs: &[String],
+    url: &str,
+) -> Result<Response, HttpError> {
     let mut session = get_session(root_certs)?;
     session.try_header(header::ACCEPT, CONTENT_TYPE_JSON)?;
     rate_limit(endpoint);
@@ -98,7 +147,7 @@ pub fn post<F>(
     data_builder: &F,
     content_type: &str,
     accept: &str,
-) -> Result<Response, Error>
+) -> Result<Response, HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -118,11 +167,11 @@ where
             Ok(_) => {
                 return Ok(response);
             }
-            Err(e) => {
+            Err(_) => {
                 let api_err = response.json::<HttpApiError>()?;
                 let acme_err = api_err.get_acme_type();
                 if !acme_err.is_recoverable() {
-                    return Err(e);
+                    return Err(api_err.into());
                 }
             }
         }
@@ -136,7 +185,7 @@ pub fn post_jose<F>(
     root_certs: &[String],
     url: &str,
     data_builder: &F,
-) -> Result<Response, Error>
+) -> Result<Response, HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {

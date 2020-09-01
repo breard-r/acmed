@@ -1,11 +1,32 @@
 use crate::account::Account as BaseAccount;
 use crate::acme_proto::http;
-use crate::acme_proto::structs::{Account, AccountKeyRollover, AccountUpdate};
+use crate::acme_proto::structs::{Account, AccountKeyRollover, AccountUpdate, AcmeError};
 use crate::endpoint::Endpoint;
+use crate::http::HttpError;
 use crate::jws::{encode_jwk, encode_jwk_no_nonce, encode_kid};
 use crate::logs::HasLogger;
-use crate::set_data_builder;
+use crate::{set_data_builder, set_empty_data_builder};
 use acme_common::error::Error;
+
+macro_rules! create_account_if_does_not_exist {
+    ($e: expr, $endpoint: ident, $root_certs: ident, $account: ident) => {
+        match $e {
+            Ok(r) => Ok(r),
+            Err(he) => match he {
+                HttpError::ApiError(ref e) => match e.get_acme_type() {
+                    AcmeError::AccountDoesNotExist => {
+                        let msg =
+                            format!("account has been dropped by endpoint {}", $endpoint.name);
+                        $account.debug(&msg);
+                        return register_account($endpoint, $root_certs, $account);
+                    }
+                    _ => Err(HttpError::in_err(he.to_owned())),
+                },
+                HttpError::GenericError(e) => Err(e),
+            },
+        }
+    };
+}
 
 pub fn register_account(
     endpoint: &mut Endpoint,
@@ -23,7 +44,8 @@ pub fn register_account(
     let signature_algorithm = &account.current_key.signature_algorithm;
     let data_builder =
         |n: &str, url: &str| encode_jwk(kp_ref, signature_algorithm, acc_ref.as_bytes(), url, n);
-    let (acc_rep, account_url) = http::new_account(endpoint, root_certs, &data_builder)?;
+    let (acc_rep, account_url) =
+        http::new_account(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
     account.set_account_url(&endpoint.name, &account_url)?;
     let msg = format!(
         "endpoint {}: account {}: the server has not provided an order URL upon account creation",
@@ -53,7 +75,12 @@ pub fn update_account_contacts(
     let acc_up_struct = serde_json::to_string(&acc_up_struct)?;
     let data_builder = set_data_builder!(account, endpoint_name, acc_up_struct.as_bytes());
     let url = account.get_endpoint(&endpoint_name)?.account_url.clone();
-    http::post_no_response(endpoint, root_certs, &data_builder, &url)?;
+    create_account_if_does_not_exist!(
+        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
+        endpoint,
+        root_certs,
+        account
+    )?;
     account.update_contacts_hash(&endpoint_name)?;
     account.save()?;
     account.info(&format!(
@@ -86,12 +113,34 @@ pub fn update_account_key(
         &url,
     )?;
     let data_builder = set_data_builder!(account, endpoint_name, rollover_payload.as_bytes());
-    http::post_no_response(endpoint, root_certs, &data_builder, &url)?;
+    create_account_if_does_not_exist!(
+        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
+        endpoint,
+        root_certs,
+        account
+    )?;
     account.update_key_hash(&endpoint_name)?;
     account.save()?;
     account.info(&format!(
         "account key updated on endpoint {}",
         &endpoint_name
     ));
+    Ok(())
+}
+
+pub fn check_account_exists(
+    endpoint: &mut Endpoint,
+    root_certs: &[String],
+    account: &mut BaseAccount,
+) -> Result<(), Error> {
+    let endpoint_name = endpoint.name.clone();
+    let url = account.get_endpoint(&endpoint_name)?.order_url.clone();
+    let data_builder = set_empty_data_builder!(account, endpoint_name);
+    create_account_if_does_not_exist!(
+        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
+        endpoint,
+        root_certs,
+        account
+    )?;
     Ok(())
 }

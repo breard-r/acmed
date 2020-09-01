@@ -4,6 +4,7 @@ use crate::acme_proto::structs::{
 };
 use crate::certificate::Certificate;
 use crate::endpoint::Endpoint;
+use crate::http::HttpError;
 use crate::identifier::IdentifierType;
 use crate::jws::encode_kid;
 use crate::logs::HasLogger;
@@ -73,6 +74,8 @@ macro_rules! set_data_builder {
         }
     };
 }
+
+#[macro_export]
 macro_rules! set_empty_data_builder {
     ($account: ident, $endpoint_name: ident) => {
         set_data_builder!($account, $endpoint_name, b"")
@@ -89,7 +92,7 @@ pub fn request_certificate(
     let endpoint_name = endpoint.name.clone();
 
     // Refresh the directory
-    http::refresh_directory(endpoint, root_certs)?;
+    http::refresh_directory(endpoint, root_certs).map_err(HttpError::in_err)?;
 
     // Synchronize the account
     account.synchronize(endpoint, root_certs)?;
@@ -98,7 +101,8 @@ pub fn request_certificate(
     let new_order = NewOrder::new(&cert.identifiers);
     let new_order = serde_json::to_string(&new_order)?;
     let data_builder = set_data_builder!(account, endpoint_name, new_order.as_bytes());
-    let (order, order_url) = http::new_order(endpoint, root_certs, &data_builder)?;
+    let (order, order_url) =
+        http::new_order(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
     if let Some(e) = order.get_error() {
         cert.warn(&e.prefix("Error").message);
     }
@@ -107,7 +111,8 @@ pub fn request_certificate(
     for auth_url in order.authorizations.iter() {
         // Fetch the authorization
         let data_builder = set_empty_data_builder!(account, endpoint_name);
-        let auth = http::get_authorization(endpoint, root_certs, &data_builder, &auth_url)?;
+        let auth = http::get_authorization(endpoint, root_certs, &data_builder, &auth_url)
+            .map_err(HttpError::in_err)?;
         if let Some(e) = auth.get_error() {
             cert.warn(&e.prefix("Error").message);
         }
@@ -139,15 +144,17 @@ pub fn request_certificate(
                 // Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
                 let data_builder = set_data_builder!(account, endpoint_name, b"{}");
-                let _ = http::post_no_response(endpoint, root_certs, &data_builder, &chall_url)?;
+                let _ =
+                    http::post_jose_no_response(endpoint, root_certs, &data_builder, &chall_url)
+                        .map_err(HttpError::in_err)?;
             }
         }
 
         // Pool the authorization in order to see whether or not it is valid
         let data_builder = set_empty_data_builder!(account, endpoint_name);
         let break_fn = |a: &Authorization| a.status == AuthorizationStatus::Valid;
-        let _ =
-            http::pool_authorization(endpoint, root_certs, &data_builder, &break_fn, &auth_url)?;
+        let _ = http::pool_authorization(endpoint, root_certs, &data_builder, &break_fn, &auth_url)
+            .map_err(HttpError::in_err)?;
         for (data, hook_type) in hook_datas.iter() {
             cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
         }
@@ -158,7 +165,8 @@ pub fn request_certificate(
     // Pool the order in order to see whether or not it is ready
     let data_builder = set_empty_data_builder!(account, endpoint_name);
     let break_fn = |o: &Order| o.status == OrderStatus::Ready;
-    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)?;
+    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)
+        .map_err(HttpError::in_err)?;
 
     // Finalize the order by sending the CSR
     let key_pair = certificate::get_key_pair(cert)?;
@@ -186,7 +194,8 @@ pub fn request_certificate(
     });
     let csr = csr.to_string();
     let data_builder = set_data_builder!(account, endpoint_name, csr.as_bytes());
-    let order = http::finalize_order(endpoint, root_certs, &data_builder, &order.finalize)?;
+    let order = http::finalize_order(endpoint, root_certs, &data_builder, &order.finalize)
+        .map_err(HttpError::in_err)?;
     if let Some(e) = order.get_error() {
         cert.warn(&e.prefix("Error").message);
     }
@@ -194,14 +203,16 @@ pub fn request_certificate(
     // Pool the order in order to see whether or not it is valid
     let data_builder = set_empty_data_builder!(account, endpoint_name);
     let break_fn = |o: &Order| o.status == OrderStatus::Valid;
-    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)?;
+    let order = http::pool_order(endpoint, root_certs, &data_builder, &break_fn, &order_url)
+        .map_err(HttpError::in_err)?;
 
     // Download the certificate
     let crt_url = order
         .certificate
         .ok_or_else(|| Error::from("No certificate available for download."))?;
     let data_builder = set_empty_data_builder!(account, endpoint_name);
-    let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)?;
+    let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)
+        .map_err(HttpError::in_err)?;
     storage::write_certificate(&cert.file_manager, &crt.as_bytes())?;
 
     cert.info(&format!(

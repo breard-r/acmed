@@ -136,6 +136,7 @@ args = [
     "-C", "{{file_directory}}",
     "add", "{{file_name}}"
 ]
+allow_failure = true
 
 [[hook]]
 name = "git-commit"
@@ -149,6 +150,7 @@ args = [
     "-m", "{{file_name}}",
     "--only", "{{file_name}}"
 ]
+allow_failure = true
 
 [[group]]
 name = "git"

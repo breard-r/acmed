@@ -1,4 +1,6 @@
-use crate::acme_proto::account::{register_account, update_account_contacts, update_account_key};
+use crate::acme_proto::account::{
+    check_account_exists, register_account, update_account_contacts, update_account_key,
+};
 use crate::endpoint::Endpoint;
 use crate::logs::HasLogger;
 use crate::storage::FileManager;
@@ -205,6 +207,9 @@ impl Account {
             }
             if key_changed {
                 update_account_key(endpoint, root_certs, self)?;
+            }
+            if !contacts_changed && !key_changed {
+                check_account_exists(endpoint, root_certs, self)?;
             }
         } else {
             register_account(endpoint, root_certs, self)?;
