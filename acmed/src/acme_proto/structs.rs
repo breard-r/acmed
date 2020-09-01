@@ -18,7 +18,9 @@ mod directory;
 mod error;
 mod order;
 
-pub use account::{Account, AccountDeactivation, AccountResponse, AccountUpdate};
+pub use account::{
+    Account, AccountDeactivation, AccountKeyRollover, AccountResponse, AccountUpdate,
+};
 pub use authorization::{Authorization, AuthorizationStatus, Challenge};
 pub use deserialize_from_str;
 pub use directory::Directory;

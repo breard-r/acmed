@@ -26,6 +26,19 @@ pub fn refresh_directory(endpoint: &mut Endpoint, root_certs: &[String]) -> Resu
     Ok(())
 }
 
+pub fn post_no_response<F>(
+    endpoint: &mut Endpoint,
+    root_certs: &[String],
+    data_builder: &F,
+    url: &str,
+) -> Result<(), Error>
+where
+    F: Fn(&str, &str) -> Result<String, Error>,
+{
+    let _ = http::post_jose(endpoint, root_certs, &url, data_builder)?;
+    Ok(())
+}
+
 pub fn new_account<F>(
     endpoint: &mut Endpoint,
     root_certs: &[String],
@@ -76,19 +89,6 @@ where
     let response = http::post_jose(endpoint, root_certs, &url, data_builder)?;
     let auth = response.json::<Authorization>()?;
     Ok(auth)
-}
-
-pub fn post_challenge_response<F>(
-    endpoint: &mut Endpoint,
-    root_certs: &[String],
-    data_builder: &F,
-    url: &str,
-) -> Result<(), Error>
-where
-    F: Fn(&str, &str) -> Result<String, Error>,
-{
-    let _ = http::post_jose(endpoint, root_certs, &url, data_builder)?;
-    Ok(())
 }
 
 pub fn pool_authorization<F, S>(

@@ -58,6 +58,7 @@ impl PartialEq<structs::Challenge> for Challenge {
     }
 }
 
+#[macro_export]
 macro_rules! set_data_builder {
     ($account: ident, $endpoint_name: ident, $data: expr) => {
         |n: &str, url: &str| {
@@ -138,8 +139,7 @@ pub fn request_certificate(
                 // Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
                 let data_builder = set_data_builder!(account, endpoint_name, b"{}");
-                let _ =
-                    http::post_challenge_response(endpoint, root_certs, &data_builder, &chall_url)?;
+                let _ = http::post_no_response(endpoint, root_certs, &data_builder, &chall_url)?;
             }
         }
 

@@ -1,6 +1,8 @@
 use crate::endpoint::Endpoint;
+use acme_common::crypto::KeyPair;
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
+use serde_json::value::Value;
 use std::str::FromStr;
 
 #[derive(Serialize)]
@@ -33,19 +35,32 @@ pub struct AccountResponse {
 
 deserialize_from_str!(AccountResponse);
 
-// TODO: implement account update
-#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct AccountUpdate {
     pub contact: Vec<String>,
 }
 
 impl AccountUpdate {
-    #[allow(dead_code)]
     pub fn new(contact: &[String]) -> Self {
         AccountUpdate {
             contact: contact.into(),
         }
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountKeyRollover {
+    pub account: String,
+    pub old_key: Value,
+}
+
+impl AccountKeyRollover {
+    pub fn new(account: &crate::account::Account, old_key: &KeyPair) -> Result<Self, Error> {
+        Ok(AccountKeyRollover {
+            account: account.name.clone(),
+            old_key: old_key.jwk_public_key()?,
+        })
     }
 }
 

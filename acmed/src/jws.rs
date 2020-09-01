@@ -12,6 +12,13 @@ struct JwsData {
 }
 
 #[derive(Serialize)]
+struct JwsProtectedHeaderJwkNoNonce {
+    alg: String,
+    jwk: Value,
+    url: String,
+}
+
+#[derive(Serialize)]
 struct JwsProtectedHeaderJwk {
     alg: String,
     jwk: Value,
@@ -58,6 +65,21 @@ pub fn encode_jwk(
         alg: sign_alg.to_string(),
         jwk: key_pair.jwk_public_key()?,
         nonce: nonce.into(),
+        url: url.into(),
+    };
+    let protected = serde_json::to_string(&protected)?;
+    get_data(key_pair, sign_alg, &protected, payload)
+}
+
+pub fn encode_jwk_no_nonce(
+    key_pair: &KeyPair,
+    sign_alg: &JwsSignatureAlgorithm,
+    payload: &[u8],
+    url: &str,
+) -> Result<String, Error> {
+    let protected = JwsProtectedHeaderJwkNoNonce {
+        alg: sign_alg.to_string(),
+        jwk: key_pair.jwk_public_key()?,
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;

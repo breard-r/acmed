@@ -1,4 +1,4 @@
-use crate::acme_proto::account::register_account;
+use crate::acme_proto::account::{register_account, update_account_contacts, update_account_key};
 use crate::endpoint::Endpoint;
 use crate::logs::HasLogger;
 use crate::storage::FileManager;
@@ -130,6 +130,17 @@ impl Account {
         }
     }
 
+    pub fn get_past_key(&self, key_hash: &[u8]) -> Result<&AccountKey, Error> {
+        let key_hash = key_hash.to_vec();
+        for key in &self.past_keys {
+            let past_key_hash = hash_key(key)?;
+            if past_key_hash == key_hash {
+                return Ok(key);
+            }
+        }
+        Err("key not found".into())
+    }
+
     pub fn load(
         file_manager: &FileManager,
         name: &str,
@@ -183,7 +194,21 @@ impl Account {
         endpoint: &mut Endpoint,
         root_certs: &[String],
     ) -> Result<(), Error> {
-        register_account(endpoint, root_certs, self)?;
+        let acc_ep = self.get_endpoint(&endpoint.name)?;
+        if !acc_ep.account_url.is_empty() {
+            let ct_hash = hash_contacts(&self.contacts);
+            let key_hash = hash_key(&self.current_key)?;
+            let contacts_changed = ct_hash != acc_ep.contacts_hash;
+            let key_changed = key_hash != acc_ep.key_hash;
+            if contacts_changed {
+                update_account_contacts(endpoint, root_certs, self)?;
+            }
+            if key_changed {
+                update_account_key(endpoint, root_certs, self)?;
+            }
+        } else {
+            register_account(endpoint, root_certs, self)?;
+        }
         Ok(())
     }
 
