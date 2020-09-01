@@ -129,6 +129,32 @@ The reason some services has such an option is because at startup they may have 
 
 An example service file is provided (see `contrib/acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
 
+### Does ACMEd uses any threading or parallelization?
+
+ACMEd uses a dedicated thread for each endpoint. Certificates of different endpoint can therefore be renewed in parallel while inside each endpoints certificates are renewed sequentially.
+
+### Can I use the same account on different endpoints?
+
+Short answer: Yes, that is possible. However, if you do so, you should be aware that this might eventually hurt the parallelization.
+
+Long answer: Accounts requires to acquire a global lock, therefore an endpoint thread wanting to renew a certificate has to wait that the associated account lock has been released from any other endpoint thread. Since each endpoints renew certificates in a sequential order, they will block on the first certificates which associated account is already in use.
+
+Example:
+
+- 2 accounts: A1 and A2
+- 2 endpoints: E1 and E2
+- 3 certificates, all requiring to be renewed:
+  * C1 on E1 with A1
+  * C2 on E1 with A2
+  * C3 on E2 with A1
+
+Let's suppose that E1 will renew C1 and C2 in that order. We just launched ACMEd and threads for E1 and E2 starts almost simultaneously. Two cases are possible:
+
+1. E1 acquires the lock for A1 first. E2 is therefore blocked. C1 will be renewed first and only after that C2 and C3 will be renewed in parallel.
+2. E2 acquires the lock for A1 first. E1 is therefore blocked. All certificates will be renewed in this sequential order, without any benefit from parallelism: C3, C1 and C2.
+
+There is no way to control neither the sequential certificate renew order inside each endpoint nor the order in which the account locks are acquired.
+
 ### Why is RSA 2048 the default certificate key type?
 
 Short answer: it is sufficiently secured, has good performances and is wildly supported.
