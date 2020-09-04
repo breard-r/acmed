@@ -1,4 +1,4 @@
-use crate::crypto::{HashFunction, KeyType, X509Certificate};
+use crate::crypto::{HashFunction, KeyType, X509Certificate, CRT_NB_DAYS_VALIDITY};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -51,6 +51,34 @@ urj0x62cm5URahEDx4xn+dQkmh4XiiZgZVw2ccphjqJqJa28GsuR2zAxSkKMDnB7
 eX1G4/Av0XE7RqJ3Frq8qa5EjjLJTw0iEaWS5NGtZxMqWEIetCgb0IDZNxNvbeAv
 mmH6qnF3xQPx5FkwP/Yw4d9T4KhSHNf2/tImIlbuk3SEsOglGbKNY1juor8uw+J2
 5XsUZxD5QiDbCFd3dGmH58XmkiQHXs8hhIbhu9ZLgp+fNv0enVMHTTI1gGpZ5MPm
+-----END CERTIFICATE-----"#;
+const CERTIFICATE_EXPIRED_PEM: &str = r#"-----BEGIN CERTIFICATE-----
+MIIEsTCCA5mgAwIBAgISBApMImYflPdX7BYLjinQ+ErUMA0GCSqGSIb3DQEBCwUA
+MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
+ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xOTExMzAxODQxNTZaFw0y
+MDAyMjgxODQxNTZaMBExDzANBgNVBAMTBmJ6aC50ZjB2MBAGByqGSM49AgEGBSuB
+BAAiA2IABLSEIYJpT2SM+F9mEzFypkqbBm64dgX0KnyZuYGB2qHHsBLIBBK5Ev9Y
+vPvYb8lzX3uJFHPn0JwPpGR0YBzPHBspyvwrhedokt8pNFEDC1eE4BH9XVN35utt
+EGP1ZT92mKOCAnYwggJyMA4GA1UdDwEB/wQEAwIHgDAdBgNVHSUEFjAUBggrBgEF
+BQcDAQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUOALpvHYbvHbQ
+GcrtL0I4s/W/S58wHwYDVR0jBBgwFoAUqEpqYwR93brm0Tm3pkVl7/Oo7KEwbwYI
+KwYBBQUHAQEEYzBhMC4GCCsGAQUFBzABhiJodHRwOi8vb2NzcC5pbnQteDMubGV0
+c2VuY3J5cHQub3JnMC8GCCsGAQUFBzAChiNodHRwOi8vY2VydC5pbnQteDMubGV0
+c2VuY3J5cHQub3JnLzAtBgNVHREEJjAkggZiemgudGaCDm10YS1zdHMuYnpoLnRm
+ggp3d3cuYnpoLnRmMEwGA1UdIARFMEMwCAYGZ4EMAQIBMDcGCysGAQQBgt8TAQEB
+MCgwJgYIKwYBBQUHAgEWGmh0dHA6Ly9jcHMubGV0c2VuY3J5cHQub3JnMIIBAwYK
+KwYBBAHWeQIEAgSB9ASB8QDvAHYAb1N2rDHwMRnYmQCkURX/dxUcEdkCwQApBo2y
+CJo32RMAAAFuvdWC7QAABAMARzBFAiBgCoazSI4unyx09P8KYxdIfMZsG/fMtzkF
+ciBDB9gcJQIhAPZMsnjqr4IqpyHyvauqrWoGqlFBcBCmogZCuhQXAnv5AHUAB7dc
+G+V9aP/xsMYdIxXHuuZXfFeUt2ruvGE6GmnTohwAAAFuvdWC7gAABAMARjBEAiAO
+z7sHUA42VEQkicrWb5A4WjNGWV7NxpSDdb2XQ2Q1OwIgRaiEMrHfyT797O7Fvbk2
+cL6rnnmDJOyxIAC4Dxe7NVwwDQYJKoZIhvcNAQELBQADggEBAFaNvfsGKqBuJ9m7
+qRNqVmC7UHzGym+TPBLiXncwFIaWt0ncRHb6qfGCCETeAplhPv8uoOrzQQwTKwr3
+eMDtdmK+9smnQZ4AjUsscsrbkGwMWOOmIRm/tCwQZ0dFnl1ySZDuaoCG7v/uRE4A
+HXtNAeVOKuE7BOISvvssFajxLifmFixifWRwEnimTffjnIX6xqol+2bcxMuLWxt9
+HmjTgcY4JMMcOAiNk3roJK9ayMi7jn0Cd097BFnvx08+oWSMOZ29hFHMHp3KCSzT
+bQg4DAU6E9VT+pvyGsc1NNyREKxOlDkam3CqfYc0oAowjn11MmDac2aKP8Pyt4pk
+ehm+yKg=
 -----END CERTIFICATE-----"#;
 
 #[test]
@@ -131,4 +159,23 @@ fn generate_ed448_certificate() {
         X509Certificate::from_acme_ext("example.org", "", KeyType::Ed448, HashFunction::Sha256)
             .unwrap();
     assert_eq!(kp.key_type, KeyType::Ed448);
+}
+
+#[test]
+fn cert_expiration_date_future() {
+    let (_, crt) =
+        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
+            .unwrap();
+    let duration = crt.expires_in().unwrap().as_secs();
+    let validity_sec = CRT_NB_DAYS_VALIDITY as u64 * 24 * 60 * 60;
+    let delta = 60;
+    assert!(duration > validity_sec - delta);
+    assert!(duration < validity_sec + delta);
+}
+
+#[test]
+fn cert_expiration_date_past() {
+    let crt = X509Certificate::from_pem(CERTIFICATE_EXPIRED_PEM.as_bytes()).unwrap();
+    let duration = crt.expires_in().unwrap().as_secs();
+    assert_eq!(duration, 0);
 }

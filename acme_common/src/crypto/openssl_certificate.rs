@@ -16,7 +16,6 @@ const APP_ORG: &str = "ACMEd";
 const APP_NAME: &str = "ACMEd";
 const X509_VERSION: i32 = 0x02;
 const CRT_SERIAL_NB_BITS: i32 = 32;
-const CRT_NB_DAYS_VALIDITY: u32 = 7;
 const INVALID_EXT_MSG: &str = "Invalid acmeIdentifier extension.";
 
 fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
@@ -107,7 +106,7 @@ impl X509Certificate {
     }
 
     pub fn expires_in(&self) -> Result<Duration, Error> {
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as i64;
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as libc::time_t;
         let now = Asn1Time::from_unix(timestamp)?;
         let not_after = self.inner_cert.not_after();
         let diff = now.diff(not_after)?;
@@ -172,7 +171,7 @@ fn gen_certificate(
     builder.set_pubkey(&key_pair.inner_key)?;
     let not_before = Asn1Time::days_from_now(0)?;
     builder.set_not_before(&not_before)?;
-    let not_after = Asn1Time::days_from_now(CRT_NB_DAYS_VALIDITY)?;
+    let not_after = Asn1Time::days_from_now(super::CRT_NB_DAYS_VALIDITY)?;
     builder.set_not_after(&not_after)?;
 
     builder.append_extension(BasicConstraints::new().build()?)?;

@@ -10,6 +10,7 @@ mod openssl_keys;
 
 pub const TLS_LIB_NAME: &str = env!("ACMED_TLS_LIB_NAME");
 pub const TLS_LIB_VERSION: &str = env!("ACMED_TLS_LIB_VERSION");
+pub const CRT_NB_DAYS_VALIDITY: u32 = 7;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BaseHashFunction {
