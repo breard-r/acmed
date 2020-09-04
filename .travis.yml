@@ -1,5 +1,4 @@
 language: rust
-dist: xenial
 
 rust:
     - "1.40.0"
