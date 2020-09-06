@@ -279,19 +279,25 @@ pub struct Account {
     pub contacts: Vec<AccountContact>,
     pub key_type: Option<String>,
     pub signature_algorithm: Option<String>,
-    pub hooks: Vec<String>,
+    pub hooks: Option<Vec<String>>,
     #[serde(default)]
     pub env: HashMap<String, String>,
 }
 
 impl Account {
     pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
-        let mut res = vec![];
-        for name in self.hooks.iter() {
-            let mut h = cnf.get_hook(&name)?;
-            res.append(&mut h);
-        }
-        Ok(res)
+        let lst = match &self.hooks {
+            Some(h) => {
+                let mut res = vec![];
+                for name in h.iter() {
+                    let mut h = cnf.get_hook(&name)?;
+                    res.append(&mut h);
+                }
+                res
+            }
+            None => vec![],
+        };
+        Ok(lst)
     }
 
     pub fn to_generic(&self, file_manager: &FileManager) -> Result<crate::account::Account, Error> {
