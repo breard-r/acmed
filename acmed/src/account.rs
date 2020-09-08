@@ -282,8 +282,6 @@ fn hash_contacts(contacts: &[contact::AccountContact]) -> Vec<u8> {
 }
 
 fn hash_key(key: &AccountKey) -> Result<Vec<u8>, Error> {
-    let mut msg = key.signature_algorithm.to_string().into_bytes();
     let pem = key.key.public_key_to_pem()?;
-    msg.extend_from_slice(&pem);
-    Ok(HashFunction::Sha256.hash(&msg))
+    Ok(HashFunction::Sha256.hash(&pem))
 }
