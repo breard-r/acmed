@@ -15,8 +15,10 @@ macro_rules! create_account_if_does_not_exist {
             Err(he) => match he {
                 HttpError::ApiError(ref e) => match e.get_acme_type() {
                     AcmeError::AccountDoesNotExist => {
-                        let msg =
-                            format!("account has been dropped by endpoint {}", $endpoint.name);
+                        let msg = format!(
+                            "account has been dropped by endpoint \"{}\"",
+                            $endpoint.name
+                        );
                         $account.debug(&msg);
                         return register_account($endpoint, $root_certs, $account);
                     }
@@ -34,7 +36,7 @@ pub fn register_account(
     account: &mut BaseAccount,
 ) -> Result<(), Error> {
     account.debug(&format!(
-        "creating account on endpoint {}...",
+        "creating account on endpoint \"{}\"...",
         &endpoint.name
     ));
     let account_struct = Account::new(account, endpoint);
@@ -48,7 +50,7 @@ pub fn register_account(
         http::new_account(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
     account.set_account_url(&endpoint.name, &account_url)?;
     let msg = format!(
-        "endpoint {}: account {}: the server has not provided an order URL upon account creation",
+        "endpoint \"{}\": account \"{}\": the server has not provided an order URL upon account creation",
         &endpoint.name, &account.name
     );
     let order_url = acc_rep.orders.ok_or_else(|| Error::from(&msg))?;
@@ -56,7 +58,10 @@ pub fn register_account(
     account.update_key_hash(&endpoint.name)?;
     account.update_contacts_hash(&endpoint.name)?;
     account.save()?;
-    account.info(&format!("account created on endpoint {}", &endpoint.name));
+    account.info(&format!(
+        "account created on endpoint \"{}\"",
+        &endpoint.name
+    ));
     Ok(())
 }
 
@@ -67,7 +72,7 @@ pub fn update_account_contacts(
 ) -> Result<(), Error> {
     let endpoint_name = endpoint.name.clone();
     account.debug(&format!(
-        "updating account contacts on endpoint {}...",
+        "updating account contacts on endpoint \"{}\"...",
         &endpoint_name
     ));
     let new_contacts: Vec<String> = account.contacts.iter().map(|c| c.to_string()).collect();
@@ -84,7 +89,7 @@ pub fn update_account_contacts(
     account.update_contacts_hash(&endpoint_name)?;
     account.save()?;
     account.info(&format!(
-        "account contacts updated on endpoint {}",
+        "account contacts updated on endpoint \"{}\"",
         &endpoint_name
     ));
     Ok(())
@@ -97,7 +102,7 @@ pub fn update_account_key(
 ) -> Result<(), Error> {
     let endpoint_name = endpoint.name.clone();
     account.debug(&format!(
-        "updating account key on endpoint {}...",
+        "updating account key on endpoint \"{}\"...",
         &endpoint_name
     ));
     let url = endpoint.dir.key_change.clone();
@@ -132,7 +137,7 @@ pub fn update_account_key(
     account.update_key_hash(&endpoint_name)?;
     account.save()?;
     account.info(&format!(
-        "account key updated on endpoint {}",
+        "account key updated on endpoint \"{}\"",
         &endpoint_name
     ));
     Ok(())

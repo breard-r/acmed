@@ -22,9 +22,9 @@ fn renew_certificate(
     account: &mut Account,
 ) {
     let (status, is_success) = match request_certificate(crt, root_certs, endpoint, account) {
-        Ok(_) => ("Success.".to_string(), true),
+        Ok(_) => ("success".to_string(), true),
         Err(e) => {
-            let e = e.prefix("Unable to renew the certificate");
+            let e = e.prefix("unable to renew the certificate");
             crt.warn(&e.message);
             (e.message, false)
         }
@@ -32,7 +32,7 @@ fn renew_certificate(
     match crt.call_post_operation_hooks(&status, is_success) {
         Ok(_) => {}
         Err(e) => {
-            let e = e.prefix("Post-operation hook error");
+            let e = e.prefix("post-operation hook error");
             crt.warn(&e.message);
         }
     };
@@ -144,15 +144,13 @@ impl MainEventLoop {
             match accounts.get_mut(&crt.account) {
                 Some(acc) => acc.add_endpoint_name(&endpoint_name),
                 None => {
-                    let msg = format!("{}: account not found.", &crt.account);
+                    let msg = format!("{}: account not found", &crt.account);
                     return Err(msg.into());
                 }
             };
             endpoints.entry(endpoint_name).or_insert(endpoint);
             certs.push(cert);
         }
-
-        // TODO: call .synchronize() on every account
 
         Ok(MainEventLoop {
             certs,

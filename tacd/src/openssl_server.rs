@@ -21,7 +21,7 @@ macro_rules! listen_and_accept {
             if let Ok(stream) = stream {
                 let acceptor = $acceptor.clone();
                 thread::spawn(move || {
-                    debug!("New client");
+                    debug!("new client");
                     let _ = acceptor.accept(stream).unwrap();
                 });
             };
@@ -45,11 +45,11 @@ pub fn start(
     let acceptor = Arc::new(acceptor.build());
     if cfg!(unix) && listen_addr.starts_with("unix:") {
         let listen_addr = &listen_addr[5..];
-        debug!("Listening on unix socket {}", listen_addr);
+        debug!("listening on unix socket {}", listen_addr);
         listen_and_accept!(UnixListener, listen_addr, acceptor);
     } else {
-        debug!("Listening on {}", listen_addr);
+        debug!("listening on {}", listen_addr);
         listen_and_accept!(TcpListener, listen_addr, acceptor);
     }
-    Err("Main thread loop unexpectedly exited".into())
+    Err("main thread loop unexpectedly exited".into())
 }

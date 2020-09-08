@@ -64,7 +64,7 @@ impl Identifier {
         let challenge = Challenge::from_str(challenge)?;
         if !id_type.supported_challenges().contains(&challenge) {
             let msg = format!(
-                "Challenge {} cannot be used with identifier of type {}",
+                "challenge {} cannot be used with identifier of type {}",
                 challenge, id_type
             );
             return Err(msg.into());

@@ -55,7 +55,7 @@ where
     let acc_uri = response
         .headers()
         .get(http::HEADER_LOCATION)
-        .ok_or_else(|| Error::from("No account location found."))?;
+        .ok_or_else(|| Error::from("no account location found"))?;
     let acc_uri = http::header_to_string(&acc_uri)?;
     let acc_resp = response.json::<AccountResponse>()?;
     Ok((acc_resp, acc_uri))
@@ -74,7 +74,7 @@ where
     let order_uri = response
         .headers()
         .get(http::HEADER_LOCATION)
-        .ok_or_else(|| Error::from("No order location found."))?;
+        .ok_or_else(|| Error::from("no order location found"))?;
     let order_uri = http::header_to_string(&order_uri)?;
     let order_resp = response.json::<Order>()?;
     Ok((order_resp, order_uri))
@@ -107,7 +107,7 @@ where
 {
     pool_object!(
         Authorization,
-        "Authorization",
+        "authorization",
         endpoint,
         root_certs,
         url,
@@ -129,7 +129,7 @@ where
 {
     pool_object!(
         Order,
-        "Order",
+        "order",
         endpoint,
         root_certs,
         url,

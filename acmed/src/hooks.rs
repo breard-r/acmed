@@ -106,7 +106,10 @@ macro_rules! get_hook_output {
         match $out {
             Some(path) => {
                 let path = $reg.render_template(path, $data)?;
-                $logger.trace(&format!("Hook {}: {}: {}", $hook_name, $out_name, &path));
+                $logger.trace(&format!(
+                    "hook \"{}\": {}: {}",
+                    $hook_name, $out_name, &path
+                ));
                 let file = File::create(&path)?;
                 Stdio::from(file)
             }
@@ -120,7 +123,7 @@ where
     L: HasLogger,
     T: Clone + HookEnvData + Serialize,
 {
-    logger.debug(&format!("Calling hook: {}", hook.name));
+    logger.debug(&format!("calling hook \"{}\"", hook.name));
     let reg = Handlebars::new();
     let mut v = vec![];
     let args = match &hook.args {
@@ -133,8 +136,8 @@ where
         }
         None => &[],
     };
-    logger.trace(&format!("Hook {}: cmd: {}", hook.name, hook.cmd));
-    logger.trace(&format!("Hook {}: args: {:?}", hook.name, args));
+    logger.trace(&format!("hook \"{}\": cmd: {}", hook.name, hook.cmd));
+    logger.trace(&format!("hook \"{}\": args: {:?}", hook.name, args));
     let mut cmd = Command::new(&hook.cmd)
         .envs(data.get_env())
         .args(args)
@@ -162,13 +165,19 @@ where
     match &hook.stdin {
         HookStdin::Str(s) => {
             let data_in = reg.render_template(&s, &data)?;
-            logger.trace(&format!("Hook {}: string stdin: {}", hook.name, &data_in));
+            logger.trace(&format!(
+                "hook \"{}\": string stdin: {}",
+                hook.name, &data_in
+            ));
             let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
             stdin.write_all(data_in.as_bytes())?;
         }
         HookStdin::File(f) => {
             let file_name = reg.render_template(&f, &data)?;
-            logger.trace(&format!("Hook {}: file stdin: {}", hook.name, &file_name));
+            logger.trace(&format!(
+                "hook \"{}\": file stdin: {}",
+                hook.name, &file_name
+            ));
             let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
             let file = File::open(&file_name)?;
             let buf_reader = BufReader::new(file);
@@ -183,14 +192,14 @@ where
     let status = cmd.wait()?;
     if !status.success() && !hook.allow_failure {
         let msg = match status.code() {
-            Some(code) => format!("Unrecoverable failure: code {}", code).into(),
-            None => "Unrecoverable failure".into(),
+            Some(code) => format!("unrecoverable failure: code {}", code).into(),
+            None => "unrecoverable failure".into(),
         };
         return Err(msg);
     }
     match status.code() {
-        Some(code) => logger.debug(&format!("Hook {}: exited: code {}", hook.name, code)),
-        None => logger.debug(&format!("Hook {}: exited", hook.name)),
+        Some(code) => logger.debug(&format!("hook \"{}\": exited: code {}", hook.name, code)),
+        None => logger.debug(&format!("hook \"{}\": exited", hook.name)),
     };
     Ok(())
 }

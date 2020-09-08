@@ -111,7 +111,7 @@ impl Account {
             Some(ep) => Ok(ep),
             None => {
                 let msg = format!(
-                    "{}: unknown endpoint for account {}",
+                    "\"{}\": unknown endpoint for account \"{}\"",
                     endpoint_name, self.name
                 );
                 Err(msg.into())
@@ -124,7 +124,7 @@ impl Account {
             Some(ep) => Ok(ep),
             None => {
                 let msg = format!(
-                    "{}: unknown endpoint for account {}",
+                    "\"{}\": unknown endpoint for account \"{}\"",
                     endpoint_name, self.name
                 );
                 Err(msg.into())

@@ -73,31 +73,31 @@ impl From<String> for AcmeError {
 impl fmt::Display for AcmeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match self {
-            AcmeError::AccountDoesNotExist => "The request specified an account that does not exist",
-            AcmeError::AlreadyRevoked => "The request specified a certificate to be revoked that has already been revoked",
-            AcmeError::BadCSR => "The CSR is unacceptable (e.g., due to a short key)",
-            AcmeError::BadNonce => "The client sent an unacceptable anti-replay nonce",
-            AcmeError::BadPublicKey => "The JWS was signed by a public key the server does not support",
-            AcmeError::BadRevocationReason => "The revocation reason provided is not allowed by the server",
-            AcmeError::BadSignatureAlgorithm => "The JWS was signed with an algorithm the server does not support",
+            AcmeError::AccountDoesNotExist => "the request specified an account that does not exist",
+            AcmeError::AlreadyRevoked => "the request specified a certificate to be revoked that has already been revoked",
+            AcmeError::BadCSR => "the CSR is unacceptable (e.g., due to a short key)",
+            AcmeError::BadNonce => "the client sent an unacceptable anti-replay nonce",
+            AcmeError::BadPublicKey => "the JWS was signed by a public key the server does not support",
+            AcmeError::BadRevocationReason => "the revocation reason provided is not allowed by the server",
+            AcmeError::BadSignatureAlgorithm => "the JWS was signed with an algorithm the server does not support",
             AcmeError::Caa => "Certification Authority Authorization (CAA) records forbid the CA from issuing a certificate",
-            AcmeError::Compound => "Specific error conditions are indicated in the \"subproblems\" array",
-            AcmeError::Connection => "The server could not connect to validation target",
-            AcmeError::Dns => "There was a problem with a DNS query during identifier validation",
-            AcmeError::ExternalAccountRequired => "The request must include a value for the \"externalAccountBinding\" field",
-            AcmeError::IncorrectResponse => "Response received didn't match the challenge's requirements",
-            AcmeError::InvalidContact => "A contact URL for an account was invalid",
-            AcmeError::Malformed => "The request message was malformed",
-            AcmeError::OrderNotReady => "The request attempted to finalize an order that is not ready to be finalized",
-            AcmeError::RateLimited => "The request exceeds a rate limit",
-            AcmeError::RejectedIdentifier => "The server will not issue certificates for the identifier",
-            AcmeError::ServerInternal => "The server experienced an internal error",
-            AcmeError::Tls => "The server received a TLS error during validation",
-            AcmeError::Unauthorized => "The client lacks sufficient authorization",
-            AcmeError::UnsupportedContact => "A contact URL for an account used an unsupported protocol scheme",
-            AcmeError::UnsupportedIdentifier => "An identifier is of an unsupported type",
-            AcmeError::UserActionRequired => "Visit the \"instance\" URL and take actions specified there",
-            AcmeError::Unknown => "Unknown error",
+            AcmeError::Compound => "specific error conditions are indicated in the \"subproblems\" array",
+            AcmeError::Connection => "the server could not connect to validation target",
+            AcmeError::Dns => "there was a problem with a DNS query during identifier validation",
+            AcmeError::ExternalAccountRequired => "the request must include a value for the \"externalAccountBinding\" field",
+            AcmeError::IncorrectResponse => "response received didn't match the challenge's requirements",
+            AcmeError::InvalidContact => "a contact URL for an account was invalid",
+            AcmeError::Malformed => "the request message was malformed",
+            AcmeError::OrderNotReady => "the request attempted to finalize an order that is not ready to be finalized",
+            AcmeError::RateLimited => "the request exceeds a rate limit",
+            AcmeError::RejectedIdentifier => "the server will not issue certificates for the identifier",
+            AcmeError::ServerInternal => "the server experienced an internal error",
+            AcmeError::Tls => "the server received a TLS error during validation",
+            AcmeError::Unauthorized => "the client lacks sufficient authorization",
+            AcmeError::UnsupportedContact => "a contact URL for an account used an unsupported protocol scheme",
+            AcmeError::UnsupportedIdentifier => "an identifier is of an unsupported type",
+            AcmeError::UserActionRequired => "visit the \"instance\" URL and take actions specified there",
+            AcmeError::Unknown => "unknown error",
         };
         write!(f, "{}", msg)
     }
@@ -147,7 +147,7 @@ impl fmt::Display for HttpApiError {
             .to_owned()
             .unwrap_or_else(|| self.get_acme_type().to_string());
         let msg = match self.status {
-            Some(s) => format!("Status {}: {}", s, msg),
+            Some(s) => format!("status {}: {}", s, msg),
             None => msg,
         };
         write!(f, "{}", msg)

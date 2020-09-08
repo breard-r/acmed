@@ -33,7 +33,7 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
         Some(v) => Ok(v.to_string()),
         None => {
             debug!(
-                "Reading {} from {}",
+                "reading {} from {}",
                 opt,
                 cnf.value_of(opt_file).unwrap_or("stdin")
             );
@@ -61,7 +61,7 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
         None => DEFAULT_CRT_DIGEST,
     };
     let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg, crt_digest)?;
-    info!("Starting {} on {} for {}", APP_NAME, listen_addr, domain);
+    info!("starting {} on {} for {}", APP_NAME, listen_addr, domain);
     server_start(listen_addr, &cert, &pk)?;
     Ok(())
 }

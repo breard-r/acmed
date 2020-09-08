@@ -19,17 +19,17 @@ macro_rules! get_key_type {
                 256 => KeyType::Rsa2048,
                 512 => KeyType::Rsa4096,
                 s => {
-                    return Err(format!("{}: unsupported RSA key size", s).into());
+                    return Err(format!("{}: unsupported RSA key size", s * 8).into());
                 }
             },
             Id::EC => match $key.ec_key()?.group().curve_name() {
                 Some(Nid::X9_62_PRIME256V1) => KeyType::EcdsaP256,
                 Some(Nid::SECP384R1) => KeyType::EcdsaP384,
                 Some(nid) => {
-                    return Err(format!("{:?}: Unsupported EC key.", nid).into());
+                    return Err(format!("{:?}: unsupported EC key", nid).into());
                 }
                 None => {
-                    return Err("None: Unsupported EC key".into());
+                    return Err("unsupported EC key".into());
                 }
             },
             #[cfg(ed25519)]
@@ -37,7 +37,7 @@ macro_rules! get_key_type {
             #[cfg(ed448)]
             Id::ED448 => KeyType::Ed448,
             _ => {
-                return Err("Unsupported key type".into());
+                return Err("unsupported key type".into());
             }
         }
     };
@@ -167,7 +167,7 @@ impl KeyPair {
             KeyType::EcdsaP256 => ("P-256", "ES256", Nid::X9_62_PRIME256V1),
             KeyType::EcdsaP384 => ("P-384", "ES384", Nid::SECP384R1),
             _ => {
-                return Err("Not an ECDSA elliptic curve.".into());
+                return Err("not an ECDSA elliptic curve".into());
             }
         };
         let group = EcGroup::from_curve_name(curve).unwrap();
@@ -209,7 +209,7 @@ impl KeyPair {
             #[cfg(ed448)]
             KeyType::Ed448 => "Ed448",
             _ => {
-                return Err("Not an EdDSA elliptic curve.".into());
+                return Err("not an EdDSA elliptic curve".into());
             }
         };
         let x = "";
@@ -273,7 +273,7 @@ pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
         #[cfg(ed448)]
         KeyType::Ed448 => gen_ed448_pair(),
     }
-    .map_err(|_| Error::from(format!("Unable to generate a {} key pair.", key_type)))?;
+    .map_err(|_| Error::from(format!("unable to generate a {} key pair", key_type)))?;
     let key_pair = KeyPair {
         key_type,
         inner_key: priv_key,

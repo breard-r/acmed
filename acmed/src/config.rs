@@ -28,7 +28,7 @@ fn get_stdin(hook: &Hook) -> Result<hooks::HookStdin, Error> {
         Some(file) => match &hook.stdin_str {
             Some(_) => {
                 let msg = format!(
-                    "{}: A hook cannot have both stdin and stdin_str",
+                    "{}: a hook cannot have both stdin and stdin_str",
                     &hook.name
                 );
                 Err(msg.into())
@@ -388,7 +388,7 @@ impl Certificate {
                 let id = self
                     .identifiers
                     .first()
-                    .ok_or_else(|| Error::from("Certificate has no identifiers."))?;
+                    .ok_or_else(|| Error::from("certificate has no identifiers"))?;
                 id.to_string()
             }
         };
@@ -423,7 +423,7 @@ impl Certificate {
                 return Ok(endpoint.clone());
             }
         }
-        Err(format!("{}: unknown endpoint.", self.endpoint).into())
+        Err(format!("{}: unknown endpoint", self.endpoint).into())
     }
 
     pub fn get_endpoint(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
@@ -497,7 +497,7 @@ impl Identifier {
             None => match &self.ip {
                 Some(ip) => (IdentifierType::Ip, ip),
                 None => {
-                    return Err("No identifier found.".into());
+                    return Err("no identifier found".into());
                 }
             },
         };
@@ -533,7 +533,7 @@ fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
         .collect::<Vec<PathBuf>>();
     if g.is_empty() {
         log::warn!(
-            "Pattern `{}` (expanded as `{}`): no matching configuration file found.",
+            "pattern `{}` (expanded as `{}`): no matching configuration file found",
             file,
             raw_path
         );
@@ -542,7 +542,7 @@ fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
 }
 
 fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
-    info!("Loading configuration file: {}", path.display());
+    info!("loading configuration file: {}", path.display());
     let mut file =
         File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut contents = String::new();

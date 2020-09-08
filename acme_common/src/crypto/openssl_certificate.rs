@@ -16,7 +16,7 @@ const APP_ORG: &str = "ACMEd";
 const APP_NAME: &str = "ACMEd";
 const X509_VERSION: i32 = 0x02;
 const CRT_SERIAL_NB_BITS: i32 = 32;
-const INVALID_EXT_MSG: &str = "Invalid acmeIdentifier extension.";
+const INVALID_EXT_MSG: &str = "invalid acmeIdentifier extension";
 
 fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
     #[cfg(not(any(ed25519, ed448)))]

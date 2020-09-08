@@ -100,7 +100,7 @@ fn rate_limit(endpoint: &mut Endpoint) {
 pub fn header_to_string(header_value: &header::HeaderValue) -> Result<String, Error> {
     let s = header_value
         .to_str()
-        .map_err(|_| Error::from("Invalid nonce format."))?;
+        .map_err(|_| Error::from("invalid nonce format"))?;
     Ok(s.to_string())
 }
 
@@ -177,7 +177,7 @@ where
         }
         thread::sleep(time::Duration::from_secs(crate::DEFAULT_HTTP_FAIL_WAIT_SEC));
     }
-    Err("Too much errors, will not retry".into())
+    Err("too much errors, will not retry".into())
 }
 
 pub fn post_jose<F>(

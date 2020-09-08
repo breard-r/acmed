@@ -115,7 +115,7 @@ fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error
 }
 
 fn read_file(fm: &FileManager, path: &PathBuf) -> Result<Vec<u8>, Error> {
-    fm.trace(&format!("Reading file {:?}", path));
+    fm.trace(&format!("reading file {:?}", path));
     let mut file = File::open(path)?;
     let mut contents = vec![];
     file.read_to_end(&mut contents)?;
@@ -137,7 +137,7 @@ fn set_owner(fm: &FileManager, path: &PathBuf, file_type: FileType) -> Result<()
             if u.bytes().all(|b| b.is_ascii_digit()) {
                 let raw_uid = u
                     .parse::<u32>()
-                    .map_err(|_| Error::from("Unable to parse the UID"))?;
+                    .map_err(|_| Error::from("unable to parse the UID"))?;
                 let nix_uid = nix::unistd::Uid::from_raw(raw_uid);
                 Some(nix_uid)
             } else {
@@ -152,7 +152,7 @@ fn set_owner(fm: &FileManager, path: &PathBuf, file_type: FileType) -> Result<()
             if g.bytes().all(|b| b.is_ascii_digit()) {
                 let raw_gid = g
                     .parse::<u32>()
-                    .map_err(|_| Error::from("Unable to parse the GID"))?;
+                    .map_err(|_| Error::from("unable to parse the GID"))?;
                 let nix_gid = nix::unistd::Gid::from_raw(raw_gid);
                 Some(nix_gid)
             } else {
@@ -193,7 +193,7 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
         hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreEdit)?;
     }
 
-    fm.trace(&format!("Writing file {:?}", path));
+    fm.trace(&format!("writing file {:?}", path));
     let mut file = if cfg!(unix) {
         let mut options = OpenOptions::new();
         options.mode(match &file_type {
@@ -259,7 +259,7 @@ fn check_files(fm: &FileManager, file_types: &[FileType]) -> bool {
             }
         };
         fm.trace(&format!(
-            "Testing file path: {}",
+            "testing file path: {}",
             path.to_str().unwrap_or_default()
         ));
         if !path.is_file() {

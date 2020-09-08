@@ -41,7 +41,7 @@ impl KeyType {
             Ok(())
         } else {
             let err_msg = format!(
-                "Incompatible signature algorithm: {} cannot be used with an {} key.",
+                "incompatible signature algorithm: {} cannot be used with an {} key",
                 alg, self
             );
             Err(err_msg.into())
@@ -75,7 +75,7 @@ impl FromStr for KeyType {
             "ed25519" => Ok(KeyType::Ed25519),
             #[cfg(ed448)]
             "ed448" => Ok(KeyType::Ed448),
-            _ => Err(format!("{}: unknown algorithm.", s).into()),
+            _ => Err(format!("{}: unknown algorithm", s).into()),
         }
     }
 }

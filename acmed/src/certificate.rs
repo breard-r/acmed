@@ -70,7 +70,7 @@ impl Certificate {
     fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
         let expires_in = cert.expires_in()?;
         self.debug(&format!(
-            "Certificate expires in {} days ({} days delay)",
+            "certificate expires in {} days ({} days delay)",
             expires_in.as_secs() / 86400,
             self.renew_delay.as_secs() / 86400,
         ));
@@ -92,7 +92,7 @@ impl Certificate {
                 .collect::<Vec<String>>()
                 .join(", ");
             self.debug(&format!(
-                "The certificate does not include the following domains: {}",
+                "the certificate does not include the following domains: {}",
                 domains
             ));
         }
@@ -110,7 +110,7 @@ impl Certificate {
 
     pub fn should_renew(&self) -> Result<bool, Error> {
         self.debug(&format!(
-            "Checking for renewal (identifiers: {})",
+            "checking for renewal (identifiers: {})",
             self.identifier_list()
         ));
         if !certificate_files_exists(&self.file_manager) {
@@ -121,18 +121,18 @@ impl Certificate {
 
         let renew_ident = self.has_missing_identifiers(&cert);
         if renew_ident {
-            self.debug("The current certificate doesn't include all the required identifiers.");
+            self.debug("the current certificate doesn't include all the required identifiers");
         }
         let renew_exp = self.is_expiring(&cert)?;
         if renew_exp {
-            self.debug("The certificate is expiring.");
+            self.debug("the certificate is expiring");
         }
         let renew = renew_ident || renew_exp;
 
         if renew {
-            self.debug("The certificate will be renewed now");
+            self.debug("the certificate will be renewed now");
         } else {
-            self.debug("The certificate will not be renewed now");
+            self.debug("the certificate will not be renewed now");
         }
         Ok(renew)
     }

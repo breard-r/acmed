@@ -14,7 +14,7 @@ macro_rules! exit_match {
         match $e {
             Ok(_) => {}
             Err(e) => {
-                log::error!("Error: {}", e);
+                log::error!("error: {}", e);
                 std::process::exit(3);
             }
         }

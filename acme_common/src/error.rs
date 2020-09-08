@@ -95,13 +95,13 @@ impl From<attohttpc::Error> for Error {
 
 impl From<glob::PatternError> for Error {
     fn from(error: glob::PatternError) -> Self {
-        format!("Pattern error: {}", error).into()
+        format!("pattern error: {}", error).into()
     }
 }
 
 impl From<handlebars::TemplateRenderError> for Error {
     fn from(error: handlebars::TemplateRenderError) -> Self {
-        format!("Template error: {}", error).into()
+        format!("template error: {}", error).into()
     }
 }
 

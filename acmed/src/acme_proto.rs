@@ -114,7 +114,7 @@ pub fn request_certificate(
         let auth = http::get_authorization(endpoint, root_certs, &data_builder, &auth_url)
             .map_err(HttpError::in_err)?;
         if let Some(e) = auth.get_error() {
-            cert.warn(&e.prefix("Error").message);
+            cert.warn(&e.prefix("error").message);
         }
         if auth.status == AuthorizationStatus::Valid {
             continue;
@@ -188,7 +188,7 @@ pub fn request_certificate(
         domains.as_slice(),
         ips.as_slice(),
     )?;
-    cert.trace(&format!("New CSR:\n{}", csr.to_pem()?));
+    cert.trace(&format!("new CSR:\n{}", csr.to_pem()?));
     let csr = json!({
         "csr": csr.to_der_base64()?,
     });
@@ -197,7 +197,7 @@ pub fn request_certificate(
     let order = http::finalize_order(endpoint, root_certs, &data_builder, &order.finalize)
         .map_err(HttpError::in_err)?;
     if let Some(e) = order.get_error() {
-        cert.warn(&e.prefix("Error").message);
+        cert.warn(&e.prefix("error").message);
     }
 
     // Pool the order in order to see whether or not it is valid
@@ -209,14 +209,14 @@ pub fn request_certificate(
     // Download the certificate
     let crt_url = order
         .certificate
-        .ok_or_else(|| Error::from("No certificate available for download."))?;
+        .ok_or_else(|| Error::from("no certificate available for download"))?;
     let data_builder = set_empty_data_builder!(account, endpoint_name);
     let crt = http::get_certificate(endpoint, root_certs, &data_builder, &crt_url)
         .map_err(HttpError::in_err)?;
     storage::write_certificate(&cert.file_manager, &crt.as_bytes())?;
 
     cert.info(&format!(
-        "Certificate renewed (identifiers: {})",
+        "certificate renewed (identifiers: {})",
         cert.identifier_list()
     ));
     Ok(())
