@@ -69,6 +69,12 @@ impl From<std::time::SystemTimeError> for Error {
     }
 }
 
+impl From<base64::DecodeError> for Error {
+    fn from(error: base64::DecodeError) -> Self {
+        format!("base 64 decode error: {}", error).into()
+    }
+}
+
 impl From<syslog::Error> for Error {
     fn from(error: syslog::Error) -> Self {
         format!("syslog error: {}", error).into()

@@ -42,6 +42,11 @@ pub fn b64_encode<T: ?Sized + AsRef<[u8]>>(input: &T) -> String {
     base64::encode_config(input, base64::URL_SAFE_NO_PAD)
 }
 
+pub fn b64_decode<T: ?Sized + AsRef<[u8]>>(input: &T) -> Result<Vec<u8>, error::Error> {
+    let res = base64::decode_config(input, base64::URL_SAFE_NO_PAD)?;
+    Ok(res)
+}
+
 pub fn init_server(foreground: bool, pid_file: Option<&str>, default_pid_file: &str) {
     if !foreground {
         let daemonize = Daemonize::new().pid_file(pid_file.unwrap_or(default_pid_file));
