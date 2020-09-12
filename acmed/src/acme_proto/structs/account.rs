@@ -117,6 +117,7 @@ mod tests {
             contact: emails,
             terms_of_service_agreed: true,
             only_return_existing: false,
+            external_account_binding: None,
         };
         assert_eq!(a.contact.len(), 2);
         assert_eq!(a.terms_of_service_agreed, true);
