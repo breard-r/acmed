@@ -1,11 +1,36 @@
 use crate::account::contact::AccountContact;
-use crate::account::{Account, AccountEndpoint, AccountKey};
+use crate::account::{Account, AccountEndpoint, AccountKey, ExternalAccount};
 use crate::storage::{account_files_exists, get_account_data, set_account_data, FileManager};
 use acme_common::crypto::KeyPair;
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::SystemTime;
+
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
+pub struct ExternalAccountStorage {
+    pub identifier: String,
+    pub key: Vec<u8>,
+    pub signature_algorithm: String,
+}
+
+impl ExternalAccountStorage {
+    fn new(external_account: &ExternalAccount) -> Self {
+        ExternalAccountStorage {
+            identifier: external_account.identifier.to_owned(),
+            key: external_account.key.to_owned(),
+            signature_algorithm: external_account.signature_algorithm.to_string(),
+        }
+    }
+
+    fn to_generic(&self) -> Result<ExternalAccount, Error> {
+        Ok(ExternalAccount {
+            identifier: self.identifier.to_owned(),
+            key: self.key.to_owned(),
+            signature_algorithm: self.signature_algorithm.parse()?,
+        })
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct AccountKeyStorage {
@@ -70,6 +95,7 @@ struct AccountStorage {
     contacts: Vec<(String, String)>,
     current_key: AccountKeyStorage,
     past_keys: Vec<AccountKeyStorage>,
+    external_account: Option<ExternalAccountStorage>,
 }
 
 pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
@@ -93,6 +119,10 @@ pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, 
             .iter()
             .map(|k| k.to_generic())
             .collect::<Result<Vec<AccountKey>, Error>>()?;
+        let external_account = match obj.external_account {
+            Some(a) => Some(a.to_generic()?),
+            None => None,
+        };
         Ok(Some(Account {
             name: obj.name,
             endpoints,
@@ -100,6 +130,7 @@ pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, 
             current_key,
             past_keys,
             file_manager: file_manager.clone(),
+            external_account,
         }))
     } else {
         Ok(None)
@@ -122,12 +153,17 @@ pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> 
         .iter()
         .map(|k| AccountKeyStorage::new(&k))
         .collect::<Result<Vec<AccountKeyStorage>, Error>>()?;
+    let external_account = match &account.external_account {
+        Some(a) => Some(ExternalAccountStorage::new(&a)),
+        None => None,
+    };
     let account_storage = AccountStorage {
         name: account.name.to_owned(),
         endpoints,
         contacts,
         current_key: AccountKeyStorage::new(&account.current_key)?,
         past_keys,
+        external_account,
     };
     let encoded: Vec<u8> = bincode::serialize(&account_storage)
         .map_err(|e| Error::from(&e.to_string()).prefix(&account.name))?;

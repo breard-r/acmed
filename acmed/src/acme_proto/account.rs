@@ -39,7 +39,7 @@ pub fn register_account(
         "creating account on endpoint \"{}\"...",
         &endpoint.name
     ));
-    let account_struct = Account::new(account, endpoint);
+    let account_struct = Account::new(account, endpoint)?;
     let account_struct = serde_json::to_string(&account_struct)?;
     let acc_ref = &account_struct;
     let kp_ref = &account.current_key.key;

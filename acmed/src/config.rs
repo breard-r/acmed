@@ -2,7 +2,8 @@ use crate::duration::parse_duration;
 use crate::hooks;
 use crate::identifier::IdentifierType;
 use crate::storage::FileManager;
-use acme_common::crypto::{HashFunction, KeyType};
+use acme_common::b64_decode;
+use acme_common::crypto::{HashFunction, JwsSignatureAlgorithm, KeyType};
 use acme_common::error::Error;
 use glob::glob;
 use log::info;
@@ -274,12 +275,47 @@ pub struct Group {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ExternalAccount {
+    pub identifier: String,
+    pub key: String,
+    pub signature_algorithm: Option<String>,
+}
+
+impl ExternalAccount {
+    pub fn to_generic(&self) -> Result<crate::account::ExternalAccount, Error> {
+        let signature_algorithm = match &self.signature_algorithm {
+            Some(a) => a.parse()?,
+            None => crate::DEFAULT_EXTERNAL_ACCOUNT_JWA,
+        };
+        match signature_algorithm {
+            JwsSignatureAlgorithm::Hs256
+            | JwsSignatureAlgorithm::Hs384
+            | JwsSignatureAlgorithm::Hs512 => {}
+            _ => {
+                return Err(format!(
+                    "{}: invalid signature algorithm for external account binding",
+                    signature_algorithm
+                )
+                .into());
+            }
+        };
+        Ok(crate::account::ExternalAccount {
+            identifier: self.identifier.to_owned(),
+            key: b64_decode(&self.key)?,
+            signature_algorithm,
+        })
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Account {
     pub name: String,
     pub contacts: Vec<AccountContact>,
     pub key_type: Option<String>,
     pub signature_algorithm: Option<String>,
     pub hooks: Option<Vec<String>>,
+    pub external_account: Option<ExternalAccount>,
     #[serde(default)]
     pub env: HashMap<String, String>,
 }
@@ -306,12 +342,17 @@ impl Account {
             .iter()
             .map(|e| (e.get_type(), e.get_value()))
             .collect();
+        let external_account = match &self.external_account {
+            Some(a) => Some(a.to_generic()?),
+            None => None,
+        };
         crate::account::Account::load(
             file_manager,
             &self.name,
             &contacts,
             &self.key_type,
             &self.signature_algorithm,
+            &external_account,
         )
     }
 }

@@ -15,6 +15,13 @@ mod contact;
 mod storage;
 
 #[derive(Clone, Debug)]
+pub struct ExternalAccount {
+    pub identifier: String,
+    pub key: Vec<u8>,
+    pub signature_algorithm: JwsSignatureAlgorithm,
+}
+
+#[derive(Clone, Debug)]
 pub enum AccountContactType {
     Mailfrom,
 }
@@ -85,6 +92,7 @@ pub struct Account {
     pub current_key: AccountKey,
     pub past_keys: Vec<AccountKey>,
     pub file_manager: FileManager,
+    pub external_account: Option<ExternalAccount>,
 }
 
 impl HasLogger for Account {
@@ -149,6 +157,7 @@ impl Account {
         contacts: &[(String, String)],
         key_type: &Option<String>,
         signature_algorithm: &Option<String>,
+        external_account: &Option<ExternalAccount>,
     ) -> Result<Self, Error> {
         let contacts = contacts
             .iter()
@@ -177,6 +186,7 @@ impl Account {
                     current_key: AccountKey::new(key_type, signature_algorithm)?,
                     past_keys: Vec::new(),
                     file_manager: file_manager.clone(),
+                    external_account: external_account.to_owned(),
                 };
                 account.debug("initializing a new account");
                 account

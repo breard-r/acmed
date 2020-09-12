@@ -1,5 +1,7 @@
 use crate::main_event_loop::MainEventLoop;
-use acme_common::crypto::{HashFunction, KeyType, TLS_LIB_NAME, TLS_LIB_VERSION};
+use acme_common::crypto::{
+    HashFunction, JwsSignatureAlgorithm, KeyType, TLS_LIB_NAME, TLS_LIB_VERSION,
+};
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
 use clap::{App, Arg};
@@ -36,6 +38,7 @@ pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_KP_REUSE: bool = false;
 pub const DEFAULT_ACCOUNT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
+pub const DEFAULT_EXTERNAL_ACCOUNT_JWA: JwsSignatureAlgorithm = JwsSignatureAlgorithm::Hs256;
 pub const DEFAULT_POOL_NB_TRIES: usize = 20;
 pub const DEFAULT_POOL_WAIT_SEC: u64 = 5;
 pub const DEFAULT_HTTP_FAIL_NB_RETRY: usize = 10;

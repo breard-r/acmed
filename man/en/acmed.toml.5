@@ -200,6 +200,27 @@ ES384
 Table of environment variables that will be accessible from hooks.
 .It Ic hooks Ar array
 Names of hooks that will be called during operations on the account storage file. The hooks are guaranteed to be called sequentially in the declaration order.
+.It Ic external_account Ar table
+Table containing the information required to bind the account to an external one. Possible fields and values are:
+.Bl -tag
+.It Ic identifier Ar string
+ASCII string identifying the key.
+.It Ic key Ar string
+Private key encoded in base64url without padding.
+.It Ic signature_algorithm Ar string
+Name of the signature algorithm used to sign the external account binding message sent to the endpoint as defined in
+.Em RFC 7518 .
+Possible values are:
+.Bl -dash -compact
+.It
+HS256
+.Aq default
+.It
+HS384
+.It
+HS512
+.El
+.El
 .El
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.

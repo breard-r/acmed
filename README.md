@@ -28,10 +28,11 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 - A pre-built set of hooks that can be used in most circumstances
 - Run as a deamon: no need to set-up timers, crontab or other time-triggered process
 - Retry of HTTPS request rejected with a badNonce or other recoverable errors
-- Customizable HTTPS requests rate limits.
+- Customizable HTTPS requests rate limits
+- External account binding
 - Optional key pair reuse (useful for [HPKP](https://en.wikipedia.org/wiki/HTTP_Public_Key_Pinning))
-- For a given certificate, each domain name may be validated using a different challenge.
-- A standalone server dedicated to the tls-alpn-01 challenge validation (tacd).
+- For a given certificate, each domain name may be validated using a different challenge
+- A standalone server dedicated to the tls-alpn-01 challenge validation (tacd)
 
 
 ## Planned features

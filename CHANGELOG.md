@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - The `contacts` account configuration field has been added.
+- External account binding.
 
 ### Changed
 - The `email` account configuration field has been removed. In replacement, use the `contacts` field.

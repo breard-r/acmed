@@ -1,4 +1,5 @@
 use crate::endpoint::Endpoint;
+use crate::jws::encode_kid_mac;
 use acme_common::crypto::KeyPair;
 use acme_common::error::Error;
 use serde::{Deserialize, Serialize};
@@ -11,15 +12,37 @@ pub struct Account {
     pub contact: Vec<String>,
     pub terms_of_service_agreed: bool,
     pub only_return_existing: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub external_account_binding: Option<Value>,
 }
 
 impl Account {
-    pub fn new(account: &crate::account::Account, endpoint: &Endpoint) -> Self {
-        Account {
+    pub fn new(account: &crate::account::Account, endpoint: &Endpoint) -> Result<Self, Error> {
+        let external_account_binding = match &account.external_account {
+            Some(a) => {
+                let k_ref = &a.key;
+                let signature_algorithm = &a.signature_algorithm;
+                let kid = &a.identifier;
+                let payload = account.current_key.key.jwk_public_key()?;
+                let payload = serde_json::to_string(&payload)?;
+                let data = encode_kid_mac(
+                    k_ref,
+                    signature_algorithm,
+                    kid,
+                    payload.as_bytes(),
+                    &endpoint.dir.new_account,
+                )?;
+                let data: Value = serde_json::from_str(&data)?;
+                Some(data)
+            }
+            None => None,
+        };
+        Ok(Account {
             contact: account.contacts.iter().map(|e| e.to_string()).collect(),
             terms_of_service_agreed: endpoint.tos_agreed,
             only_return_existing: false,
-        }
+            external_account_binding,
+        })
     }
 }
 
@@ -29,7 +52,7 @@ pub struct AccountResponse {
     pub status: String,
     pub contact: Option<Vec<String>>,
     pub terms_of_service_agreed: Option<bool>,
-    pub external_account_binding: Option<String>,
+    pub external_account_binding: Option<Value>,
     pub orders: Option<String>,
 }
 
