@@ -1,5 +1,5 @@
 use acme_common::b64_encode;
-use acme_common::crypto::{JwsSignatureAlgorithm, KeyPair};
+use acme_common::crypto::{HashFunction, JwsSignatureAlgorithm, KeyPair};
 use acme_common::error::Error;
 use serde::Serialize;
 use serde_json::value::Value;
@@ -23,6 +23,13 @@ struct JwsProtectedHeaderJwk {
     alg: String,
     jwk: Value,
     nonce: String,
+    url: String,
+}
+
+#[derive(Serialize)]
+struct JwsProtectedHeaderKidNoNonce {
+    alg: String,
+    kid: String,
     url: String,
 }
 
@@ -102,6 +109,41 @@ pub fn encode_kid(
     };
     let protected = serde_json::to_string(&protected)?;
     get_data(key_pair, sign_alg, &protected, payload)
+}
+
+pub fn encode_kid_mac(
+    key: &[u8],
+    sign_alg: &JwsSignatureAlgorithm,
+    key_id: &str,
+    payload: &[u8],
+    url: &str,
+) -> Result<String, Error> {
+    let protected = JwsProtectedHeaderKidNoNonce {
+        alg: sign_alg.to_string(),
+        kid: key_id.to_string(),
+        url: url.into(),
+    };
+    let protected = serde_json::to_string(&protected)?;
+    let protected = b64_encode(&protected);
+    let payload = b64_encode(payload);
+    let signing_input = format!("{}.{}", protected, payload);
+    let hash_func = match sign_alg {
+        JwsSignatureAlgorithm::Hs256 => HashFunction::Sha256,
+        JwsSignatureAlgorithm::Hs384 => HashFunction::Sha384,
+        JwsSignatureAlgorithm::Hs512 => HashFunction::Sha512,
+        _ => {
+            return Err(format!("{}: not a HMAC-based signature algorithm", sign_alg).into());
+        }
+    };
+    let signature = hash_func.hmac(key, signing_input.as_bytes())?;
+    let signature = b64_encode(&signature);
+    let data = JwsData {
+        protected,
+        payload,
+        signature,
+    };
+    let str_data = serde_json::to_string(&data)?;
+    Ok(str_data)
 }
 
 #[cfg(test)]

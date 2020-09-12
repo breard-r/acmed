@@ -85,6 +85,13 @@ impl KeyPair {
     pub fn sign(&self, alg: &JwsSignatureAlgorithm, data: &[u8]) -> Result<Vec<u8>, Error> {
         let _ = self.key_type.check_alg_compatibility(alg)?;
         match alg {
+            JwsSignatureAlgorithm::Hs256
+            | JwsSignatureAlgorithm::Hs384
+            | JwsSignatureAlgorithm::Hs512 => Err(format!(
+                "{} key pair cannot be used for the {} signature algorithm",
+                self.key_type, alg
+            )
+            .into()),
             JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
             JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&HashFunction::Sha256, data),
             JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&HashFunction::Sha384, data),
