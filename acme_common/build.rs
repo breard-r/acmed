@@ -6,7 +6,6 @@ macro_rules! set_rustc_env_var {
     }};
 }
 
-
 fn main() {
     if let Ok(_) = env::var("DEP_OPENSSL_VERSION_NUMBER") {
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "OpenSSL");

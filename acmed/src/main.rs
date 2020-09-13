@@ -1,6 +1,6 @@
 use crate::main_event_loop::MainEventLoop;
 use acme_common::crypto::{
-    HashFunction, JwsSignatureAlgorithm, KeyType, get_lib_name, get_lib_version
+    get_lib_name, get_lib_version, HashFunction, JwsSignatureAlgorithm, KeyType,
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
@@ -49,7 +49,7 @@ pub const MIN_RATE_LIMIT_SLEEP_MILISEC: u64 = 100;
 
 fn main() {
     let full_version = format!(
-        "{} {}\n\nCompiled with:\n  {} {}\n  {} {}",
+        "{} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
         APP_VERSION,
         env!("ACMED_TARGET"),
         get_lib_name(),

@@ -1,7 +1,7 @@
 mod openssl_server;
 
 use crate::openssl_server::start as server_start;
-use acme_common::crypto::{HashFunction, KeyType, X509Certificate};
+use acme_common::crypto::{get_lib_name, get_lib_version, HashFunction, KeyType, X509Certificate};
 use acme_common::error::Error;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
@@ -67,11 +67,19 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
 }
 
 fn main() {
+    let full_version = format!(
+        "{} built for {}\n\nCryptographic library:\n - {} {}",
+        APP_VERSION,
+        env!("TACD_TARGET"),
+        get_lib_name(),
+        get_lib_version(),
+    );
     let default_crt_key_type = DEFAULT_CRT_KEY_TYPE.to_string();
     let default_crt_digest = DEFAULT_CRT_DIGEST.to_string();
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = App::new(APP_NAME)
         .version(APP_VERSION)
+        .long_version(full_version.as_str())
         .arg(
             Arg::with_name("listen")
                 .long("listen")
