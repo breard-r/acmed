@@ -7,9 +7,8 @@ mod key_type;
 mod openssl_certificate;
 mod openssl_hash;
 mod openssl_keys;
+mod openssl_version;
 
-pub const TLS_LIB_NAME: &str = env!("ACMED_TLS_LIB_NAME");
-pub const TLS_LIB_VERSION: &str = env!("ACMED_TLS_LIB_VERSION");
 pub const CRT_NB_DAYS_VALIDITY: u32 = 7;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -55,3 +54,4 @@ pub use key_type::KeyType;
 pub use openssl_certificate::{Csr, X509Certificate};
 pub use openssl_hash::HashFunction;
 pub use openssl_keys::{gen_keypair, KeyPair};
+pub use openssl_version::{get_lib_name, get_lib_version};

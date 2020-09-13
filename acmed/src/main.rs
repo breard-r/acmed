@@ -1,6 +1,6 @@
 use crate::main_event_loop::MainEventLoop;
 use acme_common::crypto::{
-    HashFunction, JwsSignatureAlgorithm, KeyType, TLS_LIB_NAME, TLS_LIB_VERSION,
+    HashFunction, JwsSignatureAlgorithm, KeyType, get_lib_name, get_lib_version
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
@@ -52,8 +52,8 @@ fn main() {
         "{} {}\n\nCompiled with:\n  {} {}\n  {} {}",
         APP_VERSION,
         env!("ACMED_TARGET"),
-        TLS_LIB_NAME,
-        TLS_LIB_VERSION,
+        get_lib_name(),
+        get_lib_version(),
         env!("ACMED_HTTP_LIB_NAME"),
         env!("ACMED_HTTP_LIB_VERSION")
     );
