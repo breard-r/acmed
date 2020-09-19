@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Accounts now have their own hooks and environment.
 - Accounts are now stored in a single binary file.
 
+### Fixed
+- ACMEd can now build on platforms with a `time_t` not defined as an `i64`.
+- The Makefile is now fully works on FreeBSD.
+
 
 ## [0.10.0] - 2020-08-27
 
