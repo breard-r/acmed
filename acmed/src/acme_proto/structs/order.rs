@@ -6,9 +6,12 @@ use std::fmt;
 use std::str::FromStr;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewOrder {
     pub identifiers: Vec<Identifier>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub not_before: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub not_after: Option<String>,
 }
 
