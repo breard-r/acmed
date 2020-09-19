@@ -7,9 +7,28 @@ mod key_type;
 mod openssl_certificate;
 mod openssl_hash;
 mod openssl_keys;
+mod openssl_subject_attribute;
 mod openssl_version;
 
 pub const CRT_NB_DAYS_VALIDITY: u32 = 7;
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum BaseSubjectAttribute {
+    CountryName,
+    LocalityName,
+    StateOrProvinceName,
+    StreetAddress,
+    OrganizationName,
+    OrganizationalUnitName,
+    Name,
+    GivenName,
+    Initials,
+    Title,
+    Surname,
+    Pseudonym,
+    GenerationQualifier,
+    FriendlyName,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BaseHashFunction {
@@ -54,4 +73,5 @@ pub use key_type::KeyType;
 pub use openssl_certificate::{Csr, X509Certificate};
 pub use openssl_hash::HashFunction;
 pub use openssl_keys::{gen_keypair, KeyPair};
+pub use openssl_subject_attribute::SubjectAttribute;
 pub use openssl_version::{get_lib_name, get_lib_version};

@@ -3,7 +3,7 @@ use crate::hooks;
 use crate::identifier::IdentifierType;
 use crate::storage::FileManager;
 use acme_common::b64_decode;
-use acme_common::crypto::{HashFunction, JwsSignatureAlgorithm, KeyType};
+use acme_common::crypto::{HashFunction, JwsSignatureAlgorithm, KeyType, SubjectAttribute};
 use acme_common::error::Error;
 use glob::glob;
 use log::info;
@@ -21,6 +21,14 @@ macro_rules! set_cfg_attr {
         if let Some(v) = $from {
             $to = Some(v);
         };
+    };
+}
+
+macro_rules! push_subject_attr {
+    ($hm: expr, $attr: expr, $attr_type: ident) => {
+        if let Some(v) = &$attr {
+            $hm.insert(SubjectAttribute::$attr_type, v.to_owned());
+        }
     };
 }
 
@@ -379,6 +387,8 @@ pub struct Certificate {
     pub account: String,
     pub endpoint: String,
     pub identifiers: Vec<Identifier>,
+    #[serde(default)]
+    pub subject_attributes: SubjectAttributes,
     pub key_type: Option<String>,
     pub csr_digest: Option<String>,
     pub kp_reuse: Option<bool>,
@@ -543,6 +553,46 @@ impl Identifier {
             },
         };
         crate::identifier::Identifier::new(t, &v, &self.challenge, &self.env)
+    }
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SubjectAttributes {
+    pub country_name: Option<String>,
+    pub locality_name: Option<String>,
+    pub state_or_province_name: Option<String>,
+    pub street_address: Option<String>,
+    pub organization_name: Option<String>,
+    pub organizational_unit_name: Option<String>,
+    pub name: Option<String>,
+    pub given_name: Option<String>,
+    pub initials: Option<String>,
+    pub title: Option<String>,
+    pub surname: Option<String>,
+    pub pseudonym: Option<String>,
+    pub generation_qualifier: Option<String>,
+    pub friendly_name: Option<String>,
+}
+
+impl SubjectAttributes {
+    pub fn to_generic(&self) -> HashMap<SubjectAttribute, String> {
+        let mut ret = HashMap::new();
+        push_subject_attr!(ret, self.country_name, CountryName);
+        push_subject_attr!(ret, self.locality_name, LocalityName);
+        push_subject_attr!(ret, self.state_or_province_name, StateOrProvinceName);
+        push_subject_attr!(ret, self.street_address, StreetAddress);
+        push_subject_attr!(ret, self.organization_name, OrganizationName);
+        push_subject_attr!(ret, self.organizational_unit_name, OrganizationalUnitName);
+        push_subject_attr!(ret, self.name, Name);
+        push_subject_attr!(ret, self.given_name, GivenName);
+        push_subject_attr!(ret, self.initials, Initials);
+        push_subject_attr!(ret, self.title, Title);
+        push_subject_attr!(ret, self.surname, Surname);
+        push_subject_attr!(ret, self.pseudonym, Pseudonym);
+        push_subject_attr!(ret, self.generation_qualifier, GenerationQualifier);
+        push_subject_attr!(ret, self.friendly_name, FriendlyName);
+        ret
     }
 }
 

@@ -126,6 +126,7 @@ impl MainEventLoop {
             let cert = Certificate {
                 account_name: crt.account.clone(),
                 identifiers: crt.get_identifiers()?,
+                subject_attributes: crt.subject_attributes.to_generic(),
                 key_type,
                 csr_digest: crt.get_csr_digest()?,
                 kp_reuse: crt.get_kp_reuse(),

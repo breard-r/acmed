@@ -1,4 +1,4 @@
-use super::{gen_keypair, KeyPair, KeyType};
+use super::{gen_keypair, KeyPair, KeyType, SubjectAttribute};
 use crate::b64_encode;
 use crate::crypto::HashFunction;
 use crate::error::Error;
@@ -8,7 +8,7 @@ use openssl::hash::MessageDigest;
 use openssl::stack::Stack;
 use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -43,9 +43,18 @@ impl Csr {
         digest: HashFunction,
         domains: &[String],
         ips: &[String],
+        subject_attributes: &HashMap<SubjectAttribute, String>,
     ) -> Result<Self, Error> {
         let mut builder = X509ReqBuilder::new()?;
         builder.set_pubkey(&key_pair.inner_key)?;
+        if !subject_attributes.is_empty() {
+            let mut snb = X509NameBuilder::new()?;
+            for (sattr, val) in subject_attributes.iter() {
+                snb.append_entry_by_nid(sattr.get_nid(), &val)?;
+            }
+            let name = snb.build();
+            builder.set_subject_name(&name)?;
+        }
         let ctx = builder.x509v3_context(None);
         let mut san = SubjectAlternativeName::new();
         for dns in domains.iter() {

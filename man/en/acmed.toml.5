@@ -172,7 +172,7 @@ A mailto URI as defined by
 This URI cannot contains neither "hfields" nor more than one "addr-spec" in the "to" component.
 .El
 .It Cm key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are :
+Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are:
 .Bl -dash -compact
 .It
 rsa2048
@@ -257,8 +257,40 @@ The IP address.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
 .El
+.It subject_attributes Ar table
+Table where the certificate's subject attributes are specified. Possible keys are:
+.Bl -dash -compact
+.It
+country_name
+.It
+locality_name
+.It
+state_or_province_name
+.It
+street_address
+.It
+organization_name
+.It
+organizational_unit_name
+.It
+name
+.It
+given_name
+.It
+initials
+.It
+title
+.It
+surname
+.It
+pseudonym
+.It
+generation_qualifier
+.It
+friendly_name
+.El
 .It Ic key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are :
+Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are:
 .Bl -dash -compact
 .It
 rsa2048
@@ -271,7 +303,7 @@ ecdsa_p256
 ecdsa_p384
 .El
 .It Ic csr_digest Ar string
-Name of the certificate's signing request digest algorithm. Possible values are :
+Name of the certificate's signing request digest algorithm. Possible values are:
 .Bl -dash -compact
 .It
 sha256

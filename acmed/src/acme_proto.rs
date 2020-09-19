@@ -187,6 +187,7 @@ pub fn request_certificate(
         cert.csr_digest,
         domains.as_slice(),
         ips.as_slice(),
+        &cert.subject_attributes,
     )?;
     cert.trace(&format!("new CSR:\n{}", csr.to_pem()?));
     let csr = json!({
