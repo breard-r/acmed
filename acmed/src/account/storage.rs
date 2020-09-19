@@ -64,6 +64,7 @@ struct AccountEndpointStorage {
     order_url: String,
     key_hash: Vec<u8>,
     contacts_hash: Vec<u8>,
+    external_account_hash: Vec<u8>,
 }
 
 impl AccountEndpointStorage {
@@ -74,6 +75,7 @@ impl AccountEndpointStorage {
             order_url: account_endpoint.order_url.clone(),
             key_hash: account_endpoint.key_hash.clone(),
             contacts_hash: account_endpoint.contacts_hash.clone(),
+            external_account_hash: account_endpoint.external_account_hash.clone(),
         }
     }
 
@@ -84,6 +86,7 @@ impl AccountEndpointStorage {
             order_url: self.order_url.clone(),
             key_hash: self.key_hash.clone(),
             contacts_hash: self.contacts_hash.clone(),
+            external_account_hash: self.external_account_hash.clone(),
         }
     }
 }
@@ -98,7 +101,7 @@ struct AccountStorage {
     external_account: Option<ExternalAccountStorage>,
 }
 
-pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
+fn do_fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
     if account_files_exists(file_manager) {
         let data = get_account_data(file_manager)?;
         let obj: AccountStorage = bincode::deserialize(&data[..])
@@ -137,7 +140,7 @@ pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, 
     }
 }
 
-pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
+fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
     let endpoints: HashMap<String, AccountEndpointStorage> = account
         .endpoints
         .iter()
@@ -168,4 +171,18 @@ pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> 
     let encoded: Vec<u8> = bincode::serialize(&account_storage)
         .map_err(|e| Error::from(&e.to_string()).prefix(&account.name))?;
     set_account_data(file_manager, &encoded)
+}
+
+pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
+    do_fetch(file_manager, name).map_err(|_| {
+        format!(
+            "account \"{}\": unable to load account file: file may be corrupted",
+            name
+        )
+        .into()
+    })
+}
+
+pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
+    do_save(file_manager, account).map_err(|e| format!("unable to save account file: {}", e).into())
 }

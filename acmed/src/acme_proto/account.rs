@@ -57,6 +57,7 @@ pub fn register_account(
     account.set_order_url(&endpoint.name, &order_url)?;
     account.update_key_hash(&endpoint.name)?;
     account.update_contacts_hash(&endpoint.name)?;
+    account.update_external_account_hash(&endpoint.name)?;
     account.save()?;
     account.info(&format!(
         "account created on endpoint \"{}\"",

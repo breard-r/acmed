@@ -70,6 +70,7 @@ pub struct AccountEndpoint {
     pub order_url: String,
     pub key_hash: Vec<u8>,
     pub contacts_hash: Vec<u8>,
+    pub external_account_hash: Vec<u8>,
 }
 
 impl AccountEndpoint {
@@ -80,6 +81,7 @@ impl AccountEndpoint {
             order_url: String::new(),
             key_hash: Vec::new(),
             contacts_hash: Vec::new(),
+            external_account_hash: Vec::new(),
         }
     }
 }
@@ -176,6 +178,7 @@ impl Account {
             Some(mut a) => {
                 a.update_keys(key_type, signature_algorithm)?;
                 a.contacts = contacts;
+                a.external_account = external_account.to_owned();
                 a
             }
             None => {
@@ -208,6 +211,18 @@ impl Account {
     ) -> Result<(), Error> {
         let acc_ep = self.get_endpoint(&endpoint.name)?;
         if !acc_ep.account_url.is_empty() {
+            if let Some(ec) = &self.external_account {
+                let external_account_hash = hash_external_account(&ec);
+                if external_account_hash != acc_ep.external_account_hash {
+                    let msg = format!(
+                        "external account changed on endpoint \"{}\"",
+                        &endpoint.name
+                    );
+                    self.info(&msg);
+                    register_account(endpoint, root_certs, self)?;
+                    return Ok(());
+                }
+            }
             let ct_hash = hash_contacts(&self.contacts);
             let key_hash = hash_key(&self.current_key)?;
             let contacts_changed = ct_hash != acc_ep.contacts_hash;
@@ -257,6 +272,15 @@ impl Account {
         Ok(())
     }
 
+    pub fn update_external_account_hash(&mut self, endpoint_name: &str) -> Result<(), Error> {
+        if let Some(ec) = &self.external_account {
+            let ec = ec.clone();
+            let mut ep = self.get_endpoint_mut(endpoint_name)?;
+            ep.external_account_hash = hash_external_account(&ec);
+        }
+        Ok(())
+    }
+
     fn update_keys(
         &mut self,
         key_type: KeyType,
@@ -294,4 +318,10 @@ fn hash_contacts(contacts: &[contact::AccountContact]) -> Vec<u8> {
 fn hash_key(key: &AccountKey) -> Result<Vec<u8>, Error> {
     let pem = key.key.public_key_to_pem()?;
     Ok(HashFunction::Sha256.hash(&pem))
+}
+
+fn hash_external_account(ec: &ExternalAccount) -> Vec<u8> {
+    let mut msg = ec.key.clone();
+    msg.extend(ec.identifier.as_bytes());
+    HashFunction::Sha256.hash(&msg)
 }
