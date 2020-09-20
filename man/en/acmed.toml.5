@@ -183,6 +183,8 @@ ecdsa_p256
 .Aq default
 .It
 ecdsa_p384
+.It
+ecdsa_p521
 .El
 .It Cm signature_algorithm Ar string
 Name of the signature algorithm used to sign the messages sent to the endpoint as defined in
@@ -195,6 +197,8 @@ RS256
 ES256
 .It
 ES384
+.It
+ES512
 .El
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
@@ -301,6 +305,8 @@ rsa4096
 ecdsa_p256
 .It
 ecdsa_p384
+.It
+ecdsa_p521
 .El
 .It Ic csr_digest Ar string
 Name of the certificate's signing request digest algorithm. Possible values are:

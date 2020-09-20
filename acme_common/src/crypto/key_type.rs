@@ -9,6 +9,7 @@ pub enum KeyType {
     Rsa4096,
     EcdsaP256,
     EcdsaP384,
+    EcdsaP521,
     #[cfg(ed25519)]
     Ed25519,
     #[cfg(ed448)]
@@ -21,6 +22,7 @@ impl KeyType {
             KeyType::Rsa2048 | KeyType::Rsa4096 => JwsSignatureAlgorithm::Rs256,
             KeyType::EcdsaP256 => JwsSignatureAlgorithm::Es256,
             KeyType::EcdsaP384 => JwsSignatureAlgorithm::Es384,
+            KeyType::EcdsaP521 => JwsSignatureAlgorithm::Es512,
             #[cfg(ed25519)]
             KeyType::Ed25519 => JwsSignatureAlgorithm::Ed25519,
             #[cfg(ed448)]
@@ -31,7 +33,9 @@ impl KeyType {
     pub fn check_alg_compatibility(&self, alg: &JwsSignatureAlgorithm) -> Result<(), Error> {
         let ok = match self {
             KeyType::Rsa2048 | KeyType::Rsa4096 => *alg == JwsSignatureAlgorithm::Rs256,
-            KeyType::EcdsaP256 | KeyType::EcdsaP384 => *alg == self.get_default_signature_alg(),
+            KeyType::EcdsaP256 | KeyType::EcdsaP384 | KeyType::EcdsaP521 => {
+                *alg == self.get_default_signature_alg()
+            }
             #[cfg(ed25519)]
             KeyType::Ed25519 => *alg == self.get_default_signature_alg(),
             #[cfg(ed448)]
@@ -54,6 +58,7 @@ impl KeyType {
             "rsa4096",
             "ecdsa-p256",
             "ecdsa-p384",
+            "ecdsa-p521",
             #[cfg(ed25519)]
             "ed25519",
             #[cfg(ed448)]
@@ -71,6 +76,7 @@ impl FromStr for KeyType {
             "rsa4096" => Ok(KeyType::Rsa4096),
             "ecdsa_p256" => Ok(KeyType::EcdsaP256),
             "ecdsa_p384" => Ok(KeyType::EcdsaP384),
+            "ecdsa_p521" => Ok(KeyType::EcdsaP521),
             #[cfg(ed25519)]
             "ed25519" => Ok(KeyType::Ed25519),
             #[cfg(ed448)]
@@ -87,6 +93,7 @@ impl fmt::Display for KeyType {
             KeyType::Rsa4096 => "rsa4096",
             KeyType::EcdsaP256 => "ecdsa-p256",
             KeyType::EcdsaP384 => "ecdsa-p384",
+            KeyType::EcdsaP521 => "ecdsa-p521",
             #[cfg(ed25519)]
             KeyType::Ed25519 => "ed25519",
             #[cfg(ed448)]

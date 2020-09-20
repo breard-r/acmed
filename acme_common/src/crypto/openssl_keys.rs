@@ -25,6 +25,7 @@ macro_rules! get_key_type {
             Id::EC => match $key.ec_key()?.group().curve_name() {
                 Some(Nid::X9_62_PRIME256V1) => KeyType::EcdsaP256,
                 Some(Nid::SECP384R1) => KeyType::EcdsaP384,
+                Some(Nid::SECP521R1) => KeyType::EcdsaP521,
                 Some(nid) => {
                     return Err(format!("{:?}: unsupported EC key", nid).into());
                 }
@@ -41,6 +42,21 @@ macro_rules! get_key_type {
             }
         }
     };
+}
+
+macro_rules! get_ecdsa_sig_part {
+    ($part: expr, $size: ident) => {{
+        let mut p = $part.to_vec();
+        let length = p.len();
+        if length != $size {
+            let mut s: Vec<u8> = Vec::with_capacity($size);
+            s.resize_with($size - length, || 0);
+            s.append(&mut p);
+            s
+        } else {
+            p
+        }
+    }};
 }
 
 #[derive(Clone, Debug)]
@@ -95,6 +111,7 @@ impl KeyPair {
             JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
             JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&HashFunction::Sha256, data),
             JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&HashFunction::Sha384, data),
+            JwsSignatureAlgorithm::Es512 => self.sign_ecdsa(&HashFunction::Sha512, data),
             #[cfg(ed25519)]
             JwsSignatureAlgorithm::Ed25519 => self.sign_eddsa(data),
             #[cfg(ed448)]
@@ -112,8 +129,16 @@ impl KeyPair {
     fn sign_ecdsa(&self, hash_func: &HashFunction, data: &[u8]) -> Result<Vec<u8>, Error> {
         let fingerprint = hash_func.hash(data);
         let signature = EcdsaSig::sign(&fingerprint, self.inner_key.ec_key()?.as_ref())?;
-        let r = signature.r().to_vec();
-        let mut s = signature.s().to_vec();
+        let sig_size = match self.key_type {
+            KeyType::EcdsaP256 => 32,
+            KeyType::EcdsaP384 => 48,
+            KeyType::EcdsaP521 => 66,
+            _ => {
+                return Err("not an ecdsa key".into());
+            }
+        };
+        let r = get_ecdsa_sig_part!(signature.r(), sig_size);
+        let mut s = get_ecdsa_sig_part!(signature.s(), sig_size);
         let mut signature = r;
         signature.append(&mut s);
         Ok(signature)
@@ -137,7 +162,9 @@ impl KeyPair {
     fn get_jwk_public_key(&self, thumbprint: bool) -> Result<Value, Error> {
         match self.key_type {
             KeyType::Rsa2048 | KeyType::Rsa4096 => self.get_rsa_jwk(thumbprint),
-            KeyType::EcdsaP256 | KeyType::EcdsaP384 => self.get_ecdsa_jwk(thumbprint),
+            KeyType::EcdsaP256 | KeyType::EcdsaP384 | KeyType::EcdsaP521 => {
+                self.get_ecdsa_jwk(thumbprint)
+            }
             #[cfg(ed25519)]
             KeyType::Ed25519 => self.get_eddsa_jwk(thumbprint),
             #[cfg(ed448)]
@@ -173,6 +200,7 @@ impl KeyPair {
         let (crv, alg, curve) = match self.key_type {
             KeyType::EcdsaP256 => ("P-256", "ES256", Nid::X9_62_PRIME256V1),
             KeyType::EcdsaP384 => ("P-384", "ES384", Nid::SECP384R1),
+            KeyType::EcdsaP521 => ("P-521", "ES512", Nid::SECP521R1),
             _ => {
                 return Err("not an ECDSA elliptic curve".into());
             }
@@ -275,6 +303,7 @@ pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
         KeyType::Rsa4096 => gen_rsa_pair(4096),
         KeyType::EcdsaP256 => gen_ec_pair(Nid::X9_62_PRIME256V1),
         KeyType::EcdsaP384 => gen_ec_pair(Nid::SECP384R1),
+        KeyType::EcdsaP521 => gen_ec_pair(Nid::SECP521R1),
         #[cfg(ed25519)]
         KeyType::Ed25519 => gen_ed25519_pair(),
         #[cfg(ed448)]

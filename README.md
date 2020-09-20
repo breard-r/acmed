@@ -20,7 +20,7 @@ The Automatic Certificate Management Environment (ACME), is an internet standard
 
 - http-01, dns-01 and [tls-alpn-01](https://tools.ietf.org/html/rfc8737) challenges
 - IP identifier validation extension [RFC 8738](https://tools.ietf.org/html/rfc8738)
-- RSA 2048, RSA 4096, ECDSA P-256 and ECDSA P-384 certificates
+- RSA 2048, RSA 4096, ECDSA P-256, ECDSA P-384 and ECDSA P-521 certificates
 - Internationalized domain names support
 - Fully customizable challenge validation action
 - Fully customizable archiving method (yes, you can use git or anything else)
