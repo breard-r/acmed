@@ -330,6 +330,7 @@ Period of time between the certificate renewal and its expiration date. The form
 .Sx TIME PERIODS
 section. Default is the value defined in the associated endpoint.
 .El
+.El
 .Sh WRITING A HOOK
 When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every identifier to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
 .Pp
@@ -547,7 +548,7 @@ This hook is designed to solve the tls-alpn-01 challenge using
 It requires
 .Xr pkill 1
 to support the
-.Em Ar -F
+.Em -F
 option.
 .Pp
 .Xr tacd 8
@@ -570,7 +571,7 @@ This hook is designed to solve the tls-alpn-01 challenge using
 It requires
 .Xr pkill 1
 to support the
-.Em Ar -F
+.Em -F
 option.
 .Pp
 .Xr tacd 8
@@ -632,6 +633,7 @@ configuration file.
 Default accounts private and public keys directory.
 .It Pa /etc/acmed/certs
 Default certificates and associated private keys directory.
+.El
 .Sh EXAMPLES
 The following example defines a typical endpoint, account and certificate for a domain, several subdomains and an IP address.
 .Bd -literal -offset indent
@@ -722,7 +724,6 @@ hooks = ["http-01-echo"]
 env.HTTP_ROOT = "/srv/http"
 .Ed
 .Pp
-
 It is also possible to use
 .Xr sendmail 8
 in a hook in order to notif someone when the certificate request process is done.
@@ -746,7 +747,7 @@ status: {{status}}"""
 .Xr acmed 8 ,
 .Xr tacd 8
 .Sh STANDARDS
-.Bl
+.Bl -hyphen
 .It
 .Rs
 .%A Tom Preston-Werner

@@ -48,17 +48,19 @@ Specifies the location of the PID file
 Add a root certificate to the trust store. This option can be used multiple times.
 .It Fl V, -version
 Prints version information
+.El
 .Sh FILES
 .Bl -tag
 .It Pa /etc/acmed/acmed.toml
 Default
 .Nm
 configuration file.
+.El
 .Sh SEE ALSO
 .Xr acmed.toml 5 ,
 .Xr tacd 8
 .Sh STANDARDS
-.Bl
+.Bl -hyphen
 .It
 .Rs
 .%A R. Barnes
@@ -84,6 +86,7 @@ configuration file.
 .%R RFC 8738
 .%T Automated Certificate Management Environment (ACME) IP Identifier Validation Extension
 .Re
+.El
 .Sh AUTHORS
 .An Rodolphe Bréard
 .Aq rodolphe@breard.tf
