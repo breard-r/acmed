@@ -13,6 +13,38 @@ pub const CONTENT_TYPE_PEM: &str = "application/pem-certificate-chain";
 pub const HEADER_NONCE: &str = "Replay-Nonce";
 pub const HEADER_LOCATION: &str = "Location";
 
+pub struct ValidHttpResponse {
+    headers: attohttpc::header::HeaderMap,
+    pub body: String,
+}
+
+impl ValidHttpResponse {
+    pub fn get_header(&self, name: &str) -> Option<String> {
+        match self.headers.get(name) {
+            Some(r) => match header_to_string(r) {
+                Ok(h) => Some(h),
+                Err(_) => None,
+            },
+            None => None,
+        }
+    }
+
+    pub fn json<T>(&self) -> Result<T, Error>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        serde_json::from_str(&self.body).map_err(Error::from)
+    }
+
+    fn from_response(response: Response) -> Result<Self, Error> {
+        let (_status, headers, body) = response.split();
+        let body = body.text()?;
+        log::trace!("HTTP response headers: {:?}", headers);
+        log::trace!("HTTP response body: {}", body);
+        Ok(ValidHttpResponse { headers, body })
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum HttpError {
     ApiError(HttpApiError),
@@ -97,10 +129,10 @@ fn rate_limit(endpoint: &mut Endpoint) {
     endpoint.rl.block_until_allowed();
 }
 
-pub fn header_to_string(header_value: &header::HeaderValue) -> Result<String, Error> {
+fn header_to_string(header_value: &header::HeaderValue) -> Result<String, Error> {
     let s = header_value
         .to_str()
-        .map_err(|_| Error::from("invalid nonce format"))?;
+        .map_err(|_| Error::from("invalid header format"))?;
     Ok(s.to_string())
 }
 
@@ -130,14 +162,14 @@ pub fn get(
     endpoint: &mut Endpoint,
     root_certs: &[String],
     url: &str,
-) -> Result<Response, HttpError> {
+) -> Result<ValidHttpResponse, HttpError> {
     let mut session = get_session(root_certs)?;
     session.try_header(header::ACCEPT, CONTENT_TYPE_JSON)?;
     rate_limit(endpoint);
     let response = session.get(url).send()?;
     update_nonce(endpoint, &response)?;
     check_status(&response)?;
-    Ok(response)
+    ValidHttpResponse::from_response(response).map_err(HttpError::from)
 }
 
 pub fn post<F>(
@@ -147,7 +179,7 @@ pub fn post<F>(
     data_builder: &F,
     content_type: &str,
     accept: &str,
-) -> Result<Response, HttpError>
+) -> Result<ValidHttpResponse, HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
@@ -161,14 +193,16 @@ where
         let nonce = &endpoint.nonce.clone().unwrap_or_default();
         let body = data_builder(&nonce, url)?;
         rate_limit(endpoint);
+        log::trace!("POST request body: {}", body);
         let response = session.post(url).text(&body).send()?;
         update_nonce(endpoint, &response)?;
         match check_status(&response) {
             Ok(_) => {
-                return Ok(response);
+                return ValidHttpResponse::from_response(response).map_err(HttpError::from);
             }
             Err(_) => {
-                let api_err = response.json::<HttpApiError>()?;
+                let resp = ValidHttpResponse::from_response(response)?;
+                let api_err = resp.json::<HttpApiError>()?;
                 let acme_err = api_err.get_acme_type();
                 if !acme_err.is_recoverable() {
                     return Err(api_err.into());
@@ -185,7 +219,7 @@ pub fn post_jose<F>(
     root_certs: &[String],
     url: &str,
     data_builder: &F,
-) -> Result<Response, HttpError>
+) -> Result<ValidHttpResponse, HttpError>
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
