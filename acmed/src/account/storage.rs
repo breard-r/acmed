@@ -61,7 +61,7 @@ impl AccountKeyStorage {
 struct AccountEndpointStorage {
     creation_date: SystemTime,
     account_url: String,
-    order_url: String,
+    orders_url: String,
     key_hash: Vec<u8>,
     contacts_hash: Vec<u8>,
     external_account_hash: Vec<u8>,
@@ -72,7 +72,7 @@ impl AccountEndpointStorage {
         AccountEndpointStorage {
             creation_date: account_endpoint.creation_date,
             account_url: account_endpoint.account_url.clone(),
-            order_url: account_endpoint.order_url.clone(),
+            orders_url: account_endpoint.orders_url.clone(),
             key_hash: account_endpoint.key_hash.clone(),
             contacts_hash: account_endpoint.contacts_hash.clone(),
             external_account_hash: account_endpoint.external_account_hash.clone(),
@@ -83,7 +83,7 @@ impl AccountEndpointStorage {
         AccountEndpoint {
             creation_date: self.creation_date,
             account_url: self.account_url.clone(),
-            order_url: self.order_url.clone(),
+            orders_url: self.orders_url.clone(),
             key_hash: self.key_hash.clone(),
             contacts_hash: self.contacts_hash.clone(),
             external_account_hash: self.external_account_hash.clone(),

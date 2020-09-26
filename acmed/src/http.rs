@@ -1,4 +1,4 @@
-use crate::acme_proto::structs::HttpApiError;
+use crate::acme_proto::structs::{AcmeError, HttpApiError};
 use crate::endpoint::Endpoint;
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
@@ -56,6 +56,13 @@ impl HttpError {
         match error {
             HttpError::ApiError(e) => e.to_string().into(),
             HttpError::GenericError(e) => e,
+        }
+    }
+
+    pub fn is_acme_err(&self, acme_error: AcmeError) -> bool {
+        match self {
+            HttpError::ApiError(aerr) => aerr.get_acme_type() == acme_error,
+            HttpError::GenericError(_) => false,
         }
     }
 }

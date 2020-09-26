@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some subject attributes can now be specified.
 - Support for NIST P-521 certificates and account keys.
 
+### Fixed
+- Support for Let's Encrypt non-standard account creation object.
+
 
 ## [0.11.0] - 2020-09-19
 

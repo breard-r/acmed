@@ -5,7 +5,7 @@ use crate::endpoint::Endpoint;
 use crate::http::HttpError;
 use crate::jws::{encode_jwk, encode_jwk_no_nonce, encode_kid};
 use crate::logs::HasLogger;
-use crate::{set_data_builder, set_empty_data_builder};
+use crate::set_data_builder;
 use acme_common::error::Error;
 
 macro_rules! create_account_if_does_not_exist {
@@ -49,12 +49,19 @@ pub fn register_account(
     let (acc_rep, account_url) =
         http::new_account(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
     account.set_account_url(&endpoint.name, &account_url)?;
-    let msg = format!(
-        "endpoint \"{}\": account \"{}\": the server has not provided an order URL upon account creation",
-        &endpoint.name, &account.name
-    );
-    let order_url = acc_rep.orders.ok_or_else(|| Error::from(&msg))?;
-    account.set_order_url(&endpoint.name, &order_url)?;
+    let orders_url = match acc_rep.orders {
+        Some(url) => url,
+        None => {
+            let msg = format!(
+                "endpoint \"{}\": account \"{}\": the server has not provided an order URL upon account creation",
+                &endpoint.name,
+                &account.name
+            );
+            account.warn(&msg);
+            String::new()
+        }
+    };
+    account.set_orders_url(&endpoint.name, &orders_url)?;
     account.update_key_hash(&endpoint.name)?;
     account.update_contacts_hash(&endpoint.name)?;
     account.update_external_account_hash(&endpoint.name)?;
@@ -141,22 +148,5 @@ pub fn update_account_key(
         "account key updated on endpoint \"{}\"",
         &endpoint_name
     ));
-    Ok(())
-}
-
-pub fn check_account_exists(
-    endpoint: &mut Endpoint,
-    root_certs: &[String],
-    account: &mut BaseAccount,
-) -> Result<(), Error> {
-    let endpoint_name = endpoint.name.clone();
-    let url = account.get_endpoint(&endpoint_name)?.order_url.clone();
-    let data_builder = set_empty_data_builder!(account, endpoint_name);
-    create_account_if_does_not_exist!(
-        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
-        endpoint,
-        root_certs,
-        account
-    )?;
     Ok(())
 }

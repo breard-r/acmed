@@ -1,6 +1,6 @@
 use crate::account::Account;
 use crate::acme_proto::structs::{
-    ApiError, Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
+    AcmeError, ApiError, Authorization, AuthorizationStatus, NewOrder, Order, OrderStatus,
 };
 use crate::certificate::Certificate;
 use crate::endpoint::Endpoint;
@@ -98,14 +98,28 @@ pub fn request_certificate(
     account.synchronize(endpoint, root_certs)?;
 
     // Create a new order
-    let new_order = NewOrder::new(&cert.identifiers);
-    let new_order = serde_json::to_string(&new_order)?;
-    let data_builder = set_data_builder!(account, endpoint_name, new_order.as_bytes());
-    let (order, order_url) =
-        http::new_order(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
-    if let Some(e) = order.get_error() {
-        cert.warn(&e.prefix("Error").message);
-    }
+    let mut new_reg = false;
+    let (order, order_url) = loop {
+        let new_order = NewOrder::new(&cert.identifiers);
+        let new_order = serde_json::to_string(&new_order)?;
+        let data_builder = set_data_builder!(account, endpoint_name, new_order.as_bytes());
+        match http::new_order(endpoint, root_certs, &data_builder) {
+            Ok((order, order_url)) => {
+                if let Some(e) = order.get_error() {
+                    cert.warn(&e.prefix("Error").message);
+                }
+                break (order, order_url);
+            }
+            Err(e) => {
+                if !new_reg && e.is_acme_err(AcmeError::AccountDoesNotExist) {
+                    account.register(endpoint, root_certs)?;
+                    new_reg = true;
+                } else {
+                    return Err(HttpError::in_err(e));
+                }
+            }
+        };
+    };
 
     // Begin iter over authorizations
     for auth_url in order.authorizations.iter() {

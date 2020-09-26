@@ -1,6 +1,4 @@
-use crate::acme_proto::account::{
-    check_account_exists, register_account, update_account_contacts, update_account_key,
-};
+use crate::acme_proto::account::{register_account, update_account_contacts, update_account_key};
 use crate::endpoint::Endpoint;
 use crate::logs::HasLogger;
 use crate::storage::FileManager;
@@ -67,7 +65,7 @@ impl AccountKey {
 pub struct AccountEndpoint {
     pub creation_date: SystemTime,
     pub account_url: String,
-    pub order_url: String,
+    pub orders_url: String,
     pub key_hash: Vec<u8>,
     pub contacts_hash: Vec<u8>,
     pub external_account_hash: Vec<u8>,
@@ -78,7 +76,7 @@ impl AccountEndpoint {
         AccountEndpoint {
             creation_date: SystemTime::UNIX_EPOCH,
             account_url: String::new(),
-            order_url: String::new(),
+            orders_url: String::new(),
             key_hash: Vec::new(),
             contacts_hash: Vec::new(),
             external_account_hash: Vec::new(),
@@ -233,13 +231,18 @@ impl Account {
             if key_changed {
                 update_account_key(endpoint, root_certs, self)?;
             }
-            if !contacts_changed && !key_changed {
-                check_account_exists(endpoint, root_certs, self)?;
-            }
         } else {
             register_account(endpoint, root_certs, self)?;
         }
         Ok(())
+    }
+
+    pub fn register(
+        &mut self,
+        endpoint: &mut Endpoint,
+        root_certs: &[String],
+    ) -> Result<(), Error> {
+        register_account(endpoint, root_certs, self)
     }
 
     pub fn save(&self) -> Result<(), Error> {
@@ -252,9 +255,9 @@ impl Account {
         Ok(())
     }
 
-    pub fn set_order_url(&mut self, endpoint_name: &str, order_url: &str) -> Result<(), Error> {
+    pub fn set_orders_url(&mut self, endpoint_name: &str, orders_url: &str) -> Result<(), Error> {
         let mut ep = self.get_endpoint_mut(endpoint_name)?;
-        ep.order_url = order_url.to_string();
+        ep.orders_url = orders_url.to_string();
         Ok(())
     }
 
