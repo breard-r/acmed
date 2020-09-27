@@ -11,6 +11,11 @@ The first way to help is to actually use the software and [report any bug you en
 Since the author is not a native English speaker, some of the texts used in this project should be fixed.
 
 
+## Package it for your favorite system
+
+A great way to contribute to the project is to package it. You can check the packages status on [Repology](https://repology.org/project/acmed/versions).
+
+
 ## Work on dependencies
 
 ### rust-openssl
