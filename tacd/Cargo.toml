@@ -4,10 +4,11 @@ version = "0.12.0"
 authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 description = "TLS-ALPN Challenge Daemon"
-keywords = ["acme", "tls", "alpn", "X.509"]
-repository = "https://github.com/breard-r/acmed"
 readme = "../README.md"
+repository = "https://github.com/breard-r/acmed"
 license = "MIT OR Apache-2.0"
+keywords = ["acme", "tls", "alpn", "X.509"]
+categories = ["cryptography"]
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 publish = false
 

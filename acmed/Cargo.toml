@@ -4,12 +4,13 @@ version = "0.12.0"
 authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 description = "ACME (RFC 8555) client daemon"
-keywords = ["acme", "tls", "X.509"]
-repository = "https://github.com/breard-r/acmed"
 readme = "../README.md"
+repository = "https://github.com/breard-r/acmed"
 license = "MIT OR Apache-2.0"
-include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+keywords = ["acme", "tls", "X.509"]
+categories = ["cryptography"]
 build = "build.rs"
+include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 publish = false
 
 [features]
