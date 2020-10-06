@@ -1,9 +1,11 @@
 use crate::acme_proto::structs::{AcmeError, HttpApiError};
 use crate::endpoint::Endpoint;
+#[cfg(feature = "openssl_dyn")]
 use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
 use attohttpc::{charsets, header, Response, Session};
 use std::fs::File;
+#[cfg(feature = "openssl_dyn")]
 use std::io::prelude::*;
 use std::{thread, time};
 
@@ -157,10 +159,13 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
     session.try_header(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5")?;
     session.try_header(header::USER_AGENT, &useragent)?;
     for crt_file in root_certs.iter() {
-        let mut buff = Vec::new();
-        File::open(crt_file)?.read_to_end(&mut buff)?;
-        let crt = X509Certificate::from_pem_native(&buff)?;
-        session.add_root_certificate(crt);
+        #[cfg(feature = "openssl_dyn")]
+        {
+            let mut buff = Vec::new();
+            File::open(crt_file)?.read_to_end(&mut buff)?;
+            let crt = X509Certificate::from_pem_native(&buff)?;
+            session.add_root_certificate(crt);
+        }
     }
     Ok(session)
 }

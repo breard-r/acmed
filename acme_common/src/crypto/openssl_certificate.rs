@@ -12,12 +12,6 @@ use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-const APP_ORG: &str = "ACMEd";
-const APP_NAME: &str = "ACMEd";
-const X509_VERSION: i32 = 0x02;
-const CRT_SERIAL_NB_BITS: i32 = 32;
-const INVALID_EXT_MSG: &str = "invalid acmeIdentifier extension";
-
 fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
     #[cfg(not(any(ed25519, ed448)))]
     let digest = digest.native_digest();
@@ -162,16 +156,16 @@ fn gen_certificate(
     acme_ext: &str,
 ) -> Result<X509, Error> {
     let mut x509_name = X509NameBuilder::new()?;
-    x509_name.append_entry_by_text("O", APP_ORG)?;
-    let ca_name = format!("{} TLS-ALPN-01 Authority", APP_NAME);
+    x509_name.append_entry_by_text("O", super::APP_ORG)?;
+    let ca_name = format!("{} TLS-ALPN-01 Authority", super::APP_NAME);
     x509_name.append_entry_by_text("CN", &ca_name)?;
     let x509_name = x509_name.build();
 
     let mut builder = X509Builder::new()?;
-    builder.set_version(X509_VERSION)?;
+    builder.set_version(super::X509_VERSION)?;
     let serial_number = {
         let mut serial = BigNum::new()?;
-        serial.rand(CRT_SERIAL_NB_BITS - 1, MsbOption::MAYBE_ZERO, false)?;
+        serial.rand(super::CRT_SERIAL_NB_BITS - 1, MsbOption::MAYBE_ZERO, false)?;
         serial.to_asn1_integer()?
     };
     builder.set_serial_number(&serial_number)?;
@@ -191,16 +185,16 @@ fn gen_certificate(
     if !acme_ext.is_empty() {
         let ctx = builder.x509v3_context(None, None);
         let mut v: Vec<&str> = acme_ext.split('=').collect();
-        let value = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
-        let acme_ext_name = v.pop().ok_or_else(|| Error::from(INVALID_EXT_MSG))?;
+        let value = v.pop().ok_or_else(|| Error::from(super::INVALID_EXT_MSG))?;
+        let acme_ext_name = v.pop().ok_or_else(|| Error::from(super::INVALID_EXT_MSG))?;
         if !v.is_empty() {
-            return Err(Error::from(INVALID_EXT_MSG));
+            return Err(Error::from(super::INVALID_EXT_MSG));
         }
         let acme_ext = X509Extension::new(None, Some(&ctx), &acme_ext_name, &value)
-            .map_err(|_| Error::from(INVALID_EXT_MSG))?;
+            .map_err(|_| Error::from(super::INVALID_EXT_MSG))?;
         builder
             .append_extension(acme_ext)
-            .map_err(|_| Error::from(INVALID_EXT_MSG))?;
+            .map_err(|_| Error::from(super::INVALID_EXT_MSG))?;
     }
 
     builder.sign(&key_pair.inner_key, *digest)?;

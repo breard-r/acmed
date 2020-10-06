@@ -4,12 +4,22 @@ use std::str::FromStr;
 
 mod jws_signature_algorithm;
 mod key_type;
+#[cfg(feature = "openssl_dyn")]
 mod openssl_certificate;
+#[cfg(feature = "openssl_dyn")]
 mod openssl_hash;
+#[cfg(feature = "openssl_dyn")]
 mod openssl_keys;
+#[cfg(feature = "openssl_dyn")]
 mod openssl_subject_attribute;
+#[cfg(feature = "openssl_dyn")]
 mod openssl_version;
 
+const APP_ORG: &str = "ACMEd";
+const APP_NAME: &str = "ACMEd";
+const X509_VERSION: i32 = 0x02;
+const CRT_SERIAL_NB_BITS: i32 = 32;
+const INVALID_EXT_MSG: &str = "invalid acmeIdentifier extension";
 pub const CRT_NB_DAYS_VALIDITY: u32 = 7;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -70,8 +80,13 @@ impl fmt::Display for BaseHashFunction {
 
 pub use jws_signature_algorithm::JwsSignatureAlgorithm;
 pub use key_type::KeyType;
+#[cfg(feature = "openssl_dyn")]
 pub use openssl_certificate::{Csr, X509Certificate};
+#[cfg(feature = "openssl_dyn")]
 pub use openssl_hash::HashFunction;
+#[cfg(feature = "openssl_dyn")]
 pub use openssl_keys::{gen_keypair, KeyPair};
+#[cfg(feature = "openssl_dyn")]
 pub use openssl_subject_attribute::SubjectAttribute;
+#[cfg(feature = "openssl_dyn")]
 pub use openssl_version::{get_lib_name, get_lib_version};
