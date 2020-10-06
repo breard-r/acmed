@@ -26,10 +26,17 @@ See [issue #36](https://github.com/breard-r/acmed/issues/36).
 
 Although Botan isn't a dependency, it is considered for the replacement of OpenSSL as the default cryptographic API (although OpenSSL will be kept as an alternative). But before this can be done, the Botan crate need to support a few features:
 
+- Implement `Clone` for `botan::Privkey`.
 - Access to a certificate's expiration time (via `botan_sys::botan_x509_cert_get_time_expires`).
 - Access to a certificate's subject's alt names.
 - Self-signed certificate generation (via `botan_sys::botan_x509_cert_gen_selfsigned`).
 - CSR (requires to add bindings to [create_cert_req](https://botan.randombit.net/handbook/api_ref/x509.html#creating-pkcs-10-requests)) with DER export.
+
+If you know C/C++ and are highly motivated:
+
+1. Implement Botan's FFI for TLS.
+2. Implement TLS bindings in the `botan-sys` crate.
+3. Implement a TLS abstraction in the `botan` crate.
 
 ### attohttpc
 
