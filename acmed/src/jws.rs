@@ -12,32 +12,14 @@ struct JwsData {
 }
 
 #[derive(Serialize)]
-struct JwsProtectedHeaderJwkNoNonce {
+struct JwsProtectedHeader {
     alg: String,
-    jwk: Value,
-    url: String,
-}
-
-#[derive(Serialize)]
-struct JwsProtectedHeaderJwk {
-    alg: String,
-    jwk: Value,
-    nonce: String,
-    url: String,
-}
-
-#[derive(Serialize)]
-struct JwsProtectedHeaderKidNoNonce {
-    alg: String,
-    kid: String,
-    url: String,
-}
-
-#[derive(Serialize)]
-struct JwsProtectedHeaderKid {
-    alg: String,
-    kid: String,
-    nonce: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    jwk: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    kid: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    nonce: Option<String>,
     url: String,
 }
 
@@ -68,10 +50,11 @@ pub fn encode_jwk(
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let protected = JwsProtectedHeaderJwk {
+    let protected = JwsProtectedHeader {
         alg: sign_alg.to_string(),
-        jwk: key_pair.jwk_public_key()?,
-        nonce: nonce.into(),
+        jwk: Some(key_pair.jwk_public_key()?),
+        kid: None,
+        nonce: Some(nonce.into()),
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
@@ -84,9 +67,11 @@ pub fn encode_jwk_no_nonce(
     payload: &[u8],
     url: &str,
 ) -> Result<String, Error> {
-    let protected = JwsProtectedHeaderJwkNoNonce {
+    let protected = JwsProtectedHeader {
         alg: sign_alg.to_string(),
-        jwk: key_pair.jwk_public_key()?,
+        jwk: Some(key_pair.jwk_public_key()?),
+        kid: None,
+        nonce: None,
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
@@ -101,10 +86,11 @@ pub fn encode_kid(
     url: &str,
     nonce: &str,
 ) -> Result<String, Error> {
-    let protected = JwsProtectedHeaderKid {
+    let protected = JwsProtectedHeader {
         alg: sign_alg.to_string(),
-        kid: key_id.to_string(),
-        nonce: nonce.into(),
+        jwk: None,
+        kid: Some(key_id.to_string()),
+        nonce: Some(nonce.into()),
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
@@ -118,9 +104,11 @@ pub fn encode_kid_mac(
     payload: &[u8],
     url: &str,
 ) -> Result<String, Error> {
-    let protected = JwsProtectedHeaderKidNoNonce {
+    let protected = JwsProtectedHeader {
         alg: sign_alg.to_string(),
-        kid: key_id.to_string(),
+        jwk: None,
+        kid: Some(key_id.to_string()),
+        nonce: None,
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
