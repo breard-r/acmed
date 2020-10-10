@@ -20,7 +20,7 @@ openssl_vendored = ["crypto_openssl", "openssl/vendored", "openssl-sys/vendored"
 
 [dependencies]
 attohttpc = { version = "0.15", default-features = false }
-base64 = "0.12"
+base64 = "0.13"
 daemonize = "0.4"
 env_logger = "0.7"
 glob = "0.3"
