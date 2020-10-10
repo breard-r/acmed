@@ -6,7 +6,7 @@ DATADIR = $(DATAROOTDIR)
 MAN5DIR = $(DATADIR)/man/man5
 MAN8DIR = $(DATADIR)/man/man8
 SYSCONFDIR = /etc
-TARGET_DIR = ./target/release
+TARGET_DIR = ./target/$(TARGET)/release
 MAN_SRC_DIR = ./man/en
 MAN_DST_DIR = $(TARGET_DIR)/man
 
@@ -18,11 +18,19 @@ update:
 	cargo update
 
 acmed:
-	cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)"
+	if test -n "$(TARGET)"; then \
+	    cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
+	else \
+	    cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)"; \
+	fi
 	strip "$(TARGET_DIR)/acmed"
 
 tacd:
-	cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)"
+	if test -n "$(TARGET)"; then \
+	    cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
+	else \
+	    cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)"; \
+	fi
 	strip "$(TARGET_DIR)/tacd"
 
 man:

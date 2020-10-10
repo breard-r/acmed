@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - In the configuration, `root_certificates` has been added to the `global` and `endpoint` sections as an array of strings representing the path to root certificate files.
 - At compilation, it is now possible to statically link OpenSSL using the `openssl_vendored` feature.
-
+- In the Makefile, it is now possible to specify which target triple to build for.
 
 ## [0.12.0] - 2020-09-26
 
