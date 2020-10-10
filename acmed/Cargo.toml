@@ -15,7 +15,9 @@ publish = false
 
 [features]
 default = ["openssl_dyn"]
-openssl_dyn = ["acme_common/openssl_dyn", "attohttpc/tls"]
+crypto_openssl = []
+openssl_dyn = ["crypto_openssl", "acme_common/openssl_dyn", "attohttpc/tls"]
+openssl_vendored = ["crypto_openssl", "acme_common/openssl_vendored", "attohttpc/tls"]
 
 [dependencies]
 acme_common = { path = "../acme_common" }

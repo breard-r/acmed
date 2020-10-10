@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - In the configuration, `root_certificates` has been added to the `global` and `endpoint` sections as an array of strings representing the path to root certificate files.
+- At compilation, it is now possible to statically link OpenSSL using the `openssl_vendored` feature.
 
 
 ## [0.12.0] - 2020-09-26

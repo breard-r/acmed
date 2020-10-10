@@ -10,17 +10,19 @@ TARGET_DIR = ./target/release
 MAN_SRC_DIR = ./man/en
 MAN_DST_DIR = $(TARGET_DIR)/man
 
+FEATURES = openssl_dyn
+
 all: update acmed tacd man
 
 update:
 	cargo update
 
 acmed:
-	cargo build --release --bin acmed
+	cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)"
 	strip "$(TARGET_DIR)/acmed"
 
 tacd:
-	cargo build --release --bin tacd
+	cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)"
 	strip "$(TARGET_DIR)/tacd"
 
 man:

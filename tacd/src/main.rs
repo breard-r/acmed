@@ -1,7 +1,7 @@
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_server;
 
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::{get_lib_name, get_lib_version, HashFunction, KeyType, X509Certificate};
 use acme_common::error::Error;

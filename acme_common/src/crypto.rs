@@ -4,15 +4,15 @@ use std::str::FromStr;
 
 mod jws_signature_algorithm;
 mod key_type;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_certificate;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_hash;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_keys;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_subject_attribute;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 mod openssl_version;
 
 const APP_ORG: &str = "ACMEd";
@@ -80,13 +80,13 @@ impl fmt::Display for BaseHashFunction {
 
 pub use jws_signature_algorithm::JwsSignatureAlgorithm;
 pub use key_type::KeyType;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 pub use openssl_certificate::{Csr, X509Certificate};
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 pub use openssl_hash::HashFunction;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 pub use openssl_keys::{gen_keypair, KeyPair};
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 pub use openssl_subject_attribute::SubjectAttribute;
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 pub use openssl_version::{get_lib_name, get_lib_version};

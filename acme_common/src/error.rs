@@ -111,14 +111,14 @@ impl From<handlebars::TemplateRenderError> for Error {
     }
 }
 
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 impl From<native_tls::Error> for Error {
     fn from(error: native_tls::Error) -> Self {
         format!("{}", error).into()
     }
 }
 
-#[cfg(feature = "openssl_dyn")]
+#[cfg(feature = "crypto_openssl")]
 impl From<openssl::error::ErrorStack> for Error {
     fn from(error: openssl::error::ErrorStack) -> Self {
         format!("{}", error).into()
