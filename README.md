@@ -77,6 +77,29 @@ $ make install
 
 To build ACMEd and tacd inside a temporary Docker container, use the `contrib/build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
 
+### Advanced options
+
+You can specify a space or comma separated list of features to activate in the `FEATURE` variable. The possible features are:
+
+- `openssl_dyn` (default): use OpenSSL as the cryptographic library, dynamically linked (mutually exclusive with `openssl_vendored`).
+- `openssl_vendored`: use OpenSSL as the cryptographic library, statically linked (mutually exclusive with `openssl_dyn`).
+
+You can also specify the target triple to build for in the `TARGET` variable. Please note that, if used, this variable must be specified for both `make` and `make install`.
+
+For example, you can build statically linked binaries using the `openssl_vendored` feature and the `x86_64-unknown-linux-musl` target.
+
+```
+make FEATURES="openssl_vendored" TARGET="x86_64-unknown-linux-musl"
+```
+
+### Packaging
+
+Most of the time, when packaging, you want to install the program in a dedicated directory. This is possible using the `DESTDIR` variable.
+
+```
+make DESTDIR="/path/to/my/package/directory" install
+```
+
 
 ## Frequently Asked Questions
 
