@@ -15,13 +15,8 @@ use std::time::Duration;
 type AccountSync = Arc<RwLock<Account>>;
 type EndpointSync = Arc<RwLock<Endpoint>>;
 
-fn renew_certificate(
-    crt: &Certificate,
-    root_certs: &[String],
-    endpoint: &mut Endpoint,
-    account: &mut Account,
-) {
-    let (status, is_success) = match request_certificate(crt, root_certs, endpoint, account) {
+fn renew_certificate(crt: &Certificate, endpoint: &mut Endpoint, account: &mut Account) {
+    let (status, is_success) = match request_certificate(crt, endpoint, account) {
         Ok(_) => ("success".to_string(), true),
         Err(e) => {
             let e = e.prefix("unable to renew the certificate");
@@ -40,7 +35,6 @@ fn renew_certificate(
 
 pub struct MainEventLoop {
     certs: Vec<Certificate>,
-    root_certs: Vec<String>,
     accounts: HashMap<String, AccountSync>,
     endpoints: HashMap<String, EndpointSync>,
 }
@@ -98,7 +92,7 @@ impl MainEventLoop {
         let mut certs = Vec::new();
         let mut endpoints = HashMap::new();
         for (i, crt) in cnf.certificate.iter().enumerate() {
-            let endpoint = crt.get_endpoint(&cnf)?;
+            let endpoint = crt.get_endpoint(&cnf, root_certs)?;
             let endpoint_name = endpoint.name.clone();
             let crt_name = crt.get_crt_name()?;
             let key_type = crt.get_key_type()?;
@@ -155,7 +149,6 @@ impl MainEventLoop {
 
         Ok(MainEventLoop {
             certs,
-            root_certs: root_certs.iter().map(|v| (*v).to_string()).collect(),
             accounts: accounts
                 .iter()
                 .map(|(k, v)| (k.to_owned(), Arc::new(RwLock::new(v.to_owned()))))
@@ -194,13 +187,12 @@ impl MainEventLoop {
             }
             let mut accounts_lock = self.accounts.clone();
             let ep_lock = endpoint_lock.clone();
-            let rc = self.root_certs.clone();
             let handle = thread::spawn(move || {
                 let mut endpoint = ep_lock.write().unwrap();
                 for crt in certs_to_renew {
                     if let Some(acc_lock) = accounts_lock.get_mut(&crt.account_name) {
                         let mut account = acc_lock.write().unwrap();
-                        renew_certificate(&crt, &rc, &mut endpoint, &mut account);
+                        renew_certificate(&crt, &mut endpoint, &mut account);
                     };
                 }
             });

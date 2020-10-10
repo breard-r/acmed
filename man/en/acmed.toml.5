@@ -68,6 +68,8 @@ for more details.
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
 section. Default is 3w.
+.It Cm root_certificates Ar array
+Array containing the path to root certificates that should be added to the trust store.
 .El
 .It Ic rate-limit
 Array of table where each element defines a HTTPS rate limit.
@@ -99,6 +101,8 @@ The endpoint's directory URL.
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
 section. Default is the value defined in the global section.
+.It Cm root_certificates Ar array
+Array containing the path to root certificates that should be added to the trust store.
 .El
 .It Ic hook
 Array of table where each element defines a command that will be launched at a defined point. See section

@@ -106,10 +106,10 @@ fn is_nonce(data: &str) -> bool {
             .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
 }
 
-fn new_nonce(endpoint: &mut Endpoint, root_certs: &[String]) -> Result<(), HttpError> {
+fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
     rate_limit(endpoint);
     let url = endpoint.dir.new_nonce.clone();
-    let _ = get(endpoint, root_certs, &url)?;
+    let _ = get(endpoint, &url)?;
     Ok(())
 }
 
@@ -170,12 +170,8 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
     Ok(session)
 }
 
-pub fn get(
-    endpoint: &mut Endpoint,
-    root_certs: &[String],
-    url: &str,
-) -> Result<ValidHttpResponse, HttpError> {
-    let mut session = get_session(root_certs)?;
+pub fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse, HttpError> {
+    let mut session = get_session(&endpoint.root_certificates)?;
     session.try_header(header::ACCEPT, CONTENT_TYPE_JSON)?;
     rate_limit(endpoint);
     let response = session.get(url).send()?;
@@ -186,7 +182,6 @@ pub fn get(
 
 pub fn post<F>(
     endpoint: &mut Endpoint,
-    root_certs: &[String],
     url: &str,
     data_builder: &F,
     content_type: &str,
@@ -195,11 +190,11 @@ pub fn post<F>(
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
-    let mut session = get_session(root_certs)?;
+    let mut session = get_session(&endpoint.root_certificates)?;
     session.try_header(header::ACCEPT, accept)?;
     session.try_header(header::CONTENT_TYPE, content_type)?;
     if endpoint.nonce.is_none() {
-        let _ = new_nonce(endpoint, root_certs);
+        let _ = new_nonce(endpoint);
     }
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let nonce = &endpoint.nonce.clone().unwrap_or_default();
@@ -228,7 +223,6 @@ where
 
 pub fn post_jose<F>(
     endpoint: &mut Endpoint,
-    root_certs: &[String],
     url: &str,
     data_builder: &F,
 ) -> Result<ValidHttpResponse, HttpError>
@@ -237,7 +231,6 @@ where
 {
     post(
         endpoint,
-        root_certs,
         url,
         data_builder,
         CONTENT_TYPE_JOSE,

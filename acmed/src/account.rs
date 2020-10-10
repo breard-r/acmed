@@ -202,11 +202,7 @@ impl Account {
             .or_insert_with(AccountEndpoint::new);
     }
 
-    pub fn synchronize(
-        &mut self,
-        endpoint: &mut Endpoint,
-        root_certs: &[String],
-    ) -> Result<(), Error> {
+    pub fn synchronize(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
         let acc_ep = self.get_endpoint(&endpoint.name)?;
         if !acc_ep.account_url.is_empty() {
             if let Some(ec) = &self.external_account {
@@ -217,7 +213,7 @@ impl Account {
                         &endpoint.name
                     );
                     self.info(&msg);
-                    register_account(endpoint, root_certs, self)?;
+                    register_account(endpoint, self)?;
                     return Ok(());
                 }
             }
@@ -226,23 +222,19 @@ impl Account {
             let contacts_changed = ct_hash != acc_ep.contacts_hash;
             let key_changed = key_hash != acc_ep.key_hash;
             if contacts_changed {
-                update_account_contacts(endpoint, root_certs, self)?;
+                update_account_contacts(endpoint, self)?;
             }
             if key_changed {
-                update_account_key(endpoint, root_certs, self)?;
+                update_account_key(endpoint, self)?;
             }
         } else {
-            register_account(endpoint, root_certs, self)?;
+            register_account(endpoint, self)?;
         }
         Ok(())
     }
 
-    pub fn register(
-        &mut self,
-        endpoint: &mut Endpoint,
-        root_certs: &[String],
-    ) -> Result<(), Error> {
-        register_account(endpoint, root_certs, self)
+    pub fn register(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
+        register_account(endpoint, self)
     }
 
     pub fn save(&self) -> Result<(), Error> {

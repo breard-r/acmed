@@ -13,6 +13,7 @@ pub struct Endpoint {
     pub nonce: Option<String>,
     pub rl: RateLimit,
     pub dir: Directory,
+    pub root_certificates: Vec<String>,
 }
 
 impl Endpoint {
@@ -21,6 +22,7 @@ impl Endpoint {
         url: &str,
         tos_agreed: bool,
         limits: &[(usize, String)],
+        root_certs: &[String],
     ) -> Result<Self, Error> {
         Ok(Self {
             name: name.to_string(),
@@ -37,6 +39,7 @@ impl Endpoint {
                 revoke_cert: String::new(),
                 key_change: String::new(),
             },
+            root_certificates: root_certs.to_vec(),
         })
     }
 }

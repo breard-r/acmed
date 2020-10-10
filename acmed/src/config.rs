@@ -186,6 +186,7 @@ pub struct GlobalOptions {
     #[serde(default)]
     pub env: HashMap<String, String>,
     pub renew_delay: Option<String>,
+    pub root_certificates: Option<Vec<String>>,
 }
 
 impl GlobalOptions {
@@ -206,6 +207,7 @@ pub struct Endpoint {
     #[serde(default)]
     pub rate_limits: Vec<String>,
     pub renew_delay: Option<String>,
+    pub root_certificates: Option<Vec<String>>,
 }
 
 impl Endpoint {
@@ -219,13 +221,33 @@ impl Endpoint {
         }
     }
 
-    fn to_generic(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+    fn to_generic(
+        &self,
+        cnf: &Config,
+        root_certs: &[&str],
+    ) -> Result<crate::endpoint::Endpoint, Error> {
         let mut limits = vec![];
         for rl_name in self.rate_limits.iter() {
             let (nb, timeframe) = cnf.get_rate_limit(&rl_name)?;
             limits.push((nb, timeframe));
         }
-        crate::endpoint::Endpoint::new(&self.name, &self.url, self.tos_agreed, &limits)
+        let mut root_lst: Vec<String> = vec![];
+        root_lst.extend(root_certs.iter().map(|v| v.to_string()));
+        if let Some(crt_lst) = &self.root_certificates {
+            root_lst.extend(crt_lst.iter().map(|v| v.to_owned()));
+        }
+        if let Some(glob) = &cnf.global {
+            if let Some(crt_lst) = &glob.root_certificates {
+                root_lst.extend(crt_lst.iter().map(|v| v.to_owned()));
+            }
+        }
+        crate::endpoint::Endpoint::new(
+            &self.name,
+            &self.url,
+            self.tos_agreed,
+            &limits,
+            root_lst.as_slice(),
+        )
     }
 }
 
@@ -477,9 +499,13 @@ impl Certificate {
         Err(format!("{}: unknown endpoint", self.endpoint).into())
     }
 
-    pub fn get_endpoint(&self, cnf: &Config) -> Result<crate::endpoint::Endpoint, Error> {
+    pub fn get_endpoint(
+        &self,
+        cnf: &Config,
+        root_certs: &[&str],
+    ) -> Result<crate::endpoint::Endpoint, Error> {
         let endpoint = self.do_get_endpoint(cnf)?;
-        endpoint.to_generic(cnf)
+        endpoint.to_generic(cnf, root_certs)
     }
 
     pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {

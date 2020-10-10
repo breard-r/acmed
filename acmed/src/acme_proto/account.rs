@@ -9,7 +9,7 @@ use crate::set_data_builder;
 use acme_common::error::Error;
 
 macro_rules! create_account_if_does_not_exist {
-    ($e: expr, $endpoint: ident, $root_certs: ident, $account: ident) => {
+    ($e: expr, $endpoint: ident, $account: ident) => {
         match $e {
             Ok(r) => Ok(r),
             Err(he) => match he {
@@ -20,7 +20,7 @@ macro_rules! create_account_if_does_not_exist {
                             $endpoint.name
                         );
                         $account.debug(&msg);
-                        return register_account($endpoint, $root_certs, $account);
+                        return register_account($endpoint, $account);
                     }
                     _ => Err(HttpError::in_err(he.to_owned())),
                 },
@@ -30,11 +30,7 @@ macro_rules! create_account_if_does_not_exist {
     };
 }
 
-pub fn register_account(
-    endpoint: &mut Endpoint,
-    root_certs: &[String],
-    account: &mut BaseAccount,
-) -> Result<(), Error> {
+pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> Result<(), Error> {
     account.debug(&format!(
         "creating account on endpoint \"{}\"...",
         &endpoint.name
@@ -47,7 +43,7 @@ pub fn register_account(
     let data_builder =
         |n: &str, url: &str| encode_jwk(kp_ref, signature_algorithm, acc_ref.as_bytes(), url, n);
     let (acc_rep, account_url) =
-        http::new_account(endpoint, root_certs, &data_builder).map_err(HttpError::in_err)?;
+        http::new_account(endpoint, &data_builder).map_err(HttpError::in_err)?;
     account.set_account_url(&endpoint.name, &account_url)?;
     let orders_url = match acc_rep.orders {
         Some(url) => url,
@@ -75,7 +71,6 @@ pub fn register_account(
 
 pub fn update_account_contacts(
     endpoint: &mut Endpoint,
-    root_certs: &[String],
     account: &mut BaseAccount,
 ) -> Result<(), Error> {
     let endpoint_name = endpoint.name.clone();
@@ -89,9 +84,8 @@ pub fn update_account_contacts(
     let data_builder = set_data_builder!(account, endpoint_name, acc_up_struct.as_bytes());
     let url = account.get_endpoint(&endpoint_name)?.account_url.clone();
     create_account_if_does_not_exist!(
-        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
+        http::post_jose_no_response(endpoint, &data_builder, &url),
         endpoint,
-        root_certs,
         account
     )?;
     account.update_contacts_hash(&endpoint_name)?;
@@ -103,11 +97,7 @@ pub fn update_account_contacts(
     Ok(())
 }
 
-pub fn update_account_key(
-    endpoint: &mut Endpoint,
-    root_certs: &[String],
-    account: &mut BaseAccount,
-) -> Result<(), Error> {
+pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) -> Result<(), Error> {
     let endpoint_name = endpoint.name.clone();
     account.debug(&format!(
         "updating account key on endpoint \"{}\"...",
@@ -137,9 +127,8 @@ pub fn update_account_key(
         )
     };
     create_account_if_does_not_exist!(
-        http::post_jose_no_response(endpoint, root_certs, &data_builder, &url),
+        http::post_jose_no_response(endpoint, &data_builder, &url),
         endpoint,
-        root_certs,
         account
     )?;
     account.update_key_hash(&endpoint_name)?;
