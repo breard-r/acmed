@@ -33,7 +33,7 @@ serde_json = "1.0"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.18"
+nix = "0.19"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
