@@ -59,6 +59,14 @@ This project provides the following man pages:
 - acmed.toml (5)
 - tacd (8)
 
+An easy way to read those pages without installing ACMEd is to downloads and pipe them to the man utility:
+
+```
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.8" | man -l -
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.toml.5" | man -l -
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/tacd.8" | man -l -
+```
+
 
 ## Build from source
 
