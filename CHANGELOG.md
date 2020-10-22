@@ -13,16 +13,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- Add proxy support through the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables.
+
+### Changed
+- The minimal required Rust version is 1.42.0.
+
+
 ## [0.13.0] - 2020-10-10
 
 ### Added
 - In the configuration, `root_certificates` has been added to the `global` and `endpoint` sections as an array of strings representing the path to root certificate files.
 - At compilation, it is now possible to statically link OpenSSL using the `openssl_vendored` feature.
 - In the Makefile, it is now possible to specify which target triple to build for.
-- Add proxy support through the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables.
-
-### Changed
-- The minimal required Rust version is 1.42.0.
 
 
 ## [0.12.0] - 2020-09-26
