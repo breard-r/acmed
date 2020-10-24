@@ -22,15 +22,13 @@ pub struct Certificate {
     pub hooks: Vec<Hook>,
     pub crt_name: String,
     pub env: HashMap<String, String>,
-    pub id: usize,
     pub renew_delay: Duration,
     pub file_manager: FileManager,
 }
 
 impl fmt::Display for Certificate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // TODO: set a more "funky" id
-        write!(f, "crt-{:x}", self.id)
+        write!(f, "{}", self.crt_name)
     }
 }
 

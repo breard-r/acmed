@@ -176,15 +176,15 @@ impl Config {
 #[serde(deny_unknown_fields)]
 pub struct GlobalOptions {
     pub accounts_directory: Option<String>,
-    pub certificates_directory: Option<String>,
+    pub cert_file_group: Option<String>,
     pub cert_file_mode: Option<u32>,
     pub cert_file_user: Option<String>,
-    pub cert_file_group: Option<String>,
-    pub pk_file_mode: Option<u32>,
-    pub pk_file_user: Option<String>,
-    pub pk_file_group: Option<String>,
+    pub certificates_directory: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub pk_file_group: Option<String>,
+    pub pk_file_mode: Option<u32>,
+    pub pk_file_user: Option<String>,
     pub renew_delay: Option<String>,
     pub root_certificates: Option<Vec<String>>,
 }
@@ -202,12 +202,12 @@ impl GlobalOptions {
 #[serde(deny_unknown_fields)]
 pub struct Endpoint {
     pub name: String,
-    pub url: String,
-    pub tos_agreed: bool,
     #[serde(default)]
     pub rate_limits: Vec<String>,
     pub renew_delay: Option<String>,
     pub root_certificates: Option<Vec<String>>,
+    pub tos_agreed: bool,
+    pub url: String,
 }
 
 impl Endpoint {
@@ -262,16 +262,16 @@ pub struct RateLimit {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Hook {
-    pub name: String,
-    #[serde(rename = "type")]
-    pub hook_type: Vec<HookType>,
-    pub cmd: String,
+    pub allow_failure: Option<bool>,
     pub args: Option<Vec<String>>,
+    pub cmd: String,
+    pub name: String,
+    pub stderr: Option<String>,
     pub stdin: Option<String>,
     pub stdin_str: Option<String>,
     pub stdout: Option<String>,
-    pub stderr: Option<String>,
-    pub allow_failure: Option<bool>,
+    #[serde(rename = "type")]
+    pub hook_type: Vec<HookType>,
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize)]
@@ -299,8 +299,8 @@ pub enum HookType {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Group {
-    pub name: String,
     pub hooks: Vec<String>,
+    pub name: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -340,14 +340,14 @@ impl ExternalAccount {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Account {
-    pub name: String,
     pub contacts: Vec<AccountContact>,
-    pub key_type: Option<String>,
-    pub signature_algorithm: Option<String>,
-    pub hooks: Option<Vec<String>>,
-    pub external_account: Option<ExternalAccount>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub external_account: Option<ExternalAccount>,
+    pub hooks: Option<Vec<String>>,
+    pub key_type: Option<String>,
+    pub name: String,
+    pub signature_algorithm: Option<String>,
 }
 
 impl Account {
@@ -407,21 +407,20 @@ impl AccountContact {
 #[serde(deny_unknown_fields)]
 pub struct Certificate {
     pub account: String,
-    pub endpoint: String,
-    pub identifiers: Vec<Identifier>,
-    #[serde(default)]
-    pub subject_attributes: SubjectAttributes,
-    pub key_type: Option<String>,
     pub csr_digest: Option<String>,
-    pub kp_reuse: Option<bool>,
     pub directory: Option<String>,
-    pub name: Option<String>,
-    pub name_format: Option<String>,
-    pub formats: Option<Vec<String>>,
-    pub hooks: Vec<String>,
+    pub endpoint: String,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub file_name_format: Option<String>,
+    pub hooks: Vec<String>,
+    pub identifiers: Vec<Identifier>,
+    pub key_type: Option<String>,
+    pub kp_reuse: Option<bool>,
+    pub name: Option<String>,
     pub renew_delay: Option<String>,
+    #[serde(default)]
+    pub subject_attributes: SubjectAttributes,
 }
 
 impl Certificate {
@@ -465,12 +464,12 @@ impl Certificate {
                 id.to_string()
             }
         };
-        let name = name.replace("*", "_").replace(":", "_");
+        let name = name.replace("*", "_").replace(":", "_").replace("/", "_");
         Ok(name)
     }
 
     pub fn get_crt_name_format(&self) -> String {
-        match &self.name_format {
+        match &self.file_name_format {
             Some(n) => n.to_string(),
             None => crate::DEFAULT_CERT_FORMAT.to_string(),
         }
@@ -534,9 +533,9 @@ impl Certificate {
 pub struct Identifier {
     pub challenge: String,
     pub dns: Option<String>,
-    pub ip: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub ip: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for Identifier {

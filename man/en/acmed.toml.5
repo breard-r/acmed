@@ -153,6 +153,15 @@ rsa4096
 .El
 .It Ic kp_reuse Ar boolean
 Set whether or not the private key should be reused when renewing the certificate. Default is false.
+.It Ic name
+Name of the certificate. Must be unique. Will be used in logs and in the associated file's name. The
+.Sq * ,
+.So
+:
+.Sc
+and
+.Sq /
+characters will be replaced by an underscore. Default is the first identifier.
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS

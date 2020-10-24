@@ -89,12 +89,16 @@ impl MainEventLoop {
             accounts.insert(acc.name.clone(), account);
         }
 
-        let mut certs = Vec::new();
+        let mut certs: Vec<Certificate> = Vec::new();
         let mut endpoints = HashMap::new();
-        for (i, crt) in cnf.certificate.iter().enumerate() {
+        for crt in cnf.certificate.iter() {
             let endpoint = crt.get_endpoint(&cnf, root_certs)?;
             let endpoint_name = endpoint.name.clone();
             let crt_name = crt.get_crt_name()?;
+            if certs.iter().any(|c| c.crt_name == crt_name) {
+                let msg = format!("{}: duplicate certificate name", crt_name);
+                return Err(msg.into());
+            }
             let key_type = crt.get_key_type()?;
             let hooks = crt.get_hooks(&cnf)?;
             let fm = FileManager {
@@ -132,7 +136,6 @@ impl MainEventLoop {
                     .collect(),
                 crt_name,
                 env: crt.env.to_owned(),
-                id: i + 1,
                 renew_delay: crt.get_renew_delay(&cnf)?,
                 file_manager: fm,
             };

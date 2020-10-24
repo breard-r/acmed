@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add proxy support through the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables.
+- Allow to specify a unique name for each certificate.
 
 ### Changed
 - The minimal required Rust version is 1.42.0.
