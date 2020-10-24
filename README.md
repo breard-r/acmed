@@ -147,7 +147,7 @@ It depends on your definition of a beginner. This software is intended to be use
 
 ACMEd releases do work properly. Knowing that new users tend to shoot themselves in the foot with hooks, you might want to check those before considering moving away to a different software. Files path and permissions are very common traps, you definitely want to check those.
 
-By the way, don't forget to change the log verbosity using `--log-level debug`.
+By the way, don't forget to change the log verbosity using `--log-level trace`.
 
 ### Should ACMEd run as root?
 
@@ -202,9 +202,9 @@ Before choosing a different algorithm for your certificate's signature, you migh
 
 * For security, you may refer to the table 2 of the [NIST SP 800-57 Part 1](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final).
 * For performances, you can launch the following command on your machine: `openssl speed rsa2048 rsa3072 rsa4096 ecdsap256 ecdsap384 ecdsap521 ed25519 ed448`. Your server will be affected by the signature performances and the clients connecting to it will be affected by the verification performances.
-* Nowadays, every client support ECDSA support. So, unless you have very specific requirements, you can safely use it. At time of writing, EdDSA certificates are not yet supported, but it might become a thing in the future.
+* Nowadays, every client support ECDSA. Therefore, unless you have very specific requirements, you can safely use it. At time of writing, EdDSA certificates are not yet supported, but it might become a thing in the future.
 
-Currently, security and client support aren't the main concerns since every possible type of certificates is good enough on those two points. The performances clearly favors ECDSA P-256, Ed25519 and RSA 2048. The later has been chosen as the default because it's the most wildly used as Certification Authorities root and intermediate certificates. This choice could change in favor of ECDSA once Let's Encrypt issues [a full ECDSA certificates chain](https://community.letsencrypt.org/t/lets-encrypt-new-hierarchy-plans/125517).
+Currently, security and client support aren't the main concerns since every possible type of certificates is good enough on those two points. The performances clearly favors ECDSA P-256, Ed25519 and RSA 2048. The later has been chosen as the default because it's the most wildly used as Certification Authorities root and intermediate certificates. This choice may change in favor of ECDSA since Let's Encrypt issued [a full ECDSA certificates chain](https://letsencrypt.org/2020/09/17/new-root-and-intermediates.html).
 
 ### Why is ECDSA P-256 the default account key type?
 
