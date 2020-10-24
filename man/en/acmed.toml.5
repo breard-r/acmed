@@ -18,155 +18,9 @@ It is written in the
 .Em TOML
 format. The allowed elements are described below.
 .Bl -tag
-.It Ic include
-Array containing the path to configuration file to include. The path can be either relative or absolute. If relative, it is relative to the configuration file which included it.
-.Pp
-In case or overlapping global option definition, the one of the last included file will be used. For example, if a file
-.Em A
-includes files
-.Em B
-and
-.Em C
-and all three defines the same global option, the final value will be the one defined in file
-.Em C .
-.Pp
-Unix style globing is supported.
-.It Ic global
-Table containing the global configuration options.
-.Bl -tag
-.It Cm accounts_directory Ar string
-Specify the directory where the accounts private and public keys are stored.
-.It Cm certificates_directory Ar string
-Specify the directory where the certificates and their associated private keys are stored.
-.It Cm cert_file_mode Ar integer
-Specify the permissions to use for newly-created certificates files. See
-.Xr chmod 2
-for more details.
-.It Cm cert_file_user Ar username|user_id Ft string
-Specify the user who will own newly-created certificates files. See
-.Xr chown 2
-for more details.
-.It Cm cert_file_group Ar group_name|group_id Ft string
-Specify the group who will own newly-created certificates files. See
-.Xr chown 2
-for more details.
-.It Ic env Ar table
-Table of environment variables that will be accessible from hooks.
-.It Cm pk_file_mode Ar integer
-Specify the permissions to use for newly-created private-key files. See
-.Xr chmod 2
-for more details.
-.It Cm pk_file_user Ar username|user_id Ft string
-Specify the user who will own newly-created private-key files. See
-.Xr chown 2
-for more details.
-.It Cm pk_file_group Ar group_name|group_id Ft string
-Specify the group who will own newly-created private-key files. See
-.Xr chown 2
-for more details.
-.It Cm renew_delay Ar string
-Period of time between the certificate renewal and its expiration date. The format is described in the
-.Sx TIME PERIODS
-section. Default is 3w.
-.It Cm root_certificates Ar array
-Array containing the path to root certificates that should be added to the trust store.
-.El
-.It Ic rate-limit
-Array of table where each element defines a HTTPS rate limit.
-.Bl -tag
-.It Cm name Ar string
-The name the rate limit is registered under. Must be unique.
-.It Cm number Ar integer
-Number of requests authorized withing the time period.
-.It Cm period Ar string
-Period of time during which a maximal number of requests is authorized. The format is described in the
-.Sx TIME PERIODS
-section.
-.El
-.It Ic endpoint
-Array of table where each element defines a Certificate Authority
-.Pq CA
-which may be used to request certificates.
-.Bl -tag
-.It Cm name Ar string
-The name the endpoint is registered under. Must be unique.
-.It Cm rate_limits Ar array
-Array containing the names of the HTTPS rate limits to apply.
-.It Cm tos_agreed Ar boolean
-Set whether or not the user agrees to the Terms Of Service
-.Pq TOS .
-.It Cm url Ar string
-The endpoint's directory URL.
-.It Cm renew_delay Ar string
-Period of time between the certificate renewal and its expiration date. The format is described in the
-.Sx TIME PERIODS
-section. Default is the value defined in the global section.
-.It Cm root_certificates Ar array
-Array containing the path to root certificates that should be added to the trust store.
-.El
-.It Ic hook
-Array of table where each element defines a command that will be launched at a defined point. See section
-.Sx WRITING A HOOK
-for more details.
-.Bl -tag
-.It Cm allow_failure Ar boolean
-Defines if an error return value for this hook is allowed or not. If not allowed, a failure in this hook will fail the whole certificate request process. Default is false.
-.It Cm name Ar string
-The name the hook is registered under. Must be unique.
-.It Cm type Ar array
-Array of strings. Possible types are:
-.Bl -dash -compact
-.It
-challenge-http-01
-.It
-challenge-http-01-clean
-.It
-challenge-dns-01
-.It
-challenge-dns-01-clean
-.It
-challenge-tls-alpn-01
-.It
-challenge-tls-alpn-01-clean
-.It
-file-pre-create
-.It
-file-pre-edit
-.It
-file-post-create
-.It
-file-post-edit
-.It
-post-operation
-.El
-.It Ic cmd Ar string
-The name of the command that will be launched.
-.It Ic args Ar array
-Array of strings representing the command's arguments.
-.It Ic stdin Ar string
-Path to the file that will be written into the command's standard intput. Mutually exclusive with
-.Em stdin_str .
-.It Ic stdin_str Ar string
-String that will be written into the command's standard input. Mutually exclusive with
-.Em stdin .
-.It Ic stdout Ar string
-Path to the file where the command's standard output if written.
-.It Ic stderr Ar string
-Path to the file where the command's standard error output if written.
-.El
-.It Ic group
-Array of table allowing to group several hooks as one. A group is considered as new hook.
-.Bl -tag
-.It Cm name Ar string
-The name the group is registered under. This name is considered as a hook name. Must be unique.
-.It Cm hooks Ar array
-Array containing the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
-.El
 .It Ic account
 Array of table representing an account on one or several endpoint.
 .Bl -tag
-.It Ic name Ar string
-The name the account is registered under. Must be unique.
 .It Ic contacts Ar array
 Array of tables describing describing the account holder's contact information. Each table must have one and only one key-value pair. Possible keys and their associated values are:
 .Bl -tag
@@ -175,39 +29,8 @@ A mailto URI as defined by
 .Em RFC 6068 .
 This URI cannot contains neither "hfields" nor more than one "addr-spec" in the "to" component.
 .El
-.It Cm key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are:
-.Bl -dash -compact
-.It
-rsa2048
-.It
-rsa4096
-.It
-ecdsa_p256
-.Aq default
-.It
-ecdsa_p384
-.It
-ecdsa_p521
-.El
-.It Cm signature_algorithm Ar string
-Name of the signature algorithm used to sign the messages sent to the endpoint as defined in
-.Em RFC 7518 .
-The default value is derived from the key type. Possible values are:
-.Bl -dash -compact
-.It
-RS256
-.It
-ES256
-.It
-ES384
-.It
-ES512
-.El
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
-.It Ic hooks Ar array
-Names of hooks that will be called during operations on the account storage file. The hooks are guaranteed to be called sequentially in the declaration order.
 .It Ic external_account Ar table
 Table containing the information required to bind the account to an external one. Possible fields and values are:
 .Bl -tag
@@ -229,6 +52,39 @@ HS384
 HS512
 .El
 .El
+.It Ic hooks Ar array
+Names of hooks that will be called during operations on the account storage file. The hooks are guaranteed to be called sequentially in the declaration order.
+.It Cm key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are:
+.Bl -dash -compact
+.It
+ecdsa_p256
+.Aq default
+.It
+ecdsa_p384
+.It
+ecdsa_p521
+.It
+rsa2048
+.It
+rsa4096
+.El
+.It Ic name Ar string
+The name the account is registered under. Must be unique.
+.It Cm signature_algorithm Ar string
+Name of the signature algorithm used to sign the messages sent to the endpoint as defined in
+.Em RFC 7518 .
+The default value is derived from the key type. Possible values are:
+.Bl -dash -compact
+.It
+ES256
+.It
+ES384
+.It
+ES512
+.It
+RS256
+.El
 .El
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.
@@ -237,81 +93,6 @@ Note that certificates are identified by the first identifier in the list of ide
 .Bl -tag
 .It Ic account Ar string
 Name of the account to use.
-.It Ic endpoint Ar string
-Name of the endpoint to use.
-.It Ic env Ar table
-Table of environment variables that will be accessible from hooks.
-.It Ic identifiers Ar array
-Array of tables listing the identifiers that should be included in the certificate along with the challenge to use for each one. The
-.Em dns
-and
-.Em ip
-fields are mutually exclusive.
-.Bl -tag
-.It Ic challenge Ar string
-The name of the challenge to use to prove the identifier's ownership. Possible values are:
-.Bl -dash -compact
-.It
-http-01
-.It
-dns-01
-.It
-tls-alpn-01
-.El
-.It Ic dns Ar string
-The domain name.
-.It Ic ip Ar string
-The IP address.
-.It Ic env Ar table
-Table of environment variables that will be accessible from hooks.
-.El
-.It Ic subject_attributes Ar table
-Table where the certificate's subject attributes are specified. Possible keys are:
-.Bl -dash -compact
-.It
-country_name
-.It
-locality_name
-.It
-state_or_province_name
-.It
-street_address
-.It
-organization_name
-.It
-organizational_unit_name
-.It
-name
-.It
-given_name
-.It
-initials
-.It
-title
-.It
-surname
-.It
-pseudonym
-.It
-generation_qualifier
-.It
-friendly_name
-.El
-.It Ic key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are:
-.Bl -dash -compact
-.It
-rsa2048
-.Aq default
-.It
-rsa4096
-.It
-ecdsa_p256
-.It
-ecdsa_p384
-.It
-ecdsa_p521
-.El
 .It Ic csr_digest Ar string
 Name of the certificate's signing request digest algorithm. Possible values are:
 .Bl -dash -compact
@@ -323,16 +104,235 @@ sha384
 .It
 sha512
 .El
-.It Ic kp_reuse Ar boolean
-Set whether or not the private key should be reused when renewing the certificate. Default is false.
 .It Ic directory Ar string
 Path to the directory where certificates and their associated private keys are stored.
+.It Ic endpoint Ar string
+Name of the endpoint to use.
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
 .It Ic hooks Ar array
 Names of hooks that will be called when requesting a new certificate. The hooks are guaranteed to be called sequentially in the declaration order.
+.It Ic identifiers Ar array
+Array of tables listing the identifiers that should be included in the certificate along with the challenge to use for each one. The
+.Em dns
+and
+.Em ip
+fields are mutually exclusive.
+.Bl -tag
+.It Ic challenge Ar string
+The name of the challenge to use to prove the identifier's ownership. Possible values are:
+.Bl -dash -compact
+.It
+dns-01
+.It
+http-01
+.It
+tls-alpn-01
+.El
+.It Ic dns Ar string
+The domain name.
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
+.It Ic ip Ar string
+The IP address.
+.El
+.It Ic key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are:
+.Bl -dash -compact
+.It
+ecdsa_p256
+.It
+ecdsa_p384
+.It
+ecdsa_p521
+.It
+rsa2048
+.Aq default
+.It
+rsa4096
+.El
+.It Ic kp_reuse Ar boolean
+Set whether or not the private key should be reused when renewing the certificate. Default is false.
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
 section. Default is the value defined in the associated endpoint.
+.It Ic subject_attributes Ar table
+Table where the certificate's subject attributes are specified. Possible keys are:
+.Bl -dash -compact
+.It
+country_name
+.It
+friendly_name
+.It
+generation_qualifier
+.It
+given_name
+.It
+initials
+.It
+locality_name
+.It
+name
+.It
+organization_name
+.It
+organizational_unit_name
+.It
+pseudonym
+.It
+state_or_province_name
+.It
+street_address
+.It
+surname
+.It
+title
+.El
+.El
+.It Ic endpoint
+Array of table where each element defines a Certificate Authority
+.Pq CA
+which may be used to request certificates.
+.Bl -tag
+.It Cm name Ar string
+The name the endpoint is registered under. Must be unique.
+.It Cm rate_limits Ar array
+Array containing the names of the HTTPS rate limits to apply.
+.It Cm renew_delay Ar string
+Period of time between the certificate renewal and its expiration date. The format is described in the
+.Sx TIME PERIODS
+section. Default is the value defined in the global section.
+.It Cm root_certificates Ar array
+Array containing the path to root certificates that should be added to the trust store.
+.It Cm tos_agreed Ar boolean
+Set whether or not the user agrees to the Terms Of Service
+.Pq TOS .
+.It Cm url Ar string
+The endpoint's directory URL.
+.El
+.It Ic global
+Table containing the global configuration options.
+.Bl -tag
+.It Cm accounts_directory Ar string
+Specify the directory where the accounts private and public keys are stored.
+.It Cm cert_file_group Ar group_name|group_id Ft string
+Specify the group who will own newly-created certificates files. See
+.Xr chown 2
+for more details.
+.It Cm cert_file_mode Ar integer
+Specify the permissions to use for newly-created certificates files. See
+.Xr chmod 2
+for more details.
+.It Cm cert_file_user Ar username|user_id Ft string
+Specify the user who will own newly-created certificates files. See
+.Xr chown 2
+for more details.
+.It Cm certificates_directory Ar string
+Specify the directory where the certificates and their associated private keys are stored.
+.It Ic env Ar table
+Table of environment variables that will be accessible from hooks.
+.It Cm pk_file_group Ar group_name|group_id Ft string
+Specify the group who will own newly-created private-key files. See
+.Xr chown 2
+for more details.
+.It Cm pk_file_mode Ar integer
+Specify the permissions to use for newly-created private-key files. See
+.Xr chmod 2
+for more details.
+.It Cm pk_file_user Ar username|user_id Ft string
+Specify the user who will own newly-created private-key files. See
+.Xr chown 2
+for more details.
+.It Cm renew_delay Ar string
+Period of time between the certificate renewal and its expiration date. The format is described in the
+.Sx TIME PERIODS
+section. Default is 3w.
+.It Cm root_certificates Ar array
+Array containing the path to root certificates that should be added to the trust store.
+.El
+.It Ic group
+Array of table allowing to group several hooks as one. A group is considered as new hook.
+.Bl -tag
+.It Cm hooks Ar array
+Array containing the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
+.It Cm name Ar string
+The name the group is registered under. This name is considered as a hook name. Must be unique.
+.El
+.It Ic hook
+Array of table where each element defines a command that will be launched at a defined point. See section
+.Sx WRITING A HOOK
+for more details.
+.Bl -tag
+.It Cm allow_failure Ar boolean
+Defines if an error return value for this hook is allowed or not. If not allowed, a failure in this hook will fail the whole certificate request process. Default is false.
+.It Ic args Ar array
+Array of strings representing the command's arguments.
+.It Ic cmd Ar string
+The name of the command that will be launched.
+.It Cm name Ar string
+The name the hook is registered under. Must be unique.
+.It Ic stderr Ar string
+Path to the file where the command's standard error output if written.
+.It Ic stdin Ar string
+Path to the file that will be written into the command's standard intput. Mutually exclusive with
+.Em stdin_str .
+.It Ic stdin_str Ar string
+String that will be written into the command's standard input. Mutually exclusive with
+.Em stdin .
+.It Ic stdout Ar string
+Path to the file where the command's standard output if written.
+.It Cm type Ar array
+Array of strings. Possible types are:
+.Bl -dash -compact
+.It
+challenge-dns-01
+.It
+challenge-dns-01-clean
+.It
+challenge-http-01
+.It
+challenge-http-01-clean
+.It
+challenge-tls-alpn-01
+.It
+challenge-tls-alpn-01-clean
+.It
+file-post-create
+.It
+file-post-edit
+.It
+file-pre-create
+.It
+file-pre-edit
+.It
+post-operation
+.El
+.El
+.It Ic include
+Array containing the path to configuration file to include. The path can be either relative or absolute. If relative, it is relative to the configuration file which included it.
+.Pp
+In case or overlapping global option definition, the one of the last included file will be used. For example, if a file
+.Em A
+includes files
+.Em B
+and
+.Em C
+and all three defines the same global option, the final value will be the one defined in file
+.Em C .
+.Pp
+Unix style globing is supported.
+.It Ic rate-limit
+Array of table where each element defines a HTTPS rate limit.
+.Bl -tag
+.It Cm name Ar string
+The name the rate limit is registered under. Must be unique.
+.It Cm number Ar integer
+Number of requests authorized withing the time period.
+.It Cm period Ar string
+Period of time during which a maximal number of requests is authorized. The format is described in the
+.Sx TIME PERIODS
+section.
 .El
 .El
 .Sh WRITING A HOOK
@@ -365,40 +365,6 @@ specifications.
 .Pp
 The available types and the associated template variable are described below.
 .Bl -tag
-.It Ic challenge-http-01
-Invoked when the ownership of an identifier must be proved using the
-.Em http-01
-challenge. The available template variables are:
-.Bl -tag -compact
-.It Cm challenge Ar string
-The name of the challenge type
-.Aq http-01 .
-Mostly used in hooks with multiple types.
-.It Cm identifier Ar string
-The identifier name whom ownership is currently being validated.
-.It Cm identifier_tls_alpn Ar string
-The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
-.It Cm env Ar array
-Array containing all the environment variables.
-.It Cm file_name Ar string
-Name of the file containing the proof. This is not a full path and does not include the
-.Ql .well-known/acme-challenge/
-prefix.
-.It Cm is_clean_hook Ar bool
-False
-.It Cm proof Ar string
-The content of the proof that must be written to
-.Em file_name .
-.El
-.It Ic challenge-http-01-clean
-Invoked once an identifier ownership has been proven using the
-.Em http-01
-challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
-.Em challenge-http-01
-hook, excepted
-.Em is_clean_hook
-which is set to
-.Em true .
 .It Ic challenge-dns-01
 Invoked when the ownership of an identifier must be proved using the
 .Em dns-01
@@ -408,12 +374,12 @@ challenge. The available template variables are:
 The name of the challenge type
 .Aq dns-01 .
 Mostly used in hooks with multiple types.
+.It Cm env Ar array
+Array containing all the environment variables.
 .It Cm identifier Ar string
 The identifier name whom ownership is currently being validated.
 .It Cm identifier_tls_alpn Ar string
 The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
-.It Cm env Ar array
-Array containing all the environment variables.
 .It Cm is_clean_hook Ar bool
 False
 .It Cm proof Ar string
@@ -432,6 +398,40 @@ hook, excepted
 .Em is_clean_hook
 which is set to
 .Em true .
+.It Ic challenge-http-01
+Invoked when the ownership of an identifier must be proved using the
+.Em http-01
+challenge. The available template variables are:
+.Bl -tag -compact
+.It Cm challenge Ar string
+The name of the challenge type
+.Aq http-01 .
+Mostly used in hooks with multiple types.
+.It Cm env Ar array
+Array containing all the environment variables.
+.It Cm file_name Ar string
+Name of the file containing the proof. This is not a full path and does not include the
+.Ql .well-known/acme-challenge/
+prefix.
+.It Cm identifier Ar string
+The identifier name whom ownership is currently being validated.
+.It Cm identifier_tls_alpn Ar string
+The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
+.It Cm is_clean_hook Ar bool
+False
+.It Cm proof Ar string
+The content of the proof that must be written to
+.Em file_name .
+.El
+.It Ic challenge-http-01-clean
+Invoked once an identifier ownership has been proven using the
+.Em http-01
+challenge. This hook is intended to remove the proof since it is no longer required. The template variables are strictly identical to those given in the corresponding
+.Em challenge-http-01
+hook, excepted
+.Em is_clean_hook
+which is set to
+.Em true .
 .It Ic challenge-tls-alpn-01
 Invoked when the ownership of an identifier must be proved using the
 .Em tls-alpn-01
@@ -441,12 +441,12 @@ challenge. The available template variables are:
 The name of the challenge type
 .Aq tls-alpn-01 .
 Mostly used in hooks with multiple types.
+.It Cm env Ar array
+Array containing all the environment variables.
 .It Cm identifier Ar string
 The identifier name whom ownership is currently being validated.
 .It Cm identifier_tls_alpn Ar string
 The identifier name whom ownership is currently being validated, in a form suitable for the TLS ALPN challenge.
-.It Cm env Ar array
-Array containing all the environment variables.
 .It Cm is_clean_hook Ar bool
 False
 .It Cm proof Ar string
@@ -468,6 +468,22 @@ hook, excepted
 .Em is_clean_hook
 which is set to
 .Em true .
+.It Ic file-post-create
+Invoked
+.Em after
+a non-existent file
+.Em created .
+The available template variables are the same as those available for the
+.Em file-pre-create
+type.
+.It Ic file-post-edit
+Invoked
+.Em after
+an existent file
+.Em modified .
+The available template variables are the same as those available for the
+.Em file-pre-create
+type.
 .It Ic file-pre-create
 Invoked
 .Em before
@@ -492,33 +508,17 @@ an existent file
 The available template variables are the same as those available for the
 .Em file-pre-create
 type.
-.It Ic file-post-create
-Invoked
-.Em after
-a non-existent file
-.Em created .
-The available template variables are the same as those available for the
-.Em file-pre-create
-type.
-.It Ic file-post-edit
-Invoked
-.Em after
-an existent file
-.Em modified .
-The available template variables are the same as those available for the
-.Em file-pre-create
-type.
 .It Ic post-operation
 Invoked at the end of the certificate request process. The available template variables are:
 .Bl -tag -compact
-.It Cm key_type Ar string
-Name of the asymmetric cryptography algorithm used to generate the certificate's key pair.
-.It Cm identifiers Ar string
-Array containing the identifiers included in the requested certificate.
 .It Cm env Ar array
 Array containing all the environment variables.
+.It Cm identifiers Ar string
+Array containing the identifiers included in the requested certificate.
 .It Cm is_success Ar boolean
 True if the certificate request is successful.
+.It Cm key_type Ar string
+Name of the asymmetric cryptography algorithm used to generate the certificate's key pair.
 .It Cm status Ar string
 Human-readable status. If the certificate request failed, it contains the error description.
 .El
@@ -629,12 +629,12 @@ For example,
 both represents a period of one day and forty-two seconds.
 .Sh FILES
 .Bl -tag
+.It Pa /etc/acmed/accounts
+Default accounts private and public keys directory.
 .It Pa /etc/acmed/acmed.toml
 Default
 .Xr acmed 8
 configuration file.
-.It Pa /etc/acmed/accounts
-Default accounts private and public keys directory.
 .It Pa /etc/acmed/certs
 Default certificates and associated private keys directory.
 .El
@@ -757,7 +757,7 @@ status: {{status}}"""
 .%A Tom Preston-Werner
 .%D July 2018
 .%T TOML v0.5.0
-.%U https://github.com/toml-lang/toml
+.%U https://toml.io/en/v0.5.0
 .Re
 .It
 .Rs
