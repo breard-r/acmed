@@ -53,7 +53,9 @@ Please keep in mind this software has neither been subject to a peer review nor 
 
 ## Documentation
 
-This project provides the following man pages:
+The [wiki](https://github.com/breard-r/acmed/wiki) will provides you with an overview as well as guides. You may contribute to it by creating a PR on the [acmed-wiki](https://github.com/breard-r/acmed-wiki) repository.
+
+For exhaustive references, the following man pages are available:
 
 - acmed (8)
 - acmed.toml (5)

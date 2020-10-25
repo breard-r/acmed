@@ -8,7 +8,7 @@ The first way to help is to actually use the software and [report any bug you en
 
 ## Improving the language
 
-Since the author is not a native English speaker, some of the texts used in this project should be fixed.
+Since the author is not a native English speaker, some of the texts used in this project should be fixed. This is especially true on the man pages as well as the [wiki](https://github.com/breard-r/acmed-wiki).
 
 
 ## Package it for your favorite system
