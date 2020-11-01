@@ -27,7 +27,7 @@ clap = "2.32"
 glob = "0.3"
 handlebars = "3.0"
 log = "0.4"
-nom = "6.0"
+nom = { version = "6.0", default-features = false, features = [] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.5"
