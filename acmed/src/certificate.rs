@@ -28,7 +28,7 @@ pub struct Certificate {
 
 impl fmt::Display for Certificate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.crt_name)
+        write!(f, "{}", self.get_id())
     }
 }
 
@@ -51,6 +51,10 @@ impl HasLogger for Certificate {
 }
 
 impl Certificate {
+    pub fn get_id(&self) -> String {
+        format!("{}_{}", self.crt_name, self.key_type)
+    }
+
     pub fn get_identifier_from_str(&self, identifier: &str) -> Result<Identifier, Error> {
         let identifier = identifier.to_string();
         for d in self.identifiers.iter() {

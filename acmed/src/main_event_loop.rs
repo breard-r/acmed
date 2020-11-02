@@ -95,10 +95,6 @@ impl MainEventLoop {
             let endpoint = crt.get_endpoint(&cnf, root_certs)?;
             let endpoint_name = endpoint.name.clone();
             let crt_name = crt.get_crt_name()?;
-            if certs.iter().any(|c| c.crt_name == crt_name) {
-                let msg = format!("{}: duplicate certificate name", crt_name);
-                return Err(msg.into());
-            }
             let key_type = crt.get_key_type()?;
             let hooks = crt.get_hooks(&cnf)?;
             let fm = FileManager {
@@ -139,6 +135,11 @@ impl MainEventLoop {
                 renew_delay: crt.get_renew_delay(&cnf)?,
                 file_manager: fm,
             };
+            let crt_id = cert.get_id();
+            if certs.iter().any(|c| c.get_id() == crt_id) {
+                let msg = format!("{}: duplicate certificate id", crt_id);
+                return Err(msg.into());
+            }
             match accounts.get_mut(&crt.account) {
                 Some(acc) => acc.add_endpoint_name(&endpoint_name),
                 None => {

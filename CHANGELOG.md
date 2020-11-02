@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Certificates are now allowed to share the same name if their respective key type is different.
+
 
 ## [0.14.0] - 2020-10-27
 

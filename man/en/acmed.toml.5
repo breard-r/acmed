@@ -89,7 +89,7 @@ RS256
 .It Ic certificate
 Array of table representing a certificate that will be requested to a CA.
 .Pp
-Note that certificates are identified by the first identifier in the list of identifiers. That means that if you reorder the identifiers so that a different identifier is at the first position, a new certificate with a new name will be issued.
+Note that, by default, certificates are identified by the first identifier in the list of identifiers. That means that if you reorder the identifiers so that a different identifier is at the first position, a new certificate with a new name will be issued.
 .Bl -tag
 .It Ic account Ar string
 Name of the account to use.
@@ -154,7 +154,7 @@ rsa4096
 .It Ic kp_reuse Ar boolean
 Set whether or not the private key should be reused when renewing the certificate. Default is false.
 .It Ic name
-Name of the certificate. Must be unique. Will be used in logs and in the associated file's name. The
+Name of the certificate. Must be unique unless the key type is different. Will be used in logs and in the associated file's name. The
 .Sq * ,
 .So
 :
