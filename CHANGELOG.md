@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Configuration files cannot be loaded more than one time, which prevents infinite recursion.
+
 ### Changed
 - Certificates are now allowed to share the same name if their respective key type is different.
 

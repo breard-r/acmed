@@ -8,7 +8,7 @@ use acme_common::error::Error;
 use glob::glob;
 use log::info;
 use serde::{de, Deserialize, Deserializer};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
@@ -51,7 +51,7 @@ fn get_stdin(hook: &Hook) -> Result<hooks::HookStdin, Error> {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub global: Option<GlobalOptions>,
@@ -657,18 +657,24 @@ fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
     Ok(g)
 }
 
-fn read_cnf(path: &PathBuf) -> Result<Config, Error> {
-    info!("loading configuration file: {}", path.display());
+fn read_cnf(path: &PathBuf, loaded_files: &mut BTreeSet<PathBuf>) -> Result<Config, Error> {
+    let path = path.canonicalize()?;
+    if loaded_files.contains(&path) {
+        info!("{}: configuration file already loaded", path.display());
+        return Ok(Config::default());
+    }
+    loaded_files.insert(path.clone());
+    info!("{}: loading configuration file", path.display());
     let mut file =
-        File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
+        File::open(&path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut config: Config = toml::from_str(&contents)
         .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     for cnf_name in config.include.iter() {
-        for cnf_path in get_cnf_path(path, cnf_name)? {
-            let mut add_cnf = read_cnf(&cnf_path)?;
+        for cnf_path in get_cnf_path(&path, cnf_name)? {
+            let mut add_cnf = read_cnf(&cnf_path, loaded_files)?;
             config.endpoint.append(&mut add_cnf.endpoint);
             config.rate_limit.append(&mut add_cnf.rate_limit);
             config.hook.append(&mut add_cnf.hook);
@@ -713,7 +719,8 @@ fn dispatch_global_env_vars(config: &mut Config) {
 
 pub fn from_file(file_name: &str) -> Result<Config, Error> {
     let path = PathBuf::from(file_name);
-    let mut config = read_cnf(&path)?;
+    let mut loaded_files = BTreeSet::new();
+    let mut config = read_cnf(&path, &mut loaded_files)?;
     dispatch_global_env_vars(&mut config);
     init_directories(&config)?;
     Ok(config)
