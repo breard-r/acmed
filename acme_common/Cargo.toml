@@ -1,6 +1,6 @@
 [package]
 name = "acme_common"
-version = "0.14.0"
+version = "0.15.0"
 authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 readme = "../README.md"
