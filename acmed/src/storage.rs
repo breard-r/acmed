@@ -51,7 +51,7 @@ impl HasLogger for FileManager {
 impl fmt::Display for FileManager {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = if !self.crt_name.is_empty() {
-            format!("certificate \"{}\"", self.crt_name)
+            format!("certificate \"{}_{}\"", self.crt_name, self.crt_key_type)
         } else {
             format!("account \"{}\"", self.account_name)
         };
