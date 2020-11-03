@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The names of both the certificate file and the associated private key can now be configured.
+
 ### Fixed
 - Configuration files cannot be loaded more than one time, which prevents infinite recursion.
 

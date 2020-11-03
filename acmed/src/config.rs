@@ -182,6 +182,7 @@ pub struct GlobalOptions {
     pub certificates_directory: Option<String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    pub file_name_format: Option<String>,
     pub pk_file_group: Option<String>,
     pub pk_file_mode: Option<u32>,
     pub pk_file_user: Option<String>,
@@ -196,11 +197,19 @@ impl GlobalOptions {
             None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
         }
     }
+
+    pub fn get_crt_name_format(&self) -> String {
+        match &self.file_name_format {
+            Some(n) => n.to_string(),
+            None => crate::DEFAULT_CERT_FORMAT.to_string(),
+        }
+    }
 }
 
 #[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Endpoint {
+    pub file_name_format: Option<String>,
     pub name: String,
     #[serde(default)]
     pub rate_limits: Vec<String>,
@@ -217,6 +226,16 @@ impl Endpoint {
             None => match &cnf.global {
                 Some(g) => g.get_renew_delay(),
                 None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
+            },
+        }
+    }
+
+    pub fn get_crt_name_format(&self, cnf: &Config) -> String {
+        match &self.file_name_format {
+            Some(n) => n.to_string(),
+            None => match &cnf.global {
+                Some(g) => g.get_crt_name_format(),
+                None => crate::DEFAULT_CERT_FORMAT.to_string(),
             },
         }
     }
@@ -468,10 +487,13 @@ impl Certificate {
         Ok(name)
     }
 
-    pub fn get_crt_name_format(&self) -> String {
+    pub fn get_crt_name_format(&self, cnf: &Config) -> Result<String, Error> {
         match &self.file_name_format {
-            Some(n) => n.to_string(),
-            None => crate::DEFAULT_CERT_FORMAT.to_string(),
+            Some(n) => Ok(n.to_string()),
+            None => {
+                let ep = self.do_get_endpoint(cnf)?;
+                Ok(ep.get_crt_name_format(cnf))
+            }
         }
     }
 

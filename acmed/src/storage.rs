@@ -3,6 +3,8 @@ use crate::logs::HasLogger;
 use acme_common::b64_encode;
 use acme_common::crypto::{KeyPair, X509Certificate};
 use acme_common::error::Error;
+use handlebars::Handlebars;
+use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
@@ -77,6 +79,14 @@ impl fmt::Display for FileType {
     }
 }
 
+#[derive(Clone, Serialize)]
+pub struct CertFileFormat {
+    pub ext: String,
+    pub file_type: String,
+    pub key_type: String,
+    pub name: String,
+}
+
 fn get_file_full_path(
     fm: &FileManager,
     file_type: FileType,
@@ -94,14 +104,14 @@ fn get_file_full_path(
             ext = "bin"
         ),
         FileType::PrivateKey | FileType::Certificate => {
-            // TODO: use fm.crt_name_format instead of a string literal
-            format!(
-                "{name}_{algo}.{file_type}.{ext}",
-                name = fm.crt_name,
-                algo = fm.crt_key_type,
-                file_type = file_type.to_string(),
-                ext = "pem"
-            )
+            let fmt_data = CertFileFormat {
+                key_type: fm.crt_key_type.to_string(),
+                ext: "pem".into(),
+                file_type: file_type.to_string(),
+                name: fm.crt_name.to_owned(),
+            };
+            let reg = Handlebars::new();
+            reg.render_template(&fm.crt_name_format, &fmt_data)?
         }
     };
     let mut path = PathBuf::from(&base_path);

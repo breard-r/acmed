@@ -27,7 +27,13 @@ Array of tables describing describing the account holder's contact information. 
 .It Ic mailto Ar string
 A mailto URI as defined by
 .Em RFC 6068 .
-This URI cannot contains neither "hfields" nor more than one "addr-spec" in the "to" component.
+This URI cannot contains neither
+.Dq hfields
+nor more than one
+.Dq addr-spec
+in the
+.Dq to
+component.
 .El
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
@@ -110,6 +116,36 @@ Path to the directory where certificates and their associated private keys are s
 Name of the endpoint to use.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
+.It Ic file_name_format Ar string
+Template used to build the file's name. The template syntax is
+.Em Handlebars .
+See the
+.Sx STANDARDS
+section for a link to the
+.Em Handlebars
+specifications. If not specified, the value defined in the
+.Em endpoint
+element, and then the
+.Em global
+element, is used. Default is
+.Dq {{name}}_{{key_type}}.{{file_type}}.{{ext}} .
+Possible variables are:
+.Bl -tag
+.It Ic ext Ar string
+File extension. Currently, only
+.Dq pem
+is supported.
+.It Ic file_type Ar string
+Contains
+.Dq pk
+for the private key file and
+.Dq crt
+for the certificate file.
+.It Ic key_type Ar string
+The certificate's private key type.
+.It Ic name Ar string
+The certificate's name.
+.El
 .It Ic hooks Ar array
 Names of hooks that will be called when requesting a new certificate. The hooks are guaranteed to be called sequentially in the declaration order.
 .It Ic identifiers Ar array
@@ -204,6 +240,12 @@ Array of table where each element defines a Certificate Authority
 .Pq CA
 which may be used to request certificates.
 .Bl -tag
+.It Cm file_name_format Ar string
+Template used to build the file's name. For detailed documentation, see the
+.Em file_name_format
+directive located in the
+.Em certificate
+element.
 .It Cm name Ar string
 The name the endpoint is registered under. Must be unique.
 .It Cm rate_limits Ar array
@@ -241,6 +283,12 @@ for more details.
 Specify the directory where the certificates and their associated private keys are stored.
 .It Ic env Ar table
 Table of environment variables that will be accessible from hooks.
+.It Ic file_name_format Ar string
+Template used to build the file's name. For detailed documentation, see the
+.Em file_name_format
+directive located in the
+.Em certificate
+element.
 .It Cm pk_file_group Ar group_name|group_id Ft string
 Specify the group who will own newly-created private-key files. See
 .Xr chown 2

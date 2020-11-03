@@ -101,7 +101,7 @@ impl MainEventLoop {
                 account_directory: cnf.get_account_dir(),
                 account_name: crt.account.clone(),
                 crt_name: crt_name.clone(),
-                crt_name_format: crt.get_crt_name_format(),
+                crt_name_format: crt.get_crt_name_format(&cnf)?,
                 crt_directory: crt.get_crt_dir(&cnf),
                 crt_key_type: key_type.to_string(),
                 cert_file_mode: cnf.get_cert_file_mode(),
