@@ -203,36 +203,24 @@ Period of time between the certificate renewal and its expiration date. The form
 .Sx TIME PERIODS
 section. Default is the value defined in the associated endpoint.
 .It Ic subject_attributes Ar table
-Table where the certificate's subject attributes are specified. Possible keys are:
-.Bl -dash -compact
-.It
-country_name
-.It
-friendly_name
-.It
-generation_qualifier
-.It
-given_name
-.It
-initials
-.It
-locality_name
-.It
-name
-.It
-organization_name
-.It
-organizational_unit_name
-.It
-pseudonym
-.It
-state_or_province_name
-.It
-street_address
-.It
-surname
-.It
-title
+Table where the certificate's subject attributes are specified. Possible keys, with their RFC 4519 and X.500 equivalents, are:
+.Bl -column -offset indent ".Sy organizational_unit_name" ".Sy generationQualifier" ".Sy organizationalUnitName"
+.It Sy ACMEd key Ta Sy RFC 4519 Ta Sy X.500
+.It Li country_name Ta c Ta countryName
+.It Li generation_qualifier Ta generationQualifier Ta
+.It Li given_name Ta givenName Ta
+.It Li initials Ta initials Ta
+.It Li locality_name Ta l Ta localityName
+.It Li name Ta name Ta
+.It Li organization_name Ta o Ta organizationName
+.It Li organizational_unit_name Ta ou Ta organizationalUnitName
+.It Li pkcs9_email_address Ta Ta
+.It Li postal_address Ta postalAddress Ta
+.It Li postal_code Ta postalCode Ta
+.It Li state_or_province_name Ta st Ta stateOrProvinceName
+.It Li street Ta street Ta streetAddress
+.It Li surname Ta sn Ta surname
+.It Li title Ta title Ta
 .El
 .El
 .It Ic endpoint

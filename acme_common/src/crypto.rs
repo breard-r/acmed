@@ -25,19 +25,20 @@ pub const CRT_NB_DAYS_VALIDITY: u32 = 7;
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum BaseSubjectAttribute {
     CountryName,
-    LocalityName,
-    StateOrProvinceName,
-    StreetAddress,
-    OrganizationName,
-    OrganizationalUnitName,
-    Name,
+    GenerationQualifier,
     GivenName,
     Initials,
-    Title,
+    LocalityName,
+    Name,
+    OrganizationName,
+    OrganizationalUnitName,
+    Pkcs9EmailAddress,
+    PostalAddress,
+    PostalCode,
+    StateOrProvinceName,
+    Street,
     Surname,
-    Pseudonym,
-    GenerationQualifier,
-    FriendlyName,
+    Title,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

@@ -607,38 +607,40 @@ impl Identifier {
 #[serde(deny_unknown_fields)]
 pub struct SubjectAttributes {
     pub country_name: Option<String>,
-    pub locality_name: Option<String>,
-    pub state_or_province_name: Option<String>,
-    pub street_address: Option<String>,
-    pub organization_name: Option<String>,
-    pub organizational_unit_name: Option<String>,
-    pub name: Option<String>,
+    pub generation_qualifier: Option<String>,
     pub given_name: Option<String>,
     pub initials: Option<String>,
-    pub title: Option<String>,
+    pub locality_name: Option<String>,
+    pub name: Option<String>,
+    pub organization_name: Option<String>,
+    pub organizational_unit_name: Option<String>,
+    pub pkcs9_email_address: Option<String>,
+    pub postal_address: Option<String>,
+    pub postal_code: Option<String>,
+    pub state_or_province_name: Option<String>,
+    pub street: Option<String>,
     pub surname: Option<String>,
-    pub pseudonym: Option<String>,
-    pub generation_qualifier: Option<String>,
-    pub friendly_name: Option<String>,
+    pub title: Option<String>,
 }
 
 impl SubjectAttributes {
     pub fn to_generic(&self) -> HashMap<SubjectAttribute, String> {
         let mut ret = HashMap::new();
         push_subject_attr!(ret, self.country_name, CountryName);
-        push_subject_attr!(ret, self.locality_name, LocalityName);
-        push_subject_attr!(ret, self.state_or_province_name, StateOrProvinceName);
-        push_subject_attr!(ret, self.street_address, StreetAddress);
-        push_subject_attr!(ret, self.organization_name, OrganizationName);
-        push_subject_attr!(ret, self.organizational_unit_name, OrganizationalUnitName);
-        push_subject_attr!(ret, self.name, Name);
+        push_subject_attr!(ret, self.generation_qualifier, GenerationQualifier);
         push_subject_attr!(ret, self.given_name, GivenName);
         push_subject_attr!(ret, self.initials, Initials);
-        push_subject_attr!(ret, self.title, Title);
+        push_subject_attr!(ret, self.locality_name, LocalityName);
+        push_subject_attr!(ret, self.name, Name);
+        push_subject_attr!(ret, self.organization_name, OrganizationName);
+        push_subject_attr!(ret, self.organizational_unit_name, OrganizationalUnitName);
+        push_subject_attr!(ret, self.pkcs9_email_address, Pkcs9EmailAddress);
+        push_subject_attr!(ret, self.postal_address, PostalAddress);
+        push_subject_attr!(ret, self.postal_code, PostalCode);
+        push_subject_attr!(ret, self.state_or_province_name, StateOrProvinceName);
+        push_subject_attr!(ret, self.street, Street);
         push_subject_attr!(ret, self.surname, Surname);
-        push_subject_attr!(ret, self.pseudonym, Pseudonym);
-        push_subject_attr!(ret, self.generation_qualifier, GenerationQualifier);
-        push_subject_attr!(ret, self.friendly_name, FriendlyName);
+        push_subject_attr!(ret, self.title, Title);
         ret
     }
 }

@@ -6,19 +6,20 @@ impl SubjectAttribute {
     pub fn get_nid(&self) -> Nid {
         match self {
             SubjectAttribute::CountryName => Nid::COUNTRYNAME,
-            SubjectAttribute::LocalityName => Nid::LOCALITYNAME,
-            SubjectAttribute::StateOrProvinceName => Nid::STATEORPROVINCENAME,
-            SubjectAttribute::StreetAddress => Nid::STREETADDRESS,
-            SubjectAttribute::OrganizationName => Nid::ORGANIZATIONNAME,
-            SubjectAttribute::OrganizationalUnitName => Nid::ORGANIZATIONALUNITNAME,
-            SubjectAttribute::Name => Nid::NAME,
+            SubjectAttribute::GenerationQualifier => Nid::GENERATIONQUALIFIER,
             SubjectAttribute::GivenName => Nid::GIVENNAME,
             SubjectAttribute::Initials => Nid::INITIALS,
-            SubjectAttribute::Title => Nid::TITLE,
+            SubjectAttribute::LocalityName => Nid::LOCALITYNAME,
+            SubjectAttribute::Name => Nid::NAME,
+            SubjectAttribute::OrganizationName => Nid::ORGANIZATIONNAME,
+            SubjectAttribute::OrganizationalUnitName => Nid::ORGANIZATIONALUNITNAME,
+            SubjectAttribute::Pkcs9EmailAddress => Nid::PKCS9_EMAILADDRESS,
+            SubjectAttribute::PostalAddress => Nid::POSTALADDRESS,
+            SubjectAttribute::PostalCode => Nid::POSTALCODE,
+            SubjectAttribute::StateOrProvinceName => Nid::STATEORPROVINCENAME,
+            SubjectAttribute::Street => Nid::STREETADDRESS,
             SubjectAttribute::Surname => Nid::SURNAME,
-            SubjectAttribute::Pseudonym => Nid::PSEUDONYM,
-            SubjectAttribute::GenerationQualifier => Nid::GENERATIONQUALIFIER,
-            SubjectAttribute::FriendlyName => Nid::FRIENDLYNAME,
+            SubjectAttribute::Title => Nid::TITLE,
         }
     }
 }
