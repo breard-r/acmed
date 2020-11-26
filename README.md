@@ -8,7 +8,7 @@
 
 # ACMEd
 
-[![Build Status](https://api.travis-ci.org/breard-r/acmed.svg?branch=master)](https://travis-ci.org/breard-r/acmed)
+[![Build Status](https://api.travis-ci.org/breard-r/acmed.svg?branch=main)](https://travis-ci.org/breard-r/acmed)
 [![Minimum rustc version](https://img.shields.io/badge/rustc-1.40.0+-lightgray.svg)](#build-from-source)
 [![LICENSE MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT.txt)
 [![LICENSE Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE-APACHE-2.0.txt)
