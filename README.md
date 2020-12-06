@@ -64,17 +64,17 @@ For exhaustive references, the following man pages are available:
 An easy way to read those pages without installing ACMEd is to downloads and pipe them to the man utility:
 
 ```
-curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.8" | man -l -
-curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.toml.5" | man -l -
-curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/tacd.8" | man -l -
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/acmed.8" | man -l -
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/acmed.toml.5" | man -l -
+curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/tacd.8" | man -l -
 ```
 
 Alternatively, using zsh, you can use the following variants. Useful on system where man is unable to read from stdin (yes BSD, that's you).
 
 ```
-man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.8")
-man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/acmed.toml.5")
-man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/master/man/en/tacd.8")
+man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/acmed.8")
+man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/acmed.toml.5")
+man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/tacd.8")
 ```
 
 
