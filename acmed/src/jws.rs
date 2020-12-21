@@ -23,7 +23,7 @@ struct JwsProtectedHeader {
     url: String,
 }
 
-fn get_data(
+fn get_jws_data(
     key_pair: &KeyPair,
     sign_alg: &JwsSignatureAlgorithm,
     protected: &str,
@@ -58,7 +58,7 @@ pub fn encode_jwk(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, sign_alg, &protected, payload)
+    get_jws_data(key_pair, sign_alg, &protected, payload)
 }
 
 pub fn encode_kid(
@@ -77,7 +77,7 @@ pub fn encode_kid(
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, sign_alg, &protected, payload)
+    get_jws_data(key_pair, sign_alg, &protected, payload)
 }
 
 pub fn encode_kid_mac(
