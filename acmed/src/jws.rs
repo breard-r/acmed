@@ -48,30 +48,13 @@ pub fn encode_jwk(
     sign_alg: &JwsSignatureAlgorithm,
     payload: &[u8],
     url: &str,
-    nonce: &str,
+    nonce: Option<String>,
 ) -> Result<String, Error> {
     let protected = JwsProtectedHeader {
         alg: sign_alg.to_string(),
         jwk: Some(key_pair.jwk_public_key()?),
         kid: None,
-        nonce: Some(nonce.into()),
-        url: url.into(),
-    };
-    let protected = serde_json::to_string(&protected)?;
-    get_data(key_pair, sign_alg, &protected, payload)
-}
-
-pub fn encode_jwk_no_nonce(
-    key_pair: &KeyPair,
-    sign_alg: &JwsSignatureAlgorithm,
-    payload: &[u8],
-    url: &str,
-) -> Result<String, Error> {
-    let protected = JwsProtectedHeader {
-        alg: sign_alg.to_string(),
-        jwk: Some(key_pair.jwk_public_key()?),
-        kid: None,
-        nonce: None,
+        nonce,
         url: url.into(),
     };
     let protected = serde_json::to_string(&protected)?;
@@ -150,7 +133,7 @@ mod tests {
             &key_type.get_default_signature_alg(),
             payload.as_bytes(),
             "",
-            "",
+            Some(String::new()),
         );
         assert!(s.is_ok());
         let s = s.unwrap();
@@ -172,7 +155,7 @@ mod tests {
             &key_type.get_default_signature_alg(),
             payload.as_bytes(),
             "",
-            "",
+            Some(String::new()),
         );
         assert!(s.is_ok());
         let s = s.unwrap();

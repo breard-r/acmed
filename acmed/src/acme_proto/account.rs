@@ -3,7 +3,7 @@ use crate::acme_proto::http;
 use crate::acme_proto::structs::{Account, AccountKeyRollover, AccountUpdate, AcmeError};
 use crate::endpoint::Endpoint;
 use crate::http::HttpError;
-use crate::jws::{encode_jwk, encode_jwk_no_nonce, encode_kid};
+use crate::jws::{encode_jwk, encode_kid};
 use crate::logs::HasLogger;
 use crate::set_data_builder;
 use acme_common::error::Error;
@@ -40,8 +40,15 @@ pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> R
     let acc_ref = &account_struct;
     let kp_ref = &account.current_key.key;
     let signature_algorithm = &account.current_key.signature_algorithm;
-    let data_builder =
-        |n: &str, url: &str| encode_jwk(kp_ref, signature_algorithm, acc_ref.as_bytes(), url, n);
+    let data_builder = |n: &str, url: &str| {
+        encode_jwk(
+            kp_ref,
+            signature_algorithm,
+            acc_ref.as_bytes(),
+            url,
+            Some(n.to_string()),
+        )
+    };
     let (acc_rep, account_url) =
         http::new_account(endpoint, &data_builder).map_err(HttpError::in_err)?;
     account.set_account_url(&endpoint.name, &account_url)?;
@@ -110,11 +117,12 @@ pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) ->
     let account_url = account.get_endpoint(&endpoint_name)?.account_url.clone();
     let rollover_struct = AccountKeyRollover::new(&account_url, &old_key)?;
     let rollover_struct = serde_json::to_string(&rollover_struct)?;
-    let rollover_payload = encode_jwk_no_nonce(
+    let rollover_payload = encode_jwk(
         &account.current_key.key,
         &account.current_key.signature_algorithm,
         rollover_struct.as_bytes(),
         &url,
+        None,
     )?;
     let data_builder = |n: &str, url: &str| {
         encode_kid(
