@@ -14,7 +14,7 @@ use std::io::{self, Read};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-const DEFAULT_PID_FILE: &str = "/var/run/tacd.pid";
+const DEFAULT_PID_FILE: &str = env!("TACD_DEFAULT_PID_FILE");
 const DEFAULT_LISTEN_ADDR: &str = "127.0.0.1:5001";
 const DEFAULT_CRT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
 const DEFAULT_CRT_DIGEST: HashFunction = HashFunction::Sha256;

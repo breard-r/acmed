@@ -7,6 +7,12 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
+macro_rules! set_rustc_env_var {
+    ($name: expr, $value: expr) => {{
+        println!("cargo:rustc-env={}={}", $name, $value);
+    }};
+}
+
 macro_rules! set_env_var_if_absent {
     ($name: expr, $default_value: expr) => {{
         if let Err(_) = env::var($name) {
@@ -15,9 +21,34 @@ macro_rules! set_env_var_if_absent {
     }};
 }
 
-macro_rules! set_rustc_env_var {
-    ($name: expr, $value: expr) => {{
-        println!("cargo:rustc-env={}={}", $name, $value);
+macro_rules! set_specific_path_if_absent {
+    ($env_name: expr, $env_default: expr, $with_dir: expr, $name: expr, $default_value: expr) => {{
+        let prefix = env::var($env_name).unwrap_or(String::from($env_default));
+        let mut value = PathBuf::new();
+        value.push(prefix);
+        if ($with_dir) {
+            value.push("acmed");
+        }
+        value.push($default_value);
+        set_env_var_if_absent!($name, value.to_str().unwrap());
+    }};
+}
+
+macro_rules! set_data_path_if_absent {
+    ($name: expr, $default_value: expr) => {{
+        set_specific_path_if_absent!("VARLIBDIR", "/var/lib", true, $name, $default_value);
+    }};
+}
+
+macro_rules! set_cfg_path_if_absent {
+    ($name: expr, $default_value: expr) => {{
+        set_specific_path_if_absent!("SYSCONFDIR", "/etc", true, $name, $default_value);
+    }};
+}
+
+macro_rules! set_runstate_path_if_absent {
+    ($name: expr, $default_value: expr) => {{
+        set_specific_path_if_absent!("RUNSTATEDIR", "/var/run", false, $name, $default_value);
     }};
 }
 
@@ -82,14 +113,14 @@ fn set_target() {
 }
 
 fn set_default_values() {
-    set_env_var_if_absent!("ACMED_DEFAULT_ACCOUNTS_DIR", "/etc/acmed/accounts");
-    set_env_var_if_absent!("ACMED_DEFAULT_CERT_DIR", "/etc/acmed/certs");
+    set_data_path_if_absent!("ACMED_DEFAULT_ACCOUNTS_DIR", "accounts");
+    set_data_path_if_absent!("ACMED_DEFAULT_CERT_DIR", "certs");
     set_env_var_if_absent!(
         "ACMED_DEFAULT_CERT_FORMAT",
         "{{name}}_{{key_type}}.{{file_type}}.{{ext}}"
     );
-    set_env_var_if_absent!("ACMED_DEFAULT_CONFIG_FILE", "/etc/acmed/acmed.toml");
-    set_env_var_if_absent!("ACMED_DEFAULT_PID_FILE", "/var/run/acmed.pid");
+    set_cfg_path_if_absent!("ACMED_DEFAULT_CONFIG_FILE", "acmed.toml");
+    set_runstate_path_if_absent!("ACMED_DEFAULT_PID_FILE", "acmed.pid");
 }
 
 fn main() {

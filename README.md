@@ -110,13 +110,29 @@ For example, you can build statically linked binaries using the `openssl_vendore
 make FEATURES="openssl_vendored" TARGET="x86_64-unknown-linux-musl"
 ```
 
-The following environment variables can be used to change default values at compile time:
+The following environment variables can be used to change default values at compile and/or install time:
 
-- `ACMED_DEFAULT_ACCOUNTS_DIR`: directory where account files are stored (default to `/etc/acmed/accounts`)
-- `ACMED_DEFAULT_CERT_DIR`: directory where certificates and private keys are stored (default to `/etc/acmed/certs`)
-- `ACMED_DEFAULT_CERT_FORMAT`: format for certificates and private keys files names (default to `{{name}}_{{key_type}}.{{file_type}}.{{ext}}`)
-- `ACMED_DEFAULT_CONFIG_FILE`: main configuration file (default to `/etc/acmed/acmed.toml`)
-- `ACMED_DEFAULT_PID_FILE`: main process PID file (default to `/var/run/acmed.pid`)
+- `PREFIX` (install): system user prefix (default to `/usr`)
+- `BINDIR` (install): system binary directory (default to `$PREFIX/bin`)
+- `DATADIR` (install): system data directory (default to `$PREFIX/share`)
+- `MAN5DIR` (install): system directory where pages 5 manuals are located (default to `$DATADIR/man/man5`)
+- `MAN8DIR` (install): system directory where pages 8 manuals are located (default to `$DATADIR/man/man8`)
+- `SYSCONFDIR` (compile and install): system configuration directory (default to `/etc`)
+- `VARLIBDIR` (compile and install): directory for persistent data modified by ACMEd (default to `/var/lib`)
+- `RUNSTATEDIR` (compile): system run-time variable data (default to `/var/run`)
+- `ACMED_DEFAULT_ACCOUNTS_DIR` (compile): directory where account files are stored (default to `$VARLIBDIR/acmed/accounts`)
+- `ACMED_DEFAULT_CERT_DIR` (compile): directory where certificates and private keys are stored (default to `$VARLIBDIR/acmed/certs`)
+- `ACMED_DEFAULT_CERT_FORMAT` (compile): format for certificates and private keys files names (default to `{{name}}_{{key_type}}.{{file_type}}.{{ext}}`)
+- `ACMED_DEFAULT_CONFIG_FILE` (compile): main configuration file (default to `$SYSCONFDIR/acmed/acmed.toml`)
+- `ACMED_DEFAULT_PID_FILE` (compile): PID file for the main acmed process (default to `$RUNSTATEDIR/acmed.pid`)
+- `TACD_DEFAULT_PID_FILE` (compile): PID file for the tacd process (default to `$RUNSTATEDIR/tacd.pid`)
+
+For example, the following will compile a binary that will use the `/usr/share/etc/acmed/acmed.toml` configuration file and will be installed in the `/usr/local/bin` directory :
+
+```
+make SYSCONFDIR="/usr/share/etc"
+make BINDIR="/usr/local/bin" install
+```
 
 ### Packaging
 

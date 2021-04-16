@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Allow the configuration of some default values at compile time using environment variables.
 
+### Changed
+- The default account directory now is `/var/lib/acmed/accounts`.
+- The default certificates and private keys directory now is `/var/lib/acmed/certs`.
+
 
 ## [0.16.0] - 2020-11-11
 
