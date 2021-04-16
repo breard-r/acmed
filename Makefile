@@ -46,6 +46,7 @@ install:
 	install -d -m 0755 $(DESTDIR)$(MAN8DIR)
 	if test -f "$(TARGET_DIR)/acmed"; then \
 	    install -d -m 0755 $(DESTDIR)$(MAN5DIR); \
+	    install -d -m 0755 $(DESTDIR)$(SYSCONFDIR)/acmed; \
 	    install -d -m 0755 $(DESTDIR)$(VARLIBDIR)/acmed/certs; \
 	    install -d -m 0700 $(DESTDIR)$(VARLIBDIR)/acmed/accounts; \
 	    install -m 0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed; \
