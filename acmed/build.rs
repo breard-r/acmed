@@ -7,6 +7,14 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
+macro_rules! set_env_var_if_absent {
+    ($name: expr, $default_value: expr) => {{
+        if let Err(_) = env::var($name) {
+            set_rustc_env_var!($name, $default_value);
+        }
+    }};
+}
+
 macro_rules! set_rustc_env_var {
     ($name: expr, $value: expr) => {{
         println!("cargo:rustc-env={}={}", $name, $value);
@@ -73,7 +81,19 @@ fn set_target() {
     };
 }
 
+fn set_default_values() {
+    set_env_var_if_absent!("ACMED_DEFAULT_ACCOUNTS_DIR", "/etc/acmed/accounts");
+    set_env_var_if_absent!("ACMED_DEFAULT_CERT_DIR", "/etc/acmed/certs");
+    set_env_var_if_absent!(
+        "ACMED_DEFAULT_CERT_FORMAT",
+        "{{name}}_{{key_type}}.{{file_type}}.{{ext}}"
+    );
+    set_env_var_if_absent!("ACMED_DEFAULT_CONFIG_FILE", "/etc/acmed/acmed.toml");
+    set_env_var_if_absent!("ACMED_DEFAULT_PID_FILE", "/var/run/acmed.pid");
+}
+
 fn main() {
     set_target();
     set_lock();
+    set_default_values();
 }

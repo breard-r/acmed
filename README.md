@@ -110,6 +110,14 @@ For example, you can build statically linked binaries using the `openssl_vendore
 make FEATURES="openssl_vendored" TARGET="x86_64-unknown-linux-musl"
 ```
 
+The following environment variables can be used to change default values at compile time:
+
+- `ACMED_DEFAULT_ACCOUNTS_DIR`: directory where account files are stored (default to `/etc/acmed/accounts`)
+- `ACMED_DEFAULT_CERT_DIR`: directory where certificates and private keys are stored (default to `/etc/acmed/certs`)
+- `ACMED_DEFAULT_CERT_FORMAT`: format for certificates and private keys files names (default to `{{name}}_{{key_type}}.{{file_type}}.{{ext}}`)
+- `ACMED_DEFAULT_CONFIG_FILE`: main configuration file (default to `/etc/acmed/acmed.toml`)
+- `ACMED_DEFAULT_PID_FILE`: main process PID file (default to `/var/run/acmed.pid`)
+
 ### Packaging
 
 Most of the time, when packaging, you want to install the program in a dedicated directory. This is possible using the `DESTDIR` variable.

@@ -23,11 +23,11 @@ mod storage;
 
 pub const APP_NAME: &str = "ACMEd";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const DEFAULT_PID_FILE: &str = "/var/run/acmed.pid";
-pub const DEFAULT_CONFIG_FILE: &str = "/etc/acmed/acmed.toml";
-pub const DEFAULT_ACCOUNTS_DIR: &str = "/etc/acmed/accounts";
-pub const DEFAULT_CERT_DIR: &str = "/etc/acmed/certs";
-pub const DEFAULT_CERT_FORMAT: &str = "{{name}}_{{key_type}}.{{file_type}}.{{ext}}";
+pub const DEFAULT_ACCOUNTS_DIR: &str = env!("ACMED_DEFAULT_ACCOUNTS_DIR");
+pub const DEFAULT_CERT_DIR: &str = env!("ACMED_DEFAULT_CERT_DIR");
+pub const DEFAULT_CERT_FORMAT: &str = env!("ACMED_DEFAULT_CERT_FORMAT");
+pub const DEFAULT_CONFIG_FILE: &str = env!("ACMED_DEFAULT_CONFIG_FILE");
+pub const DEFAULT_PID_FILE: &str = env!("ACMED_DEFAULT_PID_FILE");
 pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CSR_DIGEST: HashFunction = HashFunction::Sha256;
