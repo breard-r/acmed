@@ -7,7 +7,7 @@ MAN5DIR = $(DATADIR)/man/man5
 MAN8DIR = $(DATADIR)/man/man8
 SYSCONFDIR = /etc
 VARLIBDIR = /var/lib
-RUNSTATEDIR = /var/run
+RUNSTATEDIR = /run
 TARGET_DIR = ./target/$(TARGET)/release
 MAN_SRC_DIR = ./man/en
 MAN_DST_DIR = $(TARGET_DIR)/man
@@ -54,6 +54,7 @@ install:
 	    install -m 0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)$(MAN5DIR)/acmed.toml.5.gz; \
 	    install -m 0644 acmed/config/acmed.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml; \
 	    install -m 0644 acmed/config/default_hooks.toml $(DESTDIR)$(SYSCONFDIR)/acmed/default_hooks.toml; \
+	    install -m 0644 acmed/config/letsencrypt.toml $(DESTDIR)$(SYSCONFDIR)/acmed/letsencrypt.toml; \
 	fi
 	if test -f "$(TARGET_DIR)/tacd"; then \
 	    install -m 0755 $(TARGET_DIR)/tacd $(DESTDIR)$(BINDIR)/tacd; \

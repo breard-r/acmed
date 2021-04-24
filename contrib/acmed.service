@@ -1,0 +1,39 @@
+[Unit]
+Description=ACME client daemon
+After=network.target
+
+[Service]
+User=acmed
+Group=acmed
+
+# Working directory equals to User-Home
+#WorkingDirectory=/var/lib/acmed
+WorkingDirectory=/etc/acmed
+RuntimeDirectory=acmed
+
+# daemon handling: start, stop, timeouts
+#ExecStart=/usr/bin/acmed --foreground --pid-file /run/acmed/acmed.pid --log-level debug --log-stderr
+ExecStart=/usr/bin/acmed --foreground --pid-file /run/acmed/acmed.pid --log-level warn
+TimeoutStartSec=3
+TimeoutStopSec=5
+Restart=on-failure
+KillSignal=SIGINT
+
+# Sandboxing: reduce privileges on filesystem and kernel-space
+# restrict write access to acmed's directories with variable data
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectKernelTunables=yes
+ProtectKernelLogs=yes
+ProtectSystem=strict
+ReadWritePaths=/etc/acmed /var/lib/acmed
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallFilter=@system-service
+
+[Install]
+WantedBy=multi-user.target
