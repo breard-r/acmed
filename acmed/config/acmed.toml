@@ -5,6 +5,7 @@
 
 include = [
     "default_hooks.toml",
+    "nginx_hooks.toml",
     "letsencrypt.toml",
     #"my_server.toml",
 ]

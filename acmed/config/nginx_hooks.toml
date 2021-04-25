@@ -1,0 +1,130 @@
+# Copyright (c) 2021 Rodolphe Bréard <rodolphe@breard.tf>
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
+# ------------------------------------------------------------------------
+# ACMEd hooks adapting nginx configuration
+# You should not edit this file since it may be overridden by a newer one.
+# ------------------------------------------------------------------------
+
+
+###
+# nginx file storing challenge root in "/etc/nginx/conf.d/{{challenge-location}}/"
+# env: NGINX_CONFDIR -> /etc/nginx/conf.d
+# env: NGINX_CHALLENGE_LOCTION -> 001-challenge-letsencrypt.conf
+###
+
+[[hook]]
+name = "nginx-config-challenge-location-chmod"
+type = ["challenge-http-01", "post-operation"]
+cmd = "chmod"
+args = [
+    "ug+rw",
+    "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_CHALLENGE_LOCATION}}{{env.NGINX_CHALLENGE_LOCATION}}{{else}}001-challenge-letsencrypt.conf{{/if}}"
+]
+allow_failure = true
+
+[[hook]]
+name = "nginx-config-challenge-location-create"
+type = ["challenge-http-01", "post-operation"]
+cmd = "cat"
+args = [ "-" ]
+stdin_str = """###
+# Let's Encrypt: acme-challenge location
+###
+
+location ^~ /.well-known/acme-challenge/ {
+  allow all;
+  root "{{#if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/lib/acmed/domains{{/if}}";
+  default_type "text/plain";
+  try_files $uri =404;
+}
+"""
+stdout = "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_CHALLENGE_LOCATION}}{{env.NGINX_CHALLENGE_LOCATION}}{{else}}001-challenge-letsencrypt.conf{{/if}}"
+
+[[hook]]
+name = "nginx-config-challenge-location-echo"
+type = ["challenge-http-01", "post-operation"]
+cmd = "echo"
+args = [
+    "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_CHALLENGE_LOCATION}}{{env.NGINX_CHALLENGE_LOCATION}}{{else}}001-challenge-letsencrypt.conf{{/if}}"
+]
+allow_failure = true
+
+[[group]]
+name = "nginx-config-challenge-location"
+# hook execution in order of definition
+hooks = [
+    "nginx-config-challenge-location-create",
+    "nginx-config-challenge-location-echo",
+    "nginx-config-challenge-location-chmod"
+]
+
+###
+# nginx reference to TLS certificates
+# env NGINX_TLS_CERTIFICATE -> 002-tls-certificates.conf
+# global: {{certificates_directory}}
+# certificate: {{name}}_{{key_type}}.{{file_type}}.{{ext}}
+###
+
+[[hook]]
+name = "nginx-config-certificate-location-chmod"
+type = ["challenge-http-01", "post-operation"]
+cmd = "chmod"
+args = [
+    "ug+rw",
+    "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_TLS_CERTIFICATE}}{{env.NGINX_TLS_CERTIFICATE}}{{else}}002-tls-certificates.conf{{/if}}"
+]
+allow_failure = true
+
+[[hook]]
+name = "nginx-config-certificate-location-create"
+type = ["challenge-http-01", "post-operation"]
+cmd = "cat"
+args = [ "-" ]
+## TODO
+# make following handlebars accessible in post-operation
+# ssl_certificate {{certificates_directory}}/{{name}}_{{key_type}}.crt.{{ext}};
+# ssl_certificate_key {{certificates_directory}}/{{name}}_{{key_type}}.pk.{{ext}};
+# workaround: define a env:ACMED_CERTS pointing to {{certificates_directory}}
+##
+stdin_str = """###
+# Let's Encrypt TLS certificats
+###
+
+ssl_certificate {{#if env.ACMED_CERTS}}{{env.ACMED_CERTS}}{{else}}/var/lib/acmed/certs{{/if}}/{{identifiers.[0]}}_{{key_type}}.crt.pem; # managed by ACMEd
+ssl_certificate_key {{#if env.ACMED_CERTS}}{{env.ACMED_CERTS}}{{else}}/var/lib/acmed/certs{{/if}}/{{identifiers.[0]}}_{{key_type}}.pk.pem; # managed by ACMEd
+
+ssl_session_cache shared:le_nginx_SSL:10m;
+ssl_session_timeout 1440m;
+ssl_session_tickets off;
+
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+
+ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-PO
+LY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+"""
+stdout = "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_TLS_CERTIFICATE}}{{env.NGINX_TLS_CERTIFICATE}}{{else}}002-tls-certificates.conf{{/if}}"
+allow_failure = true
+
+[[hook]]
+name = "nginx-config-certificate-location-echo"
+type = ["challenge-http-01", "post-operation"]
+cmd = "echo"
+args = [
+    "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_TLS_CERTIFICATE}}{{env.NGINX_TLS_CERTIFICATE}}{{else}}002-tls-certificates.conf{{/if}}"
+]
+allow_failure = true
+
+[[group]]
+name = "nginx-config-certificate-location"
+# hook execution in order of definition
+hooks = [
+    "nginx-config-certificate-location-create",
+    "nginx-config-certificate-location-echo",
+    "nginx-config-certificate-location-chmod"
+]
