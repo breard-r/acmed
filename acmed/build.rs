@@ -48,7 +48,7 @@ macro_rules! set_cfg_path_if_absent {
 
 macro_rules! set_runstate_path_if_absent {
     ($name: expr, $default_value: expr) => {{
-        set_specific_path_if_absent!("RUNSTATEDIR", "/var/run", false, $name, $default_value);
+        set_specific_path_if_absent!("RUNSTATEDIR", "/run", false, $name, $default_value);
     }};
 }
 
