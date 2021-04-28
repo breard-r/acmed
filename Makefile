@@ -54,6 +54,7 @@ install:
 	    install -m 0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)$(MAN5DIR)/acmed.toml.5.gz; \
 	    install -m 0644 acmed/config/acmed.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml; \
 	    install -m 0644 acmed/config/default_hooks.toml $(DESTDIR)$(SYSCONFDIR)/acmed/default_hooks.toml; \
+	    install -m 0644 acmed/config/nginx_hooks.toml $(DESTDIR)$(SYSCONFDIR)/acmed/nginx_hooks.toml; \
 	    install -m 0644 acmed/config/letsencrypt.toml $(DESTDIR)$(SYSCONFDIR)/acmed/letsencrypt.toml; \
 	fi
 	if test -f "$(TARGET_DIR)/tacd"; then \
