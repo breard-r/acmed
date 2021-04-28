@@ -1,4 +1,3 @@
-
 [//]: # (Copyright 2019-2020 Rodolphe Bréard <rodolphe@breard.tf>)
 
 [//]: # (Copying and distribution of this file, with or without modification,)
@@ -21,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The default account directory now is `/var/lib/acmed/accounts`.
 - The default certificates and private keys directory now is `/var/lib/acmed/certs`.
+- The default for volatile runtime data now is `/run`.
 
 
 ## [0.16.0] - 2020-11-11
