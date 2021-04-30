@@ -1,0 +1,19 @@
+/*
+ * Polkit authorization rules file
+ *
+ * This file defines a Polkit rule allowing the user acmed to restart
+ * systemd services.
+ *
+ * For more information, see the polkit documentation:
+ * https://www.freedesktop.org/software/polkit/docs/latest/polkit.8.html
+ */
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.systemd1.manage-units") {
+        if (subject.user == "acmed") {
+            if (action.lookup("verb") == "restart") {
+                return polkit.Result.YES;
+            }
+        }
+    }
+});
