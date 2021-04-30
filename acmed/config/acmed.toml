@@ -6,5 +6,4 @@
 include = [
     "default_hooks.toml",
     "letsencrypt.toml",
-    "my_server.toml"
 ]
