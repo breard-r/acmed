@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Rodolphe Bréard <rodolphe@breard.tf>
+# Copyright (c) 2021 Ralf Zerres <ralf.zerres@networkx.de>
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -105,8 +105,7 @@ ssl_session_tickets off;
 ssl_protocols TLSv1.2 TLSv1.3;
 ssl_prefer_server_ciphers off;
 
-ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-PO
-LY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+ssl_ciphers 'HIGH:!eNULL:!LOW:!MEDIUM:!EXP:!RC4:!3DES:!MD5:!SHA1:!SHA256:!SHA384:!PSK:!kRSA:!SRP:-DH:+ECDH';
 """
 stdout = "{{#if env.NGINX_CONFDIR}}{{env.NGINX_CONFDIR}}{{else}}/etc/nginx/conf.d{{/if}}/{{#if env.NGINX_TLS_CERTIFICATE}}{{env.NGINX_TLS_CERTIFICATE}}{{else}}002-tls-certificates.conf{{/if}}"
 allow_failure = true
