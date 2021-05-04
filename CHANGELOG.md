@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Added
+- In addition to `restart`, the Polkit rule also allows the `reload`, `try-restart`, `reload-or-restart` and `try-reload-or-restart` verbs.
+
+
 ## [0.17.0] - 2020-05-04
 
 ### Added
