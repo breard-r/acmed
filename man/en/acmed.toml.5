@@ -669,6 +669,16 @@ For example,
 and
 .Dq 40s20h4h2s
 both represents a period of one day and forty-two seconds.
+.Sh TEMPLATE FORMATTERS
+In addition the the formatters provided by default by TinyTemplate, ACMEd provides the following formatters:
+.Bl -tag
+.It Pa rev_labels
+Reverts the labels of a domain name (eg:
+.Dq mx1.example.org
+becomes
+.Dq org.example.mx1
+).
+.El
 .Sh FILES
 .Bl -tag
 .It Pa /var/lib/acmed/accounts
