@@ -105,8 +105,8 @@ impl From<glob::PatternError> for Error {
     }
 }
 
-impl From<handlebars::TemplateRenderError> for Error {
-    fn from(error: handlebars::TemplateRenderError) -> Self {
+impl From<tinytemplate::error::Error> for Error {
+    fn from(error: tinytemplate::error::Error) -> Self {
         format!("template error: {}", error).into()
     }
 }

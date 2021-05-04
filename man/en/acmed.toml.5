@@ -118,17 +118,17 @@ Name of the endpoint to use.
 Table of environment variables that will be accessible from hooks.
 .It Ic file_name_format Ar string
 Template used to build the file's name. The template syntax is
-.Em Handlebars .
+.Em TinyTemplate .
 See the
 .Sx STANDARDS
 section for a link to the
-.Em Handlebars
+.Em TinyTemplate
 specifications. If not specified, the value defined in the
 .Em endpoint
 element, and then the
 .Em global
 element, is used. Default is
-.Dq {{name}}_{{key_type}}.{{file_type}}.{{ext}} .
+.Dq { name }_{ key_type }.{ file_type }.{ ext } .
 Possible variables are:
 .Bl -tag
 .It Ic ext Ar string
@@ -401,11 +401,11 @@ and
 are considered as template strings whereas
 .Em cmd
 is not. The template syntax is
-.Em Handlebars .
+.Em TinyTemplate .
 See the
 .Sx STANDARDS
 section for a link to the
-.Em Handlebars
+.Em TinyTemplate
 specifications.
 .Pp
 The available types and the associated template variable are described below.
@@ -577,10 +577,10 @@ and
 environment variables.
 .It Pa http-01-echo
 This hook is designed to solve the http-01 challenge. For this purpose, it will write the proof into
-.Pa {{env.HTTP_ROOT}}/{{identifier}}/.well-known/acme-challenge/{{file_name}} .
+.Pa { env.HTTP_ROOT }/{ identifier }/.well-known/acme-challenge/{ file_name } .
 .Pp
 The web server must be configured so the file
-.Pa http://{{identifier}}/.well-known/acme-challenge/{{file_name}}
+.Pa http://{ identifier }/.well-known/acme-challenge/{ file_name }
 can be accessed from the CA.
 .Pp
 If
@@ -605,7 +605,7 @@ environment variable (default is 5001).
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa {{TACD_PID_ROOT}}/tacd_{{identifier}}.pid .
+.Pa { TACD_PID_ROOT }/tacd_{ identifier }.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -621,7 +621,7 @@ option.
 .Pp
 .Xr tacd 8
 will listen on the unix socket
-.Pa {{env.TACD_SOCK_ROOT}}/tacd_{{identifier}}.sock .
+.Pa { env.TACD_SOCK_ROOT }/tacd_{ identifier }.sock .
 If
 .Ev TACD_SOCK_ROOT
 is not specified, it will be set to
@@ -629,7 +629,7 @@ is not specified, it will be set to
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa {{TACD_PID_ROOT}}/tacd_{{identifier}}.pid .
+.Pa { TACD_PID_ROOT }/tacd_{ identifier }.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -726,15 +726,15 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge"
+    "-p", "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge"
 ]
 
 [[hook]]
 name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
-args = ["{{proof}}"]
-stdout = "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
+args = ["{ proof }"]
+stdout = "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -742,7 +742,7 @@ type = ["challenge-http-01-clean"]
 cmd = "chmod"
 args = [
     "a+r",
-    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
+    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
 ]
 
 [[hook]]
@@ -751,7 +751,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "{{%if env.HTTP_ROOT}}{{env.HTTP_ROOT}}{{else}}/var/www{{/if}}/{{identifier}}/.well-known/acme-challenge/{{file_name}}"
+    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
 ]
 .Ed
 .Pp
@@ -784,12 +784,12 @@ args = [
     "-f", "noreply.certs@example.net",
     "contact@example.net"
 ]
-stdin_str = """Subject: Certificate renewal {{#if is_success}}succeeded{{else}}failed{{/if}} for {{identifiers.[0]}}
+stdin_str = """Subject: Certificate renewal {{ if is_success }}succeeded{{ else }}failed{{ endif }} for { identifiers.0 }
 
-The following certificate has {{#unless is_success}}*not* {{/unless}}been renewed.
-identifiers: {{#each identifiers}}{{#if @index}}, {{/if}}{{this}}{{/each}}
-key type: {{key_type}}
-status: {{status}}"""
+The following certificate has {{ if not is_success }}*not* {{ endif }}been renewed.
+identifiers: {{ for ident in identifiers}}{{ if @index }}, {{ endif }}{ ident }{{ endfor}}
+key type: { key_type }
+status: { status }"""
 .Ed
 .Sh SEE ALSO
 .Xr acmed 8 ,
@@ -805,9 +805,9 @@ status: {{status}}"""
 .Re
 .It
 .Rs
-.%A Yehuda Katz
-.%T Handlebars
-.%U https://handlebarsjs.com/
+.%A Brook Heisler
+.%T TinyTemplate
+.%U https://docs.rs/tinytemplate/latest/tinytemplate/syntax/index.html
 .Re
 .It
 .Rs

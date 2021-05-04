@@ -1,7 +1,7 @@
 pub use crate::config::HookType;
 use crate::logs::HasLogger;
+use crate::template::render_template;
 use acme_common::error::Error;
-use handlebars::Handlebars;
 use serde::Serialize;
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
@@ -102,10 +102,10 @@ impl fmt::Display for Hook {
 }
 
 macro_rules! get_hook_output {
-    ($logger: expr, $out: expr, $reg: ident, $data: expr, $hook_name: expr, $out_name: expr) => {{
+    ($logger: expr, $out: expr, $data: expr, $hook_name: expr, $out_name: expr) => {{
         match $out {
             Some(path) => {
-                let path = $reg.render_template(path, $data)?;
+                let path = render_template(path, $data)?;
                 $logger.trace(&format!(
                     "hook \"{}\": {}: {}",
                     $hook_name, $out_name, &path
@@ -124,12 +124,11 @@ where
     T: Clone + HookEnvData + Serialize,
 {
     logger.debug(&format!("calling hook \"{}\"", hook.name));
-    let reg = Handlebars::new();
     let mut v = vec![];
     let args = match &hook.args {
         Some(lst) => {
             for fmt in lst.iter() {
-                let s = reg.render_template(fmt, &data)?;
+                let s = render_template(fmt, &data)?;
                 v.push(s);
             }
             v.as_slice()
@@ -144,7 +143,6 @@ where
         .stdout(get_hook_output!(
             logger,
             &hook.stdout,
-            reg,
             &data,
             &hook.name,
             "stdout"
@@ -152,7 +150,6 @@ where
         .stderr(get_hook_output!(
             logger,
             &hook.stderr,
-            reg,
             &data,
             &hook.name,
             "stderr"
@@ -164,7 +161,7 @@ where
         .spawn()?;
     match &hook.stdin {
         HookStdin::Str(s) => {
-            let data_in = reg.render_template(&s, &data)?;
+            let data_in = render_template(&s, &data)?;
             logger.trace(&format!(
                 "hook \"{}\": string stdin: {}",
                 hook.name, &data_in
@@ -173,7 +170,7 @@ where
             stdin.write_all(data_in.as_bytes())?;
         }
         HookStdin::File(f) => {
-            let file_name = reg.render_template(&f, &data)?;
+            let file_name = render_template(&f, &data)?;
             logger.trace(&format!(
                 "hook \"{}\": file stdin: {}",
                 hook.name, &file_name

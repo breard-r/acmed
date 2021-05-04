@@ -1,9 +1,9 @@
 use crate::hooks::{self, FileStorageHookData, Hook, HookEnvData, HookType};
 use crate::logs::HasLogger;
+use crate::template::render_template;
 use acme_common::b64_encode;
 use acme_common::crypto::{KeyPair, X509Certificate};
 use acme_common::error::Error;
-use handlebars::Handlebars;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -110,8 +110,7 @@ fn get_file_full_path(
                 file_type: file_type.to_string(),
                 name: fm.crt_name.to_owned(),
             };
-            let reg = Handlebars::new();
-            reg.render_template(&fm.crt_name_format, &fmt_data)?
+            render_template(&fm.crt_name_format, &fmt_data)?
         }
     };
     let mut path = PathBuf::from(&base_path);

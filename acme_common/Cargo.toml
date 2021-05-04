@@ -24,7 +24,6 @@ base64 = "0.13"
 daemonize = "0.4"
 env_logger = "0.8"
 glob = "0.3"
-handlebars = "3.0"
 libc = "0.2"
 log = "0.4"
 native-tls = "0.2"
@@ -33,6 +32,7 @@ openssl-sys = { version = "0.9", optional = true }
 punycode = "0.4"
 serde_json = "1.0"
 syslog = "5.0"
+tinytemplate = "1.2"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]

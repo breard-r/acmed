@@ -20,6 +20,7 @@ mod jws;
 mod logs;
 mod main_event_loop;
 mod storage;
+mod template;
 
 pub const APP_NAME: &str = "ACMEd";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
