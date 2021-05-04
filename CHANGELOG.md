@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow the configuration of some default values at compile time using environment variables.
 
 ### Changed
+- The template engine has been changed in favor of TinyTemplate, which has a different syntax than the previous one.
 - The default account directory now is `/var/lib/acmed/accounts`.
 - The default certificates and private keys directory now is `/var/lib/acmed/certs`.
 - The default for volatile runtime data now is `/run`.
