@@ -12,7 +12,7 @@ RuntimeDirectory=acmed
 
 # daemon handling: start, stop, timeouts
 #ExecStart=/usr/bin/acmed --foreground --pid-file /run/acmed/acmed.pid --log-level trace --log-stderr
-ExecStart=/usr/bin/acmed --foreground --pid-file /run/acmed/acmed.pid --log-level warn
+ExecStart=/usr/bin/acmed --foreground --pid-file /run/acmed/acmed.pid --log-level info
 TimeoutStartSec=3
 TimeoutStopSec=5
 Restart=on-failure
