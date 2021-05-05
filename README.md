@@ -102,7 +102,7 @@ You can specify a space or comma separated list of features to activate in the `
 - `openssl_dyn` (default): use OpenSSL as the cryptographic library, dynamically linked (mutually exclusive with `openssl_vendored`).
 - `openssl_vendored`: use OpenSSL as the cryptographic library, statically linked (mutually exclusive with `openssl_dyn`).
 
-You can also specify the target triple to build for in the `TARGET` variable. Please note that, if used, this variable must be specified for both `make` and `make install`.
+You can also specify the [target triple](https://doc.rust-lang.org/nightly/rustc/platform-support.html) to build for in the `TARGET` variable. Please note that, if used, this variable must be specified for both `make` and `make install`.
 
 For example, you can build statically linked binaries using the `openssl_vendored` feature and the `x86_64-unknown-linux-musl` target.
 
