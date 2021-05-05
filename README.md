@@ -142,6 +142,8 @@ Most of the time, when packaging, you want to install the program in a dedicated
 make DESTDIR="/path/to/my/package/directory" install
 ```
 
+Packager tip: If you package ACMEd in a way it does not run as root, you might want to create another package that provides the Polkit rule file located in the `contrib` directory. This package should depends on both acmed and Polkit.
+
 
 ## Frequently Asked Questions
 
