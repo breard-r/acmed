@@ -42,11 +42,6 @@ If you know C/C++ and are highly motivated:
 
 Add an optional Botan support as the cryptographic library.
 
-### Find or create a good template engine
-
-As reported in [issue #8](https://github.com/breard-r/acmed/issues/8), there is currently no perfect template engine. A good way to help improve ACMEd would be to find or create one that supports all the listed requirements.
-
-
 ## Improving the code
 
 As a one-man project, it has several goals already set but not explicitly written in an issue or any other follow-up file. It will not be the case before version 1.0 is released since everything may change at any moment. Therefore, it is recommended to request change instead of implementing them, this way we can discuss how things should be made.
