@@ -93,7 +93,7 @@ $ make
 $ make install
 ```
 
-To build ACMEd and tacd inside a temporary Docker container, use the `contrib/build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
+To build ACMEd and tacd inside a temporary Docker container, use the `contrib/docker/build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
 
 ### Advanced options
 
@@ -142,7 +142,7 @@ Most of the time, when packaging, you want to install the program in a dedicated
 make DESTDIR="/path/to/my/package/directory" install
 ```
 
-Packager tip: If you package ACMEd in a way it does not run as root, you might want to create another package that provides the Polkit rule file located in the `contrib` directory. This package should depends on both acmed and Polkit.
+Packager tip: If you package ACMEd in a way it does not run as root, you might want to create another package that provides the Polkit rule file located in the `contrib/polkit` directory. This package should depends on both acmed and Polkit.
 
 
 ## Frequently Asked Questions
@@ -194,7 +194,7 @@ The reason some services has such an option is because at startup they may have 
 
 ### How can I run ACMEd with systemd?
 
-An example service file is provided (see `contrib/acmed.service.example`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
+An example service file is provided (see `contrib/systemd/acmed.service`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
 
 ### Does ACMEd uses any threading or parallelization?
 
