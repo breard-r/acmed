@@ -186,7 +186,7 @@ However, if you are concerned with safety, you should create a dedicated user fo
 * Will my services be able to read both the private key and the certificate?
 * Will the ACMEd user be able to execute the hooks?
 
-The last one could be achieved using either sudo or Polkit.
+The last one could be achieved using either sudo or Polkit (see the `contrib/polkit` directory).
 
 ### Why is there no option to run ACMEd as a specific user or group?
 
@@ -194,7 +194,7 @@ The reason some services has such an option is because at startup they may have 
 
 ### How can I run ACMEd with systemd?
 
-An example service file is provided (see `contrib/systemd/acmed.service`). The file might need adjustments in order to work on your system (e.g. binary path, user, group, directories...), but it's probably a good starting point.
+The `contrib/systemd` contains examples of a service file as well as a `sysusers.d` and a `tmpfiles.d` file. Those files might need adjustments in order to work on your system (e.g. paths, user, group,...), but it's probably a good starting point.
 
 ### Does ACMEd uses any threading or parallelization?
 
