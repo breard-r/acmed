@@ -156,10 +156,10 @@ fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
         .iter()
         .map(|k| AccountKeyStorage::new(&k))
         .collect::<Result<Vec<AccountKeyStorage>, Error>>()?;
-    let external_account = match &account.external_account {
-        Some(a) => Some(ExternalAccountStorage::new(&a)),
-        None => None,
-    };
+    let external_account = account
+        .external_account
+        .as_ref()
+        .map(|a| ExternalAccountStorage::new(&a));
     let account_storage = AccountStorage {
         name: account.name.to_owned(),
         endpoints,
