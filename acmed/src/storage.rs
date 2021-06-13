@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::OpenOptionsExt;
@@ -123,7 +123,7 @@ fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error
     Ok(path)
 }
 
-fn read_file(fm: &FileManager, path: &PathBuf) -> Result<Vec<u8>, Error> {
+fn read_file(fm: &FileManager, path: &Path) -> Result<Vec<u8>, Error> {
     fm.trace(&format!("reading file {:?}", path));
     let mut file = File::open(path)?;
     let mut contents = vec![];
@@ -132,7 +132,7 @@ fn read_file(fm: &FileManager, path: &PathBuf) -> Result<Vec<u8>, Error> {
 }
 
 #[cfg(unix)]
-fn set_owner(fm: &FileManager, path: &PathBuf, file_type: FileType) -> Result<(), Error> {
+fn set_owner(fm: &FileManager, path: &Path, file_type: FileType) -> Result<(), Error> {
     let (uid, gid) = match file_type {
         FileType::Certificate => (fm.cert_file_owner.to_owned(), fm.cert_file_group.to_owned()),
         FileType::PrivateKey => (fm.pk_file_owner.to_owned(), fm.pk_file_group.to_owned()),

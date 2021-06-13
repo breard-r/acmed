@@ -662,8 +662,8 @@ fn init_directories(config: &Config) -> Result<(), Error> {
     Ok(())
 }
 
-fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
-    let mut path = from.clone().canonicalize()?;
+fn get_cnf_path(from: &Path, file: &str) -> Result<Vec<PathBuf>, Error> {
+    let mut path = from.to_path_buf().canonicalize()?;
     path.pop();
     path.push(file);
     let err = format!("{:?}: invalid UTF-8 path", path);
@@ -681,14 +681,14 @@ fn get_cnf_path(from: &PathBuf, file: &str) -> Result<Vec<PathBuf>, Error> {
     Ok(g)
 }
 
-fn read_cnf(path: &PathBuf, loaded_files: &mut BTreeSet<PathBuf>) -> Result<Config, Error> {
+fn read_cnf(path: &Path, loaded_files: &mut BTreeSet<PathBuf>) -> Result<Config, Error> {
     let path = path.canonicalize()?;
     if loaded_files.contains(&path) {
         info!("{}: configuration file already loaded", path.display());
         return Ok(Config::default());
     }
     loaded_files.insert(path.clone());
-    info!("{}: loading configuration file", path.display());
+    info!("{}: loading configuration file", &path.display());
     let mut file =
         File::open(&path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut contents = String::new();
