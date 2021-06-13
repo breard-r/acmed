@@ -50,12 +50,12 @@ impl fmt::Display for Challenge {
 
 impl PartialEq<structs::Challenge> for Challenge {
     fn eq(&self, other: &structs::Challenge) -> bool {
-        match (self, other) {
-            (Challenge::Http01, structs::Challenge::Http01(_)) => true,
-            (Challenge::Dns01, structs::Challenge::Dns01(_)) => true,
-            (Challenge::TlsAlpn01, structs::Challenge::TlsAlpn01(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Challenge::Http01, structs::Challenge::Http01(_))
+                | (Challenge::Dns01, structs::Challenge::Dns01(_))
+                | (Challenge::TlsAlpn01, structs::Challenge::TlsAlpn01(_))
+        )
     }
 }
 
