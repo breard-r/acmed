@@ -18,10 +18,6 @@ A great way to contribute to the project is to package it. You can check the pac
 
 ## Work on dependencies
 
-### rust-openssl
-
-See [issue #36](https://github.com/breard-r/acmed/issues/36).
-
 ### botan and botan-sys
 
 Although Botan isn't a dependency, it is considered for the replacement of OpenSSL as the default cryptographic API (although OpenSSL will be kept as an alternative). But before this can be done, the Botan crate need to support a few features:
