@@ -16,7 +16,7 @@ fn formatter_rev_labels(value: &Value, output: &mut String) -> tinytemplate::err
         Value::Bool(v) => default_format!(v, output),
         Value::Number(v) => default_format!(v, output),
         Value::String(v) => {
-            let s = v.rsplit(".").collect::<Vec<&str>>().join(".");
+            let s = v.rsplit('.').collect::<Vec<&str>>().join(".");
             output.push_str(&s);
             Ok(())
         }
