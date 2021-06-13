@@ -12,14 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.18.0] - 2021-06-13
 
 ### Added
 - Add support for Ed25519 and Ed448 account keys and certificates.
 - In addition to `restart`, the Polkit rule also allows the `reload`, `try-restart`, `reload-or-restart` and `try-reload-or-restart` verbs.
 
 
-## [0.17.0] - 2020-05-04
+## [0.17.0] - 2021-05-04
 
 ### Added
 - Allow the configuration of some default values at compile time using environment variables.
