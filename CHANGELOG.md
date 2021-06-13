@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add support for Ed25519 and Ed448 account keys and certificates.
 - In addition to `restart`, the Polkit rule also allows the `reload`, `try-restart`, `reload-or-restart` and `try-reload-or-restart` verbs.
 
 

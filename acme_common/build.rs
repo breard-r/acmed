@@ -8,9 +8,13 @@ macro_rules! set_rustc_env_var {
 
 fn main() {
     if env::var("DEP_OPENSSL_VERSION_NUMBER").is_ok() {
+        println!("cargo:rustc-cfg=ed25519");
+        println!("cargo:rustc-cfg=ed448");
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "OpenSSL");
     }
     if env::var("DEP_OPENSSL_LIBRESSL_VERSION_NUMBER").is_ok() {
+        println!("cargo:rustc-cfg=ed25519");
+        println!("cargo:rustc-cfg=ed448");
         set_rustc_env_var!("ACMED_TLS_LIB_NAME", "LibreSSL");
     }
 }

@@ -92,6 +92,10 @@ PO2/53dpt/yV5zOPrYPEoKs4t973nbt46IUN19lLF/s=
 const KEY_ECDSA_ED25519_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIJhpRNsiUzoWqNkpJKCtKV5++Tttz3locu1gQKkQnrOa
 -----END PRIVATE KEY-----"#;
+#[cfg(ed25519)]
+const KEY_ECDSA_ED25519_PEM_BIS: &str = r#"-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIKa3WD0qeUToPQKSwa9cTsLPgCovqAtXMhlMX2KYBz0o
+-----END PRIVATE KEY-----"#;
 #[cfg(ed448)]
 const KEY_ECDSA_ED448_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 MEcCAQAwBQYDK2VxBDsEOcFBwsH4zU7u5RgFh48MgJPzXyjN5uXxDapZv4rG6opU
@@ -318,6 +322,50 @@ fn test_ed25519_jwk_thumbprint() {
     );
 }
 
+#[cfg(ed25519)]
+#[test]
+fn test_ed25519_jwk_bis() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM_BIS.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 5);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
+    assert!(jwk.contains_key("use"));
+    assert!(jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed25519");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "i9K0eV5qOJ_l_TWjWFLm8R-JbyGdlqFFeL_J0eEXFnc"
+    );
+    assert_eq!(jwk.get("use").unwrap(), "sig");
+    assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
+}
+
+#[cfg(ed25519)]
+#[test]
+fn test_ed25519_jwk_thumbprint_bis() {
+    let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM_BIS.as_bytes()).unwrap();
+    let jwk = k.jwk_public_key_thumbprint().unwrap();
+    assert!(jwk.is_object());
+    let jwk = jwk.as_object().unwrap();
+    assert_eq!(jwk.len(), 3);
+    assert!(jwk.contains_key("kty"));
+    assert!(jwk.contains_key("crv"));
+    assert!(jwk.contains_key("x"));
+    assert!(!jwk.contains_key("use"));
+    assert!(!jwk.contains_key("alg"));
+    assert_eq!(jwk.get("kty").unwrap(), "OKP");
+    assert_eq!(jwk.get("crv").unwrap(), "Ed25519");
+    assert_eq!(
+        jwk.get("x").unwrap(),
+        "i9K0eV5qOJ_l_TWjWFLm8R-JbyGdlqFFeL_J0eEXFnc"
+    );
+}
+
 #[cfg(ed448)]
 #[test]
 fn test_ed448_jwk() {
@@ -335,7 +383,7 @@ fn test_ed448_jwk() {
     assert_eq!(jwk.get("crv").unwrap(), "Ed448");
     assert_eq!(
         jwk.get("x").unwrap(),
-        "ib9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
+        "b9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
     );
     assert_eq!(jwk.get("use").unwrap(), "sig");
     assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
@@ -358,6 +406,6 @@ fn test_ed448_jwk_thumbprint() {
     assert_eq!(jwk.get("crv").unwrap(), "Ed448");
     assert_eq!(
         jwk.get("x").unwrap(),
-        "ib9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
+        "b9GZ8b1hip3UMzkkNBdMF4JWBTZojxsNHK-jQBH94SY3boVs4Oeo291E1dGXz7RUMqIXjkSbU4EA"
     );
 }

@@ -247,12 +247,40 @@ impl KeyPair {
                 return Err("not an EdDSA elliptic curve".into());
             }
         };
-        let x = "";
+
+        /*
+         * /!\ WARNING: HAZARDOUS AND UGLY CODE /!\
+         *
+         * I couldn't find a way to get the value of `x` using the OpenSSL
+         * interface, therefore I had to hack my way arround.
+         *
+         * The idea behind this hack is to export the public key in PEM, then
+         * get the PEM base64 part, convert it to base64url without padding
+         * and finally truncate the first part so only the value of `x`
+         * remains.
+         */
+
+        // -----BEGIN UGLY-----
+        let mut x = String::new();
+        let public_pem = self.public_key_to_pem()?;
+        let public_pem = String::from_utf8(public_pem)?;
+        for pem_line in public_pem.lines() {
+            if !pem_line.is_empty() && !pem_line.starts_with("-----") {
+                x += &pem_line
+                    .trim()
+                    .trim_end_matches('=')
+                    .replace("/", "_")
+                    .replace("+", "-");
+            }
+        }
+        x.replace_range(..16, "");
+        // -----END UGLY-----
+
         let jwk = if thumbprint {
             json!({
                 "crv": crv,
                 "kty": "OKP",
-                "x": x,
+                "x": &x,
             })
         } else {
             json!({
@@ -260,11 +288,10 @@ impl KeyPair {
                 "crv": crv,
                 "kty": "OKP",
                 "use": "sig",
-                "x": x,
+                "x": &x,
             })
         };
-        //Ok(jwk)
-        Err("TODO: implement get_eddsa_jwk (require binding to EVP_PKEY_get1_ED25519, which requires OpenSSL 3.0)".into())
+        Ok(jwk)
     }
 }
 

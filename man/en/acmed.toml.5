@@ -64,6 +64,10 @@ Names of hooks that will be called during operations on the account storage file
 Name of the asymmetric cryptography algorithm used to generate the key pair. Possible values are:
 .Bl -dash -compact
 .It
+ed25519
+.It
+ed448
+.It
 ecdsa_p256
 .Aq default
 .It
@@ -175,6 +179,10 @@ The IP address.
 .It Ic key_type Ar string
 Name of the asymmetric cryptography algorithm used to generate the certificate's key pair. Possible values are:
 .Bl -dash -compact
+.It
+ed25519
+.It
+ed448
 .It
 ecdsa_p256
 .It
