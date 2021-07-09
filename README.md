@@ -118,7 +118,7 @@ The following environment variables can be used to change default values at comp
 - `MAN8DIR` (install): system directory where pages 8 manuals are located (default to `$DATADIR/man/man8`)
 - `SYSCONFDIR` (compile and install): system configuration directory (default to `/etc`)
 - `VARLIBDIR` (compile and install): directory for persistent data modified by ACMEd (default to `/var/lib`)
-- `RUNSTATEDIR` (compile): system run-time variable data (default to `/var/run`)
+- `RUNSTATEDIR` (compile): system run-time variable data (default to `/run`)
 - `ACMED_DEFAULT_ACCOUNTS_DIR` (compile): directory where account files are stored (default to `$VARLIBDIR/acmed/accounts`)
 - `ACMED_DEFAULT_CERT_DIR` (compile): directory where certificates and private keys are stored (default to `$VARLIBDIR/acmed/certs`)
 - `ACMED_DEFAULT_CERT_FORMAT` (compile): format for certificates and private keys files names (default to `{ name }_{ key_type }.{ file_type }.{ ext }`)
