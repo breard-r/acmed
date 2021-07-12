@@ -36,4 +36,4 @@ tinytemplate = "1.2"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.21"
+nix = "0.22"
