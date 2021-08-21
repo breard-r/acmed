@@ -32,7 +32,7 @@ fn get_duration_part(input: &str) -> IResult<&str, Duration> {
 fn get_duration(input: &str) -> IResult<&str, Duration> {
     fold_many1(
         get_duration_part,
-        Duration::new(0, 0),
+        || Duration::new(0, 0),
         |mut acc: Duration, item| {
             acc += item;
             acc
