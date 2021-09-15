@@ -805,7 +805,7 @@ args = [
 stdin_str = """Subject: Certificate renewal {{ if is_success }}succeeded{{ else }}failed{{ endif }} for { identifiers.0 }
 
 The following certificate has {{ if not is_success }}*not* {{ endif }}been renewed.
-identifiers: {{ for ident in identifiers}}{{ if @index }}, {{ endif }}{ ident }{{ endfor}}
+identifiers: {{ for ident in identifiers }}{{ if not @first }}, {{ endif }}{ ident }{{ endfor }}
 key type: { key_type }
 status: { status }"""
 .Ed
