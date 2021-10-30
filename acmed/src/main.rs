@@ -69,7 +69,7 @@ fn main() {
                 .help("Path to the main configuration file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(&DEFAULT_CONFIG_FILE),
+                .default_value(DEFAULT_CONFIG_FILE),
         )
         .arg(
             Arg::with_name("log-level")
@@ -104,7 +104,7 @@ fn main() {
                 .help("Path to the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(&DEFAULT_PID_FILE),
+                .default_value(DEFAULT_PID_FILE),
         )
         .arg(
             Arg::with_name("root-cert")
@@ -140,7 +140,7 @@ fn main() {
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
-    let mut srv = match MainEventLoop::new(&config_file, &root_certs) {
+    let mut srv = match MainEventLoop::new(config_file, &root_certs) {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);

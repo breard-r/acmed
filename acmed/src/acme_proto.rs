@@ -124,7 +124,7 @@ pub fn request_certificate(
     for auth_url in order.authorizations.iter() {
         // Fetch the authorization
         let data_builder = set_empty_data_builder!(account, endpoint_name);
-        let auth = http::get_authorization(endpoint, &data_builder, &auth_url)
+        let auth = http::get_authorization(endpoint, &data_builder, auth_url)
             .map_err(HttpError::in_err)?;
         if let Some(e) = auth.get_error() {
             cert.warn(&e.prefix("error").message);
@@ -165,10 +165,10 @@ pub fn request_certificate(
         // Pool the authorization in order to see whether or not it is valid
         let data_builder = set_empty_data_builder!(account, endpoint_name);
         let break_fn = |a: &Authorization| a.status == AuthorizationStatus::Valid;
-        let _ = http::pool_authorization(endpoint, &data_builder, &break_fn, &auth_url)
+        let _ = http::pool_authorization(endpoint, &data_builder, &break_fn, auth_url)
             .map_err(HttpError::in_err)?;
         for (data, hook_type) in hook_datas.iter() {
-            cert.call_challenge_hooks_clean(&data, (*hook_type).to_owned())?;
+            cert.call_challenge_hooks_clean(data, (*hook_type).to_owned())?;
         }
         hook_datas.clear();
     }
@@ -226,7 +226,7 @@ pub fn request_certificate(
     let data_builder = set_empty_data_builder!(account, endpoint_name);
     let crt =
         http::get_certificate(endpoint, &data_builder, &crt_url).map_err(HttpError::in_err)?;
-    storage::write_certificate(&cert.file_manager, &crt.as_bytes())?;
+    storage::write_certificate(&cert.file_manager, crt.as_bytes())?;
 
     cert.info(&format!(
         "certificate renewed (identifiers: {})",

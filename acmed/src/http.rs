@@ -115,7 +115,7 @@ fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
 
 fn update_nonce(endpoint: &mut Endpoint, response: &Response) -> Result<(), Error> {
     if let Some(nonce) = response.headers().get(HEADER_NONCE) {
-        let nonce = header_to_string(&nonce)?;
+        let nonce = header_to_string(nonce)?;
         if !is_nonce(&nonce) {
             let msg = format!("{}: invalid nonce.", &nonce);
             return Err(msg.into());
@@ -198,7 +198,7 @@ where
     }
     for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
         let nonce = &endpoint.nonce.clone().unwrap_or_default();
-        let body = data_builder(&nonce, url)?;
+        let body = data_builder(nonce, url)?;
         rate_limit(endpoint);
         log::trace!("POST request body: {}", body);
         let response = session.post(url).text(&body).send()?;

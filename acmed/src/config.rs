@@ -84,7 +84,7 @@ impl Config {
     pub fn get_account_dir(&self) -> String {
         let account_dir = match &self.global {
             Some(g) => match &g.accounts_directory {
-                Some(d) => &d,
+                Some(d) => d,
                 None => crate::DEFAULT_ACCOUNTS_DIR,
             },
             None => crate::DEFAULT_ACCOUNTS_DIR,
@@ -100,7 +100,7 @@ impl Config {
                     hook_type: hook.hook_type.iter().map(|e| e.to_owned()).collect(),
                     cmd: hook.cmd.to_owned(),
                     args: hook.args.to_owned(),
-                    stdin: get_stdin(&hook)?,
+                    stdin: get_stdin(hook)?,
                     stdout: hook.stdout.to_owned(),
                     stderr: hook.stderr.to_owned(),
                     allow_failure: hook
@@ -114,7 +114,7 @@ impl Config {
             if name == grp.name {
                 let mut ret = vec![];
                 for hook_name in grp.hooks.iter() {
-                    let mut h = self.get_hook(&hook_name)?;
+                    let mut h = self.get_hook(hook_name)?;
                     ret.append(&mut h);
                 }
                 return Ok(ret);
@@ -193,7 +193,7 @@ pub struct GlobalOptions {
 impl GlobalOptions {
     pub fn get_renew_delay(&self) -> Result<Duration, Error> {
         match &self.renew_delay {
-            Some(d) => parse_duration(&d),
+            Some(d) => parse_duration(d),
             None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
         }
     }
@@ -222,7 +222,7 @@ pub struct Endpoint {
 impl Endpoint {
     pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
         match &self.renew_delay {
-            Some(d) => parse_duration(&d),
+            Some(d) => parse_duration(d),
             None => match &cnf.global {
                 Some(g) => g.get_renew_delay(),
                 None => Ok(Duration::new(crate::DEFAULT_CERT_RENEW_DELAY, 0)),
@@ -247,7 +247,7 @@ impl Endpoint {
     ) -> Result<crate::endpoint::Endpoint, Error> {
         let mut limits = vec![];
         for rl_name in self.rate_limits.iter() {
-            let (nb, timeframe) = cnf.get_rate_limit(&rl_name)?;
+            let (nb, timeframe) = cnf.get_rate_limit(rl_name)?;
             limits.push((nb, timeframe));
         }
         let mut root_lst: Vec<String> = vec![];
@@ -375,7 +375,7 @@ impl Account {
             Some(h) => {
                 let mut res = vec![];
                 for name in h.iter() {
-                    let mut h = cnf.get_hook(&name)?;
+                    let mut h = cnf.get_hook(name)?;
                     res.append(&mut h);
                 }
                 res
@@ -499,10 +499,10 @@ impl Certificate {
 
     pub fn get_crt_dir(&self, cnf: &Config) -> String {
         let crt_directory = match &self.directory {
-            Some(d) => &d,
+            Some(d) => d,
             None => match &cnf.global {
                 Some(g) => match &g.certificates_directory {
-                    Some(d) => &d,
+                    Some(d) => d,
                     None => crate::DEFAULT_CERT_DIR,
                 },
                 None => crate::DEFAULT_CERT_DIR,
@@ -532,7 +532,7 @@ impl Certificate {
     pub fn get_hooks(&self, cnf: &Config) -> Result<Vec<hooks::Hook>, Error> {
         let mut res = vec![];
         for name in self.hooks.iter() {
-            let mut h = cnf.get_hook(&name)?;
+            let mut h = cnf.get_hook(name)?;
             res.append(&mut h);
         }
         Ok(res)
@@ -540,7 +540,7 @@ impl Certificate {
 
     pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
         match &self.renew_delay {
-            Some(d) => parse_duration(&d),
+            Some(d) => parse_duration(d),
             None => {
                 let endpoint = self.do_get_endpoint(cnf)?;
                 endpoint.get_renew_delay(cnf)
@@ -599,7 +599,7 @@ impl Identifier {
                 }
             },
         };
-        crate::identifier::Identifier::new(t, &v, &self.challenge, &self.env)
+        crate::identifier::Identifier::new(t, v, &self.challenge, &self.env)
     }
 }
 

@@ -206,7 +206,7 @@ impl Account {
         let acc_ep = self.get_endpoint(&endpoint.name)?;
         if !acc_ep.account_url.is_empty() {
             if let Some(ec) = &self.external_account {
-                let external_account_hash = hash_external_account(&ec);
+                let external_account_hash = hash_external_account(ec);
                 if external_account_hash != acc_ep.external_account_hash {
                     let msg = format!(
                         "external account changed on endpoint \"{}\"",

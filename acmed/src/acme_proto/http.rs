@@ -34,7 +34,7 @@ pub fn post_jose_no_response<F>(
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
-    let _ = http::post_jose(endpoint, &url, data_builder)?;
+    let _ = http::post_jose(endpoint, url, data_builder)?;
     Ok(())
 }
 
@@ -78,7 +78,7 @@ pub fn get_authorization<F>(
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
-    let response = http::post_jose(endpoint, &url, data_builder)?;
+    let response = http::post_jose(endpoint, url, data_builder)?;
     let auth = response.json::<Authorization>()?;
     Ok(auth)
 }
@@ -124,7 +124,7 @@ pub fn finalize_order<F>(
 where
     F: Fn(&str, &str) -> Result<String, Error>,
 {
-    let response = http::post_jose(endpoint, &url, data_builder)?;
+    let response = http::post_jose(endpoint, url, data_builder)?;
     let order = response.json::<Order>()?;
     Ok(order)
 }
@@ -139,7 +139,7 @@ where
 {
     let response = http::post(
         endpoint,
-        &url,
+        url,
         data_builder,
         http::CONTENT_TYPE_JOSE,
         http::CONTENT_TYPE_PEM,

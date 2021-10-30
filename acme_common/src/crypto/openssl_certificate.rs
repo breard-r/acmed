@@ -44,7 +44,7 @@ impl Csr {
         if !subject_attributes.is_empty() {
             let mut snb = X509NameBuilder::new()?;
             for (sattr, val) in subject_attributes.iter() {
-                snb.append_entry_by_nid(sattr.get_nid(), &val)?;
+                snb.append_entry_by_nid(sattr.get_nid(), val)?;
             }
             let name = snb.build();
             builder.set_subject_name(&name)?;
@@ -52,10 +52,10 @@ impl Csr {
         let ctx = builder.x509v3_context(None);
         let mut san = SubjectAlternativeName::new();
         for dns in domains.iter() {
-            san.dns(&dns);
+            san.dns(dns);
         }
         for ip in ips.iter() {
-            san.ip(&ip);
+            san.ip(ip);
         }
         let san = san.build(&ctx)?;
         let mut ext_stack = Stack::new()?;
@@ -190,7 +190,7 @@ fn gen_certificate(
         if !v.is_empty() {
             return Err(Error::from(super::INVALID_EXT_MSG));
         }
-        let acme_ext = X509Extension::new(None, Some(&ctx), &acme_ext_name, &value)
+        let acme_ext = X509Extension::new(None, Some(&ctx), acme_ext_name, value)
             .map_err(|_| Error::from(super::INVALID_EXT_MSG))?;
         builder
             .append_extension(acme_ext)

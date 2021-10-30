@@ -89,7 +89,7 @@ fn main() {
                 .help("Host and port to listen on")
                 .takes_value(true)
                 .value_name("host:port|unix:path")
-                .default_value(&DEFAULT_LISTEN_ADDR),
+                .default_value(DEFAULT_LISTEN_ADDR),
         )
         .arg(
             Arg::with_name("domain")
@@ -176,7 +176,7 @@ fn main() {
                 .help("Path to the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(&DEFAULT_PID_FILE),
+                .default_value(DEFAULT_PID_FILE),
         )
         .get_matches();
 

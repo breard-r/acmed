@@ -161,7 +161,7 @@ where
         .spawn()?;
     match &hook.stdin {
         HookStdin::Str(s) => {
-            let data_in = render_template(&s, &data)?;
+            let data_in = render_template(s, &data)?;
             logger.trace(&format!(
                 "hook \"{}\": string stdin: {}",
                 hook.name, &data_in
@@ -170,7 +170,7 @@ where
             stdin.write_all(data_in.as_bytes())?;
         }
         HookStdin::File(f) => {
-            let file_name = render_template(&f, &data)?;
+            let file_name = render_template(f, &data)?;
             logger.trace(&format!(
                 "hook \"{}\": file stdin: {}",
                 hook.name, &file_name
@@ -207,7 +207,7 @@ where
     T: Clone + HookEnvData + Serialize,
 {
     for hook in hooks.iter().filter(|h| h.hook_type.contains(&hook_type)) {
-        call_single(logger, data, &hook).map_err(|e| e.prefix(&hook.name))?;
+        call_single(logger, data, hook).map_err(|e| e.prefix(&hook.name))?;
     }
     Ok(())
 }

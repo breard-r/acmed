@@ -115,7 +115,7 @@ pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) ->
     let old_account_key = account.get_past_key(&ep.key_hash)?;
     let old_key = &old_account_key.key;
     let account_url = account.get_endpoint(&endpoint_name)?.account_url.clone();
-    let rollover_struct = AccountKeyRollover::new(&account_url, &old_key)?;
+    let rollover_struct = AccountKeyRollover::new(&account_url, old_key)?;
     let rollover_struct = serde_json::to_string(&rollover_struct)?;
     let rollover_payload = encode_jwk(
         &account.current_key.key,
@@ -126,7 +126,7 @@ pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) ->
     )?;
     let data_builder = |n: &str, url: &str| {
         encode_kid(
-            &old_key,
+            old_key,
             &old_account_key.signature_algorithm,
             &account_url,
             rollover_payload.as_bytes(),
