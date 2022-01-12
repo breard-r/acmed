@@ -20,7 +20,7 @@ impl NewOrder {
         NewOrder {
             identifiers: identifiers
                 .iter()
-                .map(|n| Identifier::from_generic(n))
+                .map(Identifier::from_generic)
                 .collect(),
             not_before: None,
             not_after: None,

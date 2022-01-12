@@ -154,12 +154,12 @@ fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
     let past_keys = account
         .past_keys
         .iter()
-        .map(|k| AccountKeyStorage::new(k))
+        .map(AccountKeyStorage::new)
         .collect::<Result<Vec<AccountKeyStorage>, Error>>()?;
     let external_account = account
         .external_account
         .as_ref()
-        .map(|a| ExternalAccountStorage::new(a));
+        .map(ExternalAccountStorage::new);
     let account_storage = AccountStorage {
         name: account.name.to_owned(),
         endpoints,
