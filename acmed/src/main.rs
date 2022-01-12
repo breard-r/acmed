@@ -63,8 +63,8 @@ fn main() {
         .version(APP_VERSION)
         .long_version(full_version.as_str())
         .arg(
-            Arg::with_name("config")
-                .short("c")
+            Arg::new("config")
+                .short('c')
                 .long("config")
                 .help("Path to the main configuration file")
                 .takes_value(true)
@@ -72,7 +72,7 @@ fn main() {
                 .default_value(DEFAULT_CONFIG_FILE),
         )
         .arg(
-            Arg::with_name("log-level")
+            Arg::new("log-level")
                 .long("log-level")
                 .help("Specify the log level")
                 .takes_value(true)
@@ -81,25 +81,25 @@ fn main() {
                 .default_value(&default_log_level),
         )
         .arg(
-            Arg::with_name("to-syslog")
+            Arg::new("to-syslog")
                 .long("log-syslog")
                 .help("Sends log messages via syslog")
                 .conflicts_with("to-stderr"),
         )
         .arg(
-            Arg::with_name("to-stderr")
+            Arg::new("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
                 .conflicts_with("log-syslog"),
         )
         .arg(
-            Arg::with_name("foreground")
-                .short("f")
+            Arg::new("foreground")
+                .short('f')
                 .long("foreground")
                 .help("Runs in the foreground"),
         )
         .arg(
-            Arg::with_name("pid-file")
+            Arg::new("pid-file")
                 .long("pid-file")
                 .help("Path to the PID file")
                 .takes_value(true)
@@ -107,11 +107,11 @@ fn main() {
                 .default_value(DEFAULT_PID_FILE),
         )
         .arg(
-            Arg::with_name("root-cert")
+            Arg::new("root-cert")
                 .long("root-cert")
                 .help("Add a root certificate to the trust store (can be set multiple times)")
                 .takes_value(true)
-                .multiple(true)
+                .multiple_occurrences(true)
                 .value_name("FILE"),
         )
         .get_matches();

@@ -83,25 +83,25 @@ fn main() {
         .version(APP_VERSION)
         .long_version(full_version.as_str())
         .arg(
-            Arg::with_name("listen")
+            Arg::new("listen")
                 .long("listen")
-                .short("l")
+                .short('l')
                 .help("Host and port to listen on")
                 .takes_value(true)
                 .value_name("host:port|unix:path")
                 .default_value(DEFAULT_LISTEN_ADDR),
         )
         .arg(
-            Arg::with_name("domain")
+            Arg::new("domain")
                 .long("domain")
-                .short("d")
+                .short('d')
                 .help("The domain that is being validated")
                 .takes_value(true)
                 .value_name("STRING")
                 .conflicts_with("domain-file"),
         )
         .arg(
-            Arg::with_name("domain-file")
+            Arg::new("domain-file")
                 .long("domain-file")
                 .help("File from which is read the domain that is being validated")
                 .takes_value(true)
@@ -109,16 +109,16 @@ fn main() {
                 .conflicts_with("domain"),
         )
         .arg(
-            Arg::with_name("acme-ext")
+            Arg::new("acme-ext")
                 .long("acme-ext")
-                .short("e")
+                .short('e')
                 .help("The acmeIdentifier extension to set in the self-signed certificate")
                 .takes_value(true)
                 .value_name("STRING")
                 .conflicts_with("acme-ext-file"),
         )
         .arg(
-            Arg::with_name("acme-ext-file")
+            Arg::new("acme-ext-file")
                 .long("acme-ext-file")
                 .help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
                 .takes_value(true)
@@ -126,7 +126,7 @@ fn main() {
                 .conflicts_with("acme-ext"),
         )
         .arg(
-            Arg::with_name("crt-signature-alg")
+            Arg::new("crt-signature-alg")
                 .long("crt-signature-alg")
                 .help("The certificate's signature algorithm")
                 .takes_value(true)
@@ -135,7 +135,7 @@ fn main() {
                 .default_value(&default_crt_key_type),
         )
         .arg(
-            Arg::with_name("crt-digest")
+            Arg::new("crt-digest")
                 .long("crt-digest")
                 .help("The certificate's digest algorithm")
                 .takes_value(true)
@@ -144,7 +144,7 @@ fn main() {
                 .default_value(&default_crt_digest),
         )
         .arg(
-            Arg::with_name("log-level")
+            Arg::new("log-level")
                 .long("log-level")
                 .help("Specify the log level")
                 .takes_value(true)
@@ -153,25 +153,25 @@ fn main() {
                 .default_value(&default_log_level),
         )
         .arg(
-            Arg::with_name("to-syslog")
+            Arg::new("to-syslog")
                 .long("log-syslog")
                 .help("Sends log messages via syslog")
                 .conflicts_with("to-stderr"),
         )
         .arg(
-            Arg::with_name("to-stderr")
+            Arg::new("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
                 .conflicts_with("to-syslog"),
         )
         .arg(
-            Arg::with_name("foreground")
+            Arg::new("foreground")
                 .long("foreground")
-                .short("f")
+                .short('f')
                 .help("Runs in the foreground"),
         )
         .arg(
-            Arg::with_name("pid-file")
+            Arg::new("pid-file")
                 .long("pid-file")
                 .help("Path to the PID file")
                 .takes_value(true)
