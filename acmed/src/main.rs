@@ -4,7 +4,7 @@ use acme_common::crypto::{
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use log::error;
 
 mod account;
@@ -59,7 +59,7 @@ fn main() {
         env!("ACMED_HTTP_LIB_VERSION")
     );
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
-    let matches = App::new(APP_NAME)
+    let matches = Command::new(APP_NAME)
         .version(APP_VERSION)
         .long_version(full_version.as_str())
         .arg(
