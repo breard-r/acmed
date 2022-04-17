@@ -28,6 +28,7 @@ PrivateUsers=yes
 ProtectClock=yes
 ProtectHostname=yes
 ProtectKernelTunables=yes
+ProtectKernelModules=yes
 ProtectKernelLogs=yes
 ProtectSystem=yes
 ReadWritePaths=/etc/acmed /var/lib/acmed
