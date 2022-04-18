@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `acmed@user.service` systemd unit configuration has been added as an alternative to the `acmed.service` unit.
 
 ### Changed
-- The minimal required Rust version is now 1.46.
+- The minimal required Rust version is now 1.54.
 
 ## [0.18.0] - 2021-06-13
 
