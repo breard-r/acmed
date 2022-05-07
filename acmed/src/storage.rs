@@ -100,7 +100,7 @@ fn get_file_full_path(
         FileType::Account => format!(
             "{account}.{file_type}.{ext}",
             account = b64_encode(&fm.account_name),
-            file_type = file_type.to_string(),
+            file_type = file_type,
             ext = "bin"
         ),
         FileType::PrivateKey | FileType::Certificate => {
