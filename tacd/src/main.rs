@@ -45,10 +45,7 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 }
 
 fn init(cnf: &ArgMatches) -> Result<(), Error> {
-    acme_common::init_server(
-        cnf.is_present("foreground"),
-        cnf.value_of("pid-file"),
-    );
+    acme_common::init_server(cnf.is_present("foreground"), cnf.value_of("pid-file"));
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
     let domain = to_idna(&domain)?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;

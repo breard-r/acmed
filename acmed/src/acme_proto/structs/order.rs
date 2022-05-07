@@ -18,10 +18,7 @@ pub struct NewOrder {
 impl NewOrder {
     pub fn new(identifiers: &[identifier::Identifier]) -> Self {
         NewOrder {
-            identifiers: identifiers
-                .iter()
-                .map(Identifier::from_generic)
-                .collect(),
+            identifiers: identifiers.iter().map(Identifier::from_generic).collect(),
             not_before: None,
             not_after: None,
         }
