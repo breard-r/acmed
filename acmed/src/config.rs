@@ -483,7 +483,7 @@ impl Certificate {
                 id.to_string()
             }
         };
-        let name = name.replace("*", "_").replace(":", "_").replace("/", "_");
+        let name = name.replace('*', "_").replace(':', "_").replace('/', "_");
         Ok(name)
     }
 

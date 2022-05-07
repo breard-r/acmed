@@ -269,8 +269,8 @@ impl KeyPair {
                 x += &pem_line
                     .trim()
                     .trim_end_matches('=')
-                    .replace("/", "_")
-                    .replace("+", "-");
+                    .replace('/', "_")
+                    .replace('+', "-");
             }
         }
         x.replace_range(..16, "");
