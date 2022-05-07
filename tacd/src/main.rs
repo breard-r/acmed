@@ -182,7 +182,7 @@ fn main() {
 
     match set_log_system(
         matches.value_of("log-level"),
-        matches.is_present("log-syslog"),
+        matches.is_present("to-syslog"),
         matches.is_present("to-stderr"),
     ) {
         Ok(_) => {}

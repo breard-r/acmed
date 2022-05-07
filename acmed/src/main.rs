@@ -90,7 +90,7 @@ fn main() {
             Arg::new("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
-                .conflicts_with("log-syslog"),
+                .conflicts_with("to-syslog"),
         )
         .arg(
             Arg::new("foreground")
@@ -118,7 +118,7 @@ fn main() {
 
     match set_log_system(
         matches.value_of("log-level"),
-        matches.is_present("log-syslog"),
+        matches.is_present("to-syslog"),
         matches.is_present("to-stderr"),
     ) {
         Ok(_) => {}
