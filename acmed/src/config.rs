@@ -682,7 +682,9 @@ fn get_cnf_path(from: &Path, file: &str) -> Result<Vec<PathBuf>, Error> {
 }
 
 fn read_cnf(path: &Path, loaded_files: &mut BTreeSet<PathBuf>) -> Result<Config, Error> {
-    let path = path.canonicalize()?;
+    let path = path
+        .canonicalize()
+        .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     if loaded_files.contains(&path) {
         info!("{}: configuration file already loaded", path.display());
         return Ok(Config::default());

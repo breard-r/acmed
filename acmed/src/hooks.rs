@@ -176,7 +176,7 @@ where
                 hook.name, &file_name
             ));
             let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
-            let file = File::open(&file_name)?;
+            let file = File::open(&file_name).map_err(|e| Error::from(e).prefix(&file_name))?;
             let buf_reader = BufReader::new(file);
             for line in buf_reader.lines() {
                 let line = format!("{}\n", line?);

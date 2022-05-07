@@ -125,7 +125,8 @@ fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error
 
 fn read_file(fm: &FileManager, path: &Path) -> Result<Vec<u8>, Error> {
     fm.trace(&format!("reading file {:?}", path));
-    let mut file = File::open(path)?;
+    let mut file =
+        File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     let mut contents = vec![];
     file.read_to_end(&mut contents)?;
     Ok(contents)
@@ -210,13 +211,18 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
             FileType::PrivateKey => fm.pk_file_mode,
             FileType::Account => crate::DEFAULT_ACCOUNT_FILE_MODE,
         });
-        options.write(true).create(true).open(&path)?
+        options
+            .write(true)
+            .create(true)
+            .open(&path)
+            .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?
     } else {
-        File::create(&path)?
+        File::create(&path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?
     };
-    file.write_all(data)?;
+    file.write_all(data)
+        .map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
     if cfg!(unix) {
-        set_owner(fm, &path, file_type)?;
+        set_owner(fm, &path, file_type).map_err(|e| e.prefix(&path.display().to_string()))?;
     }
 
     if is_new {

@@ -162,7 +162,9 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
         #[cfg(feature = "crypto_openssl")]
         {
             let mut buff = Vec::new();
-            File::open(crt_file)?.read_to_end(&mut buff)?;
+            File::open(crt_file)
+                .map_err(|e| Error::from(e).prefix(crt_file))?
+                .read_to_end(&mut buff)?;
             let crt = X509Certificate::from_pem_native(&buff)?;
             session.add_root_certificate(crt);
         }
