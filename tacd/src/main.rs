@@ -48,7 +48,6 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
     acme_common::init_server(
         cnf.is_present("foreground"),
         cnf.value_of("pid-file"),
-        DEFAULT_PID_FILE,
     );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
     let domain = to_idna(&domain)?;
@@ -176,7 +175,15 @@ fn main() {
                 .help("Path to the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(DEFAULT_PID_FILE),
+                .default_value(DEFAULT_PID_FILE)
+                .default_value_if("no-pid-file", None, None)
+                .conflicts_with("no-pid-file"),
+        )
+        .arg(
+            Arg::new("no-pid-file")
+                .long("no-pid-file")
+                .help("Do not create any PID file")
+                .conflicts_with("pid-file"),
         )
         .get_matches();
 

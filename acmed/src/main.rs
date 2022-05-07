@@ -104,7 +104,15 @@ fn main() {
                 .help("Path to the PID file")
                 .takes_value(true)
                 .value_name("FILE")
-                .default_value(DEFAULT_PID_FILE),
+                .default_value(DEFAULT_PID_FILE)
+                .default_value_if("no-pid-file", None, None)
+                .conflicts_with("no-pid-file"),
+        )
+        .arg(
+            Arg::new("no-pid-file")
+                .long("no-pid-file")
+                .help("Do not create any PID file")
+                .conflicts_with("pid-file"),
         )
         .arg(
             Arg::new("root-cert")
@@ -136,7 +144,6 @@ fn main() {
     init_server(
         matches.is_present("foreground"),
         matches.value_of("pid-file"),
-        DEFAULT_PID_FILE,
     );
 
     let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);

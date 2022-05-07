@@ -24,6 +24,7 @@
 .Op Fl -log-stderr
 .Op Fl -log-syslog
 .Op Fl -log-level Ar LEVEL
+.Op Fl -no-pid-file
 .Op Fl -pid-file Ar FILE
 .Op Fl V|--version
 .Sh DESCRIPTION
@@ -81,6 +82,8 @@ Prints log messages to the standard error output.
 Sends log messages via syslog.
 .It Fl -log-level Ar LEVEL
 Specify the log level. Possible values: error, warn, info, debug and trace.
+.It Fl -no-pid-file
+Do not create any PID file
 .It Fl -pid-file Ar FILE
 Specifies the location of the PID file.
 .It Fl V, -version

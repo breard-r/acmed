@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The `--no-pid-file` argument has been added to ACMEd and tacd.
+
 ### Fixed
 - An invalid reference in the command line arguments has been fixed.
 

@@ -47,9 +47,12 @@ pub fn b64_decode<T: ?Sized + AsRef<[u8]>>(input: &T) -> Result<Vec<u8>, error::
     Ok(res)
 }
 
-pub fn init_server(foreground: bool, pid_file: Option<&str>, default_pid_file: &str) {
+pub fn init_server(foreground: bool, pid_file: Option<&str>) {
     if !foreground {
-        let daemonize = Daemonize::new().pid_file(pid_file.unwrap_or(default_pid_file));
+        let mut daemonize = Daemonize::new();
+        if let Some(f) = pid_file {
+            daemonize = daemonize.pid_file(f);
+        }
         exit_match!(daemonize.start());
     } else if let Some(f) = pid_file {
         exit_match!(write_pid_file(f).map_err(|e| e.prefix(f)));
