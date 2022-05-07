@@ -583,7 +583,7 @@ impl<'de> Deserialize<'de> for Identifier {
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = String::new();
-        let msg = self.dns.as_ref().or_else(|| self.ip.as_ref()).unwrap_or(&s);
+        let msg = self.dns.as_ref().or(self.ip.as_ref()).unwrap_or(&s);
         write!(f, "{}", msg)
     }
 }
