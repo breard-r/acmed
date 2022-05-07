@@ -260,7 +260,7 @@ pub fn write_certificate(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
 }
 
 fn check_files(fm: &FileManager, file_types: &[FileType]) -> bool {
-    for t in file_types.to_vec() {
+    for t in file_types.iter().cloned() {
         let path = match get_file_path(fm, t) {
             Ok(p) => p,
             Err(_) => {
