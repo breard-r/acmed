@@ -10,7 +10,7 @@ use openssl::x509::extension::{BasicConstraints, SubjectAlternativeName};
 use openssl::x509::{X509Builder, X509Extension, X509NameBuilder, X509Req, X509ReqBuilder, X509};
 use std::collections::{HashMap, HashSet};
 use std::net::IpAddr;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
     #[cfg(not(any(ed25519, ed448)))]
@@ -109,8 +109,7 @@ impl X509Certificate {
     }
 
     pub fn expires_in(&self) -> Result<Duration, Error> {
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as libc::time_t;
-        let now = Asn1Time::from_unix(timestamp)?;
+        let now = Asn1Time::days_from_now(0)?;
         let not_after = self.inner_cert.not_after();
         let diff = now.diff(not_after)?;
         let nb_secs = diff.days * 24 * 60 * 60 + diff.secs;
