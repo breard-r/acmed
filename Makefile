@@ -21,9 +21,9 @@ update:
 
 acmed: man_dir
 	if test -n "$(TARGET)"; then \
-	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
+	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --bin acmed --release --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
 	else \
-	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --release --manifest-path "acmed/Cargo.toml" --no-default-features --features "$(FEATURES)"; \
+	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --bin acmed --release --no-default-features --features "$(FEATURES)"; \
 	fi
 	strip "$(TARGET_DIR)/acmed"
 	gzip <"$(MAN_SRC_DIR)/acmed.8" >"$(MAN_DST_DIR)/acmed.8.gz"
@@ -31,9 +31,9 @@ acmed: man_dir
 
 tacd: man_dir
 	if test -n "$(TARGET)"; then \
-	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
+	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --bin tacd --release --no-default-features --features "$(FEATURES)" --target "$(TARGET)"; \
 	else \
-	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --release --manifest-path "tacd/Cargo.toml" --no-default-features --features "$(FEATURES)"; \
+	    VARLIBDIR="$(VARLIBDIR)" SYSCONFDIR="$(SYSCONFDIR)" RUNSTATEDIR="$(RUNSTATEDIR)" cargo build --bin tacd --release --no-default-features --features "$(FEATURES)"; \
 	fi
 	strip "$(TARGET_DIR)/tacd"
 	gzip <"$(MAN_SRC_DIR)/tacd.8" >"$(MAN_DST_DIR)/tacd.8.gz"
