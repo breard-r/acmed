@@ -19,7 +19,7 @@ openssl_dyn = ["crypto_openssl", "openssl", "openssl-sys"]
 openssl_vendored = ["crypto_openssl", "openssl/vendored", "openssl-sys/vendored"]
 
 [dependencies]
-attohttpc = { version = "0.19", default-features = false }
+attohttpc = { version = "0.20", default-features = false }
 base64 = "0.13"
 daemonize = "0.4"
 env_logger = "0.9"
