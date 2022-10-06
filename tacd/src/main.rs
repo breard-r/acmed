@@ -7,6 +7,7 @@ use acme_common::crypto::{get_lib_name, get_lib_version, HashFunction, KeyType, 
 use acme_common::error::Error;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
+use clap::builder::PossibleValuesParser;
 use clap::{Arg, ArgMatches, Command};
 use log::{debug, error, info};
 use std::fs::File;
@@ -20,7 +21,7 @@ const DEFAULT_CRT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
 const DEFAULT_CRT_DIGEST: HashFunction = HashFunction::Sha256;
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
-fn read_line(path: Option<&str>) -> Result<String, Error> {
+fn read_line(path: Option<&String>) -> Result<String, Error> {
     let mut input = String::new();
     match path {
         Some(p) => File::open(p)?.read_to_string(&mut input)?,
@@ -31,30 +32,38 @@ fn read_line(path: Option<&str>) -> Result<String, Error> {
 }
 
 fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String, Error> {
-    match cnf.value_of(opt) {
+    match cnf.get_one::<String>(opt) {
         Some(v) => Ok(v.to_string()),
         None => {
             debug!(
                 "reading {} from {}",
                 opt,
-                cnf.value_of(opt_file).unwrap_or("stdin")
+                cnf.get_one::<String>(opt_file)
+                    .map(|e| e.as_str())
+                    .unwrap_or("stdin")
             );
-            read_line(cnf.value_of(opt_file))
+            read_line(cnf.get_one::<String>(opt_file))
         }
     }
 }
 
 fn init(cnf: &ArgMatches) -> Result<(), Error> {
-    acme_common::init_server(cnf.is_present("foreground"), cnf.value_of("pid-file"));
+    acme_common::init_server(
+        cnf.contains_id("foreground"),
+        cnf.get_one::<String>("pid-file").map(|e| e.as_str()),
+    );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
     let domain = to_idna(&domain)?;
     let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
-    let listen_addr = cnf.value_of("listen").unwrap_or(DEFAULT_LISTEN_ADDR);
-    let crt_signature_alg = match cnf.value_of("crt-signature-alg") {
+    let listen_addr = cnf
+        .get_one::<String>("listen")
+        .map(|e| e.as_str())
+        .unwrap_or(DEFAULT_LISTEN_ADDR);
+    let crt_signature_alg = match cnf.get_one::<&str>("crt-signature-alg") {
         Some(alg) => alg.parse()?,
         None => DEFAULT_CRT_KEY_TYPE,
     };
-    let crt_digest = match cnf.value_of("crt-digest") {
+    let crt_digest = match cnf.get_one::<&str>("crt-digest") {
         Some(alg) => alg.parse()?,
         None => DEFAULT_CRT_DIGEST,
     };
@@ -77,13 +86,13 @@ fn main() {
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = Command::new(APP_NAME)
         .version(APP_VERSION)
-        .long_version(full_version.as_str())
+        .long_version(&full_version)
         .arg(
             Arg::new("listen")
                 .long("listen")
                 .short('l')
                 .help("Host and port to listen on")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("host:port|unix:path")
                 .default_value(DEFAULT_LISTEN_ADDR),
         )
@@ -92,7 +101,7 @@ fn main() {
                 .long("domain")
                 .short('d')
                 .help("The domain that is being validated")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("STRING")
                 .conflicts_with("domain-file"),
         )
@@ -100,7 +109,7 @@ fn main() {
             Arg::new("domain-file")
                 .long("domain-file")
                 .help("File from which is read the domain that is being validated")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("FILE")
                 .conflicts_with("domain"),
         )
@@ -109,7 +118,7 @@ fn main() {
                 .long("acme-ext")
                 .short('e')
                 .help("The acmeIdentifier extension to set in the self-signed certificate")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("STRING")
                 .conflicts_with("acme-ext-file"),
         )
@@ -117,7 +126,7 @@ fn main() {
             Arg::new("acme-ext-file")
                 .long("acme-ext-file")
                 .help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("FILE")
                 .conflicts_with("acme-ext"),
         )
@@ -125,27 +134,27 @@ fn main() {
             Arg::new("crt-signature-alg")
                 .long("crt-signature-alg")
                 .help("The certificate's signature algorithm")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("STRING")
-                .possible_values(&KeyType::list_possible_values())
+                .value_parser(PossibleValuesParser::new(KeyType::list_possible_values()))
                 .default_value(&default_crt_key_type),
         )
         .arg(
             Arg::new("crt-digest")
                 .long("crt-digest")
                 .help("The certificate's digest algorithm")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("STRING")
-                .possible_values(&HashFunction::list_possible_values())
+                .value_parser(PossibleValuesParser::new(HashFunction::list_possible_values()))
                 .default_value(&default_crt_digest),
         )
         .arg(
             Arg::new("log-level")
                 .long("log-level")
                 .help("Specify the log level")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("LEVEL")
-                .possible_values(&["error", "warn", "info", "debug", "trace"])
+                .value_parser(["error", "warn", "info", "debug", "trace"])
                 .default_value(&default_log_level),
         )
         .arg(
@@ -170,10 +179,10 @@ fn main() {
             Arg::new("pid-file")
                 .long("pid-file")
                 .help("Path to the PID file")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("FILE")
                 .default_value(DEFAULT_PID_FILE)
-                .default_value_if("no-pid-file", None, None)
+                .default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
                 .conflicts_with("no-pid-file"),
         )
         .arg(
@@ -185,9 +194,9 @@ fn main() {
         .get_matches();
 
     match set_log_system(
-        matches.value_of("log-level"),
-        matches.is_present("to-syslog"),
-        matches.is_present("to-stderr"),
+        matches.get_one::<String>("log-level").map(|e| e.as_str()),
+        matches.contains_id("to-syslog"),
+        matches.contains_id("to-stderr"),
     ) {
         Ok(_) => {}
         Err(e) => {
@@ -200,7 +209,8 @@ fn main() {
         Ok(_) => {}
         Err(e) => {
             error!("{}", e);
-            let _ = clean_pid_file(matches.value_of("pid-file"));
+            let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
+            let _ = clean_pid_file(pid_file);
             std::process::exit(1);
         }
     };

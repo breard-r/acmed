@@ -61,13 +61,13 @@ fn main() {
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = Command::new(APP_NAME)
         .version(APP_VERSION)
-        .long_version(full_version.as_str())
+        .long_version(&full_version)
         .arg(
             Arg::new("config")
                 .short('c')
                 .long("config")
                 .help("Path to the main configuration file")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("FILE")
                 .default_value(DEFAULT_CONFIG_FILE),
         )
@@ -75,9 +75,9 @@ fn main() {
             Arg::new("log-level")
                 .long("log-level")
                 .help("Specify the log level")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("LEVEL")
-                .possible_values(&["error", "warn", "info", "debug", "trace"])
+                .value_parser(["error", "warn", "info", "debug", "trace"])
                 .default_value(&default_log_level),
         )
         .arg(
@@ -102,10 +102,10 @@ fn main() {
             Arg::new("pid-file")
                 .long("pid-file")
                 .help("Path to the PID file")
-                .takes_value(true)
+                .num_args(1)
                 .value_name("FILE")
                 .default_value(DEFAULT_PID_FILE)
-                .default_value_if("no-pid-file", None, None)
+                .default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
                 .conflicts_with("no-pid-file"),
         )
         .arg(
@@ -118,16 +118,16 @@ fn main() {
             Arg::new("root-cert")
                 .long("root-cert")
                 .help("Add a root certificate to the trust store (can be set multiple times)")
-                .takes_value(true)
-                .multiple_occurrences(true)
+                .num_args(1)
+                .action(clap::ArgAction::Append)
                 .value_name("FILE"),
         )
         .get_matches();
 
     match set_log_system(
-        matches.value_of("log-level"),
-        matches.is_present("to-syslog"),
-        matches.is_present("to-stderr"),
+        matches.get_one::<String>("log-level").map(|e| e.as_str()),
+        matches.contains_id("to-syslog"),
+        matches.contains_id("to-stderr"),
     ) {
         Ok(_) => {}
         Err(e) => {
@@ -136,22 +136,24 @@ fn main() {
         }
     };
 
-    let root_certs = match matches.values_of("root-cert") {
-        Some(v) => v.collect(),
+    let root_certs = match matches.get_many::<String>("root-cert") {
+        Some(v) => v.map(|e| e.as_str()).collect(),
         None => vec![],
     };
 
-    init_server(
-        matches.is_present("foreground"),
-        matches.value_of("pid-file"),
-    );
+    let config_file = matches
+        .get_one::<String>("config")
+        .map(|e| e.as_str())
+        .unwrap_or(DEFAULT_CONFIG_FILE);
+    let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
 
-    let config_file = matches.value_of("config").unwrap_or(DEFAULT_CONFIG_FILE);
+    init_server(matches.contains_id("foreground"), pid_file);
+
     let mut srv = match MainEventLoop::new(config_file, &root_certs) {
         Ok(s) => s,
         Err(e) => {
             error!("{}", e);
-            let _ = clean_pid_file(matches.value_of("pid-file"));
+            let _ = clean_pid_file(pid_file);
             std::process::exit(1);
         }
     };
