@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# PROVIDE: acmed
+# REQUIRE: LOGIN cleanvar
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="acmed"
+rcvar="${name}_enable"
+pidfile="/var/run/${name}.pid"
+acmed_config_file="/usr/local/etc/acmed/acmed.toml"
+required_files="${acmed_config_file}"
+command="/usr/local/bin/${name}"
+start_precmd="${name}_prestart"
+
+load_rc_config "$name"
+: ${acmed_enable:=no}
+: ${acmed_log_level:="info"}
+: ${acmed_root_cert:=}
+
+acmed_prestart()
+{
+	if [ "$acmed_root_cert" != "" ]; then
+		rc_flags="--root-cert ${acmed_root_cert} ${rc_flags}"
+	fi
+	if [ "$acmed_log_level" != "" ]; then
+		rc_flags="--log-level ${acmed_log_level} ${rc_flags}"
+	fi
+	rc_flags="--log-syslog ${rc_flags}"
+	rc_flags="--pid-file ${pidfile} ${rc_flags}"
+	rc_flags="--config ${acmed_config_file} ${rc_flags}"
+}
+
+run_rc_command "$1"
