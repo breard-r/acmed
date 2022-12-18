@@ -197,10 +197,10 @@ impl KeyPair {
     }
 
     fn get_ecdsa_jwk(&self, thumbprint: bool) -> Result<Value, Error> {
-        let (crv, alg, curve) = match self.key_type {
-            KeyType::EcdsaP256 => ("P-256", "ES256", Nid::X9_62_PRIME256V1),
-            KeyType::EcdsaP384 => ("P-384", "ES384", Nid::SECP384R1),
-            KeyType::EcdsaP521 => ("P-521", "ES512", Nid::SECP521R1),
+        let (crv, alg, size, curve) = match self.key_type {
+            KeyType::EcdsaP256 => ("P-256", "ES256", 32, Nid::X9_62_PRIME256V1),
+            KeyType::EcdsaP384 => ("P-384", "ES384", 48, Nid::SECP384R1),
+            KeyType::EcdsaP521 => ("P-521", "ES512", 66, Nid::SECP521R1),
             _ => {
                 return Err("not an ECDSA elliptic curve".into());
             }
@@ -214,8 +214,8 @@ impl KeyPair {
             .unwrap()
             .public_key()
             .affine_coordinates_gfp(&group, &mut x, &mut y, &mut ctx)?;
-        let x = b64_encode(&x.to_vec());
-        let y = b64_encode(&y.to_vec());
+        let x = b64_encode(&x.to_vec_padded(size)?);
+        let y = b64_encode(&y.to_vec_padded(size)?);
         let jwk = if thumbprint {
             json!({
                 "crv": crv,
