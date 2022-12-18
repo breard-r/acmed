@@ -9,6 +9,12 @@ pub mod logs;
 #[cfg(test)]
 mod tests;
 
+const URL_SAFE_NO_PAD: base64::engine::fast_portable::FastPortable =
+    base64::engine::fast_portable::FastPortable::from(
+        &base64::alphabet::URL_SAFE,
+        base64::engine::fast_portable::NO_PAD,
+    );
+
 macro_rules! exit_match {
     ($e: expr) => {
         match $e {
@@ -39,11 +45,11 @@ pub fn to_idna(domain_name: &str) -> Result<String, error::Error> {
 }
 
 pub fn b64_encode<T: ?Sized + AsRef<[u8]>>(input: &T) -> String {
-    base64::encode_config(input, base64::URL_SAFE_NO_PAD)
+    base64::encode_engine(input, &URL_SAFE_NO_PAD)
 }
 
 pub fn b64_decode<T: ?Sized + AsRef<[u8]>>(input: &T) -> Result<Vec<u8>, error::Error> {
-    let res = base64::decode_config(input, base64::URL_SAFE_NO_PAD)?;
+    let res = base64::decode_engine(input, &URL_SAFE_NO_PAD)?;
     Ok(res)
 }
 
