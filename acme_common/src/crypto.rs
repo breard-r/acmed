@@ -58,7 +58,7 @@ impl FromStr for BaseHashFunction {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Error> {
-        let s = s.to_lowercase().replace('-', "").replace('_', "");
+        let s = s.to_lowercase().replace(['-', '_'], "");
         match s.as_str() {
             "sha256" => Ok(BaseHashFunction::Sha256),
             "sha384" => Ok(BaseHashFunction::Sha384),
