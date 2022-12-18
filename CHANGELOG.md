@@ -12,6 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+
+### Fixed
+- The JWK representation of ECDSA keys now have their coordinates padded.
+
+### Changed
+- The minimal required Rust version is now 1.60.
+
+
 ## [0.20.0] - 2022-05-08
 
 ### Added
