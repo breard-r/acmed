@@ -33,7 +33,7 @@ tinytemplate = "1.2"
 toml = "0.5"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.25"
+nix = "0.26"
 
 [build-dependencies]
 serde = { version = "1.0", features = ["derive"] }
