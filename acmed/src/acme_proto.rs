@@ -157,7 +157,7 @@ pub fn request_certificate(
                 // Tell the server the challenge has been completed
                 let chall_url = challenge.get_url();
                 let data_builder = set_data_builder!(account, endpoint_name, b"{}");
-                let _ = http::post_jose_no_response(endpoint, &data_builder, &chall_url)
+                http::post_jose_no_response(endpoint, &data_builder, &chall_url)
                     .map_err(HttpError::in_err)?;
             }
         }

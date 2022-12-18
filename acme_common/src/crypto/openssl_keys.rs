@@ -99,7 +99,7 @@ impl KeyPair {
     }
 
     pub fn sign(&self, alg: &JwsSignatureAlgorithm, data: &[u8]) -> Result<Vec<u8>, Error> {
-        let _ = self.key_type.check_alg_compatibility(alg)?;
+        self.key_type.check_alg_compatibility(alg)?;
         match alg {
             JwsSignatureAlgorithm::Hs256
             | JwsSignatureAlgorithm::Hs384
