@@ -22,7 +22,7 @@ openssl_vendored = ["crypto_openssl", "openssl/vendored", "openssl-sys/vendored"
 attohttpc = { version = "0.24", default-features = false }
 base64 = "0.20"
 daemonize = "0.4"
-env_logger = "0.9"
+env_logger = "0.10"
 glob = "0.3"
 log = "0.4"
 native-tls = "0.2"
