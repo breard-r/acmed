@@ -86,7 +86,7 @@ fn main() {
     let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
     let matches = Command::new(APP_NAME)
         .version(APP_VERSION)
-        .long_version(&full_version)
+        .long_version(full_version)
         .arg(
             Arg::new("listen")
                 .long("listen")
@@ -137,7 +137,7 @@ fn main() {
                 .num_args(1)
                 .value_name("STRING")
                 .value_parser(PossibleValuesParser::new(KeyType::list_possible_values()))
-                .default_value(&default_crt_key_type),
+                .default_value(default_crt_key_type),
         )
         .arg(
             Arg::new("crt-digest")
@@ -146,7 +146,7 @@ fn main() {
                 .num_args(1)
                 .value_name("STRING")
                 .value_parser(PossibleValuesParser::new(HashFunction::list_possible_values()))
-                .default_value(&default_crt_digest),
+                .default_value(default_crt_digest),
         )
         .arg(
             Arg::new("log-level")
@@ -155,7 +155,7 @@ fn main() {
                 .num_args(1)
                 .value_name("LEVEL")
                 .value_parser(["error", "warn", "info", "debug", "trace"])
-                .default_value(&default_log_level),
+                .default_value(default_log_level),
         )
         .arg(
             Arg::new("to-syslog")
