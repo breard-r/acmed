@@ -8,7 +8,7 @@ use acme_common::error::Error;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
 use clap::builder::PossibleValuesParser;
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::{debug, error, info};
 use std::fs::File;
 use std::io::{self, Read};
@@ -49,7 +49,7 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 
 fn init(cnf: &ArgMatches) -> Result<(), Error> {
     acme_common::init_server(
-        cnf.contains_id("foreground"),
+        cnf.get_flag("foreground"),
         cnf.get_one::<String>("pid-file").map(|e| e.as_str()),
     );
     let domain = get_acme_value(cnf, "domain", "domain-file")?;
@@ -161,19 +161,22 @@ fn main() {
             Arg::new("to-syslog")
                 .long("log-syslog")
                 .help("Sends log messages via syslog")
-                .conflicts_with("to-stderr"),
+                .conflicts_with("to-stderr")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
-                .conflicts_with("to-syslog"),
+                .conflicts_with("to-syslog")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("foreground")
                 .long("foreground")
                 .short('f')
-                .help("Runs in the foreground"),
+                .help("Runs in the foreground")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("pid-file")
@@ -189,14 +192,15 @@ fn main() {
             Arg::new("no-pid-file")
                 .long("no-pid-file")
                 .help("Do not create any PID file")
-                .conflicts_with("pid-file"),
+                .conflicts_with("pid-file")
+                .action(ArgAction::SetTrue),
         )
         .get_matches();
 
     match set_log_system(
         matches.get_one::<String>("log-level").map(|e| e.as_str()),
-        matches.contains_id("to-syslog"),
-        matches.contains_id("to-stderr"),
+        matches.get_flag("to-syslog"),
+        matches.get_flag("to-stderr"),
     ) {
         Ok(_) => {}
         Err(e) => {

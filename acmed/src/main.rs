@@ -4,7 +4,7 @@ use acme_common::crypto::{
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use log::error;
 
 mod account;
@@ -84,19 +84,22 @@ fn main() {
             Arg::new("to-syslog")
                 .long("log-syslog")
                 .help("Sends log messages via syslog")
-                .conflicts_with("to-stderr"),
+                .conflicts_with("to-stderr")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("to-stderr")
                 .long("log-stderr")
                 .help("Prints log messages to the standard error output")
-                .conflicts_with("to-syslog"),
+                .conflicts_with("to-syslog")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("foreground")
                 .short('f')
                 .long("foreground")
-                .help("Runs in the foreground"),
+                .help("Runs in the foreground")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("pid-file")
@@ -112,22 +115,23 @@ fn main() {
             Arg::new("no-pid-file")
                 .long("no-pid-file")
                 .help("Do not create any PID file")
-                .conflicts_with("pid-file"),
+                .conflicts_with("pid-file")
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("root-cert")
                 .long("root-cert")
                 .help("Add a root certificate to the trust store (can be set multiple times)")
                 .num_args(1)
-                .action(clap::ArgAction::Append)
+                .action(ArgAction::Append)
                 .value_name("FILE"),
         )
         .get_matches();
 
     match set_log_system(
         matches.get_one::<String>("log-level").map(|e| e.as_str()),
-        matches.contains_id("to-syslog"),
-        matches.contains_id("to-stderr"),
+        matches.get_flag("to-syslog"),
+        matches.get_flag("to-stderr"),
     ) {
         Ok(_) => {}
         Err(e) => {
@@ -147,7 +151,7 @@ fn main() {
         .unwrap_or(DEFAULT_CONFIG_FILE);
     let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
 
-    init_server(matches.contains_id("foreground"), pid_file);
+    init_server(matches.get_flag("foreground"), pid_file);
 
     let mut srv = match MainEventLoop::new(config_file, &root_certs) {
         Ok(s) => s,
