@@ -101,23 +101,30 @@ impl RateLimit {
 
 	fn request_allowed(&self) -> bool {
 		for (max_allowed, duration) in self.limits.iter() {
-			let max_date = Instant::now() - *duration;
-			let nb_req = self
-				.query_log
-				.iter()
-				.filter(move |x| **x > max_date)
-				.count();
-			if nb_req >= *max_allowed {
-				return false;
-			}
+			match Instant::now().checked_sub(*duration) {
+				Some(max_date) => {
+					let nb_req = self
+						.query_log
+						.iter()
+						.filter(move |x| **x > max_date)
+						.count();
+					if nb_req >= *max_allowed {
+						return false;
+					}
+				}
+				None => {
+					return false;
+				}
+			};
 		}
 		true
 	}
 
 	fn prune_log(&mut self) {
 		if let Some((_, max_limit)) = self.limits.first() {
-			let prune_date = Instant::now() - *max_limit;
-			self.query_log.retain(move |&d| d > prune_date);
+			if let Some(prune_date) = Instant::now().checked_sub(*max_limit) {
+				self.query_log.retain(move |&d| d > prune_date);
+			}
 		}
 	}
 }
