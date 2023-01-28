@@ -83,99 +83,99 @@ ehm+yKg=
 
 #[test]
 fn test_san_domains() {
-    let san = vec!["local.what.tf", "1.local.what.tf", "2.local.what.tf"];
-    let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
-    let crt = X509Certificate::from_pem(CERTIFICATE_P256_DOMAINS_PEM.as_bytes()).unwrap();
-    assert_eq!(crt.subject_alt_names(), san);
+	let san = vec!["local.what.tf", "1.local.what.tf", "2.local.what.tf"];
+	let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
+	let crt = X509Certificate::from_pem(CERTIFICATE_P256_DOMAINS_PEM.as_bytes()).unwrap();
+	assert_eq!(crt.subject_alt_names(), san);
 }
 
 #[test]
 fn test_san_ip() {
-    let san = vec!["127.0.0.1", "::1"];
-    let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
-    let crt = X509Certificate::from_pem(CERTIFICATE_P256_IP_PEM.as_bytes()).unwrap();
-    assert_eq!(crt.subject_alt_names(), san);
+	let san = vec!["127.0.0.1", "::1"];
+	let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
+	let crt = X509Certificate::from_pem(CERTIFICATE_P256_IP_PEM.as_bytes()).unwrap();
+	assert_eq!(crt.subject_alt_names(), san);
 }
 
 #[test]
 fn test_san_domains_and_ip() {
-    let san = vec![
-        "127.0.0.1",
-        "::1",
-        "local.what.tf",
-        "1.local.what.tf",
-        "2.local.what.tf",
-    ];
-    let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
-    let crt = X509Certificate::from_pem(CERTIFICATE_P256_DOMAINS_IP_PEM.as_bytes()).unwrap();
-    assert_eq!(crt.subject_alt_names(), san);
+	let san = vec![
+		"127.0.0.1",
+		"::1",
+		"local.what.tf",
+		"1.local.what.tf",
+		"2.local.what.tf",
+	];
+	let san = HashSet::from_iter(san.iter().map(|v| v.to_string()));
+	let crt = X509Certificate::from_pem(CERTIFICATE_P256_DOMAINS_IP_PEM.as_bytes()).unwrap();
+	assert_eq!(crt.subject_alt_names(), san);
 }
 
 #[test]
 fn generate_rsa2048_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa2048, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::Rsa2048);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa2048, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::Rsa2048);
 }
 
 #[test]
 fn generate_rsa4096_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa4096, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::Rsa4096);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::Rsa4096, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::Rsa4096);
 }
 
 #[test]
 fn generate_ecdsa_p256_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::EcdsaP256);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::EcdsaP256);
 }
 
 #[test]
 fn generate_ecdsa_p384_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP384, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::EcdsaP384);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP384, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::EcdsaP384);
 }
 
 #[cfg(ed25519)]
 #[test]
 fn generate_ed25519_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::Ed25519, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::Ed25519);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::Ed25519, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::Ed25519);
 }
 
 #[cfg(ed448)]
 #[test]
 fn generate_ed448_certificate() {
-    let (kp, _) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::Ed448, HashFunction::Sha256)
-            .unwrap();
-    assert_eq!(kp.key_type, KeyType::Ed448);
+	let (kp, _) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::Ed448, HashFunction::Sha256)
+			.unwrap();
+	assert_eq!(kp.key_type, KeyType::Ed448);
 }
 
 #[test]
 fn cert_expiration_date_future() {
-    let (_, crt) =
-        X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
-            .unwrap();
-    let duration = crt.expires_in().unwrap().as_secs();
-    let validity_sec = CRT_NB_DAYS_VALIDITY as u64 * 24 * 60 * 60;
-    let delta = 60;
-    assert!(duration > validity_sec - delta);
-    assert!(duration < validity_sec + delta);
+	let (_, crt) =
+		X509Certificate::from_acme_ext("example.org", "", KeyType::EcdsaP256, HashFunction::Sha256)
+			.unwrap();
+	let duration = crt.expires_in().unwrap().as_secs();
+	let validity_sec = CRT_NB_DAYS_VALIDITY as u64 * 24 * 60 * 60;
+	let delta = 60;
+	assert!(duration > validity_sec - delta);
+	assert!(duration < validity_sec + delta);
 }
 
 #[test]
 fn cert_expiration_date_past() {
-    let crt = X509Certificate::from_pem(CERTIFICATE_EXPIRED_PEM.as_bytes()).unwrap();
-    let duration = crt.expires_in().unwrap().as_secs();
-    assert_eq!(duration, 0);
+	let crt = X509Certificate::from_pem(CERTIFICATE_EXPIRED_PEM.as_bytes()).unwrap();
+	let duration = crt.expires_in().unwrap().as_secs();
+	assert_eq!(duration, 0);
 }

@@ -1,6 +1,6 @@
 use crate::main_event_loop::MainEventLoop;
 use acme_common::crypto::{
-    get_lib_name, get_lib_version, HashFunction, JwsSignatureAlgorithm, KeyType,
+	get_lib_name, get_lib_version, HashFunction, JwsSignatureAlgorithm, KeyType,
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
@@ -49,117 +49,117 @@ pub const MAX_RATE_LIMIT_SLEEP_MILISEC: u64 = 3_600_000;
 pub const MIN_RATE_LIMIT_SLEEP_MILISEC: u64 = 100;
 
 fn main() {
-    let full_version = format!(
-        "{} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
-        APP_VERSION,
-        env!("ACMED_TARGET"),
-        get_lib_name(),
-        get_lib_version(),
-        env!("ACMED_HTTP_LIB_NAME"),
-        env!("ACMED_HTTP_LIB_VERSION")
-    );
-    let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
-    let matches = Command::new(APP_NAME)
-        .version(APP_VERSION)
-        .long_version(full_version)
-        .arg(
-            Arg::new("config")
-                .short('c')
-                .long("config")
-                .help("Path to the main configuration file")
-                .num_args(1)
-                .value_name("FILE")
-                .default_value(DEFAULT_CONFIG_FILE),
-        )
-        .arg(
-            Arg::new("log-level")
-                .long("log-level")
-                .help("Specify the log level")
-                .num_args(1)
-                .value_name("LEVEL")
-                .value_parser(["error", "warn", "info", "debug", "trace"])
-                .default_value(default_log_level),
-        )
-        .arg(
-            Arg::new("to-syslog")
-                .long("log-syslog")
-                .help("Sends log messages via syslog")
-                .conflicts_with("to-stderr")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("to-stderr")
-                .long("log-stderr")
-                .help("Prints log messages to the standard error output")
-                .conflicts_with("to-syslog")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("foreground")
-                .short('f')
-                .long("foreground")
-                .help("Runs in the foreground")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("pid-file")
-                .long("pid-file")
-                .help("Path to the PID file")
-                .num_args(1)
-                .value_name("FILE")
-                .default_value(DEFAULT_PID_FILE)
-                .default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
-                .conflicts_with("no-pid-file"),
-        )
-        .arg(
-            Arg::new("no-pid-file")
-                .long("no-pid-file")
-                .help("Do not create any PID file")
-                .conflicts_with("pid-file")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("root-cert")
-                .long("root-cert")
-                .help("Add a root certificate to the trust store (can be set multiple times)")
-                .num_args(1)
-                .action(ArgAction::Append)
-                .value_name("FILE"),
-        )
-        .get_matches();
+	let full_version = format!(
+		"{} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
+		APP_VERSION,
+		env!("ACMED_TARGET"),
+		get_lib_name(),
+		get_lib_version(),
+		env!("ACMED_HTTP_LIB_NAME"),
+		env!("ACMED_HTTP_LIB_VERSION")
+	);
+	let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
+	let matches = Command::new(APP_NAME)
+		.version(APP_VERSION)
+		.long_version(full_version)
+		.arg(
+			Arg::new("config")
+				.short('c')
+				.long("config")
+				.help("Path to the main configuration file")
+				.num_args(1)
+				.value_name("FILE")
+				.default_value(DEFAULT_CONFIG_FILE),
+		)
+		.arg(
+			Arg::new("log-level")
+				.long("log-level")
+				.help("Specify the log level")
+				.num_args(1)
+				.value_name("LEVEL")
+				.value_parser(["error", "warn", "info", "debug", "trace"])
+				.default_value(default_log_level),
+		)
+		.arg(
+			Arg::new("to-syslog")
+				.long("log-syslog")
+				.help("Sends log messages via syslog")
+				.conflicts_with("to-stderr")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("to-stderr")
+				.long("log-stderr")
+				.help("Prints log messages to the standard error output")
+				.conflicts_with("to-syslog")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("foreground")
+				.short('f')
+				.long("foreground")
+				.help("Runs in the foreground")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("pid-file")
+				.long("pid-file")
+				.help("Path to the PID file")
+				.num_args(1)
+				.value_name("FILE")
+				.default_value(DEFAULT_PID_FILE)
+				.default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
+				.conflicts_with("no-pid-file"),
+		)
+		.arg(
+			Arg::new("no-pid-file")
+				.long("no-pid-file")
+				.help("Do not create any PID file")
+				.conflicts_with("pid-file")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("root-cert")
+				.long("root-cert")
+				.help("Add a root certificate to the trust store (can be set multiple times)")
+				.num_args(1)
+				.action(ArgAction::Append)
+				.value_name("FILE"),
+		)
+		.get_matches();
 
-    match set_log_system(
-        matches.get_one::<String>("log-level").map(|e| e.as_str()),
-        matches.get_flag("to-syslog"),
-        matches.get_flag("to-stderr"),
-    ) {
-        Ok(_) => {}
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            std::process::exit(2);
-        }
-    };
+	match set_log_system(
+		matches.get_one::<String>("log-level").map(|e| e.as_str()),
+		matches.get_flag("to-syslog"),
+		matches.get_flag("to-stderr"),
+	) {
+		Ok(_) => {}
+		Err(e) => {
+			eprintln!("Error: {}", e);
+			std::process::exit(2);
+		}
+	};
 
-    let root_certs = match matches.get_many::<String>("root-cert") {
-        Some(v) => v.map(|e| e.as_str()).collect(),
-        None => vec![],
-    };
+	let root_certs = match matches.get_many::<String>("root-cert") {
+		Some(v) => v.map(|e| e.as_str()).collect(),
+		None => vec![],
+	};
 
-    let config_file = matches
-        .get_one::<String>("config")
-        .map(|e| e.as_str())
-        .unwrap_or(DEFAULT_CONFIG_FILE);
-    let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
+	let config_file = matches
+		.get_one::<String>("config")
+		.map(|e| e.as_str())
+		.unwrap_or(DEFAULT_CONFIG_FILE);
+	let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
 
-    init_server(matches.get_flag("foreground"), pid_file);
+	init_server(matches.get_flag("foreground"), pid_file);
 
-    let mut srv = match MainEventLoop::new(config_file, &root_certs) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("{}", e);
-            let _ = clean_pid_file(pid_file);
-            std::process::exit(1);
-        }
-    };
-    srv.run();
+	let mut srv = match MainEventLoop::new(config_file, &root_certs) {
+		Ok(s) => s,
+		Err(e) => {
+			error!("{}", e);
+			let _ = clean_pid_file(pid_file);
+			std::process::exit(1);
+		}
+	};
+	srv.run();
 }
