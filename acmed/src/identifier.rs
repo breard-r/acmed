@@ -12,7 +12,7 @@ fn u8_to_nibbles_string(value: &u8) -> String {
 	let bytes = value.to_ne_bytes();
 	let first = bytes[0] & 0x0f;
 	let second = (bytes[0] >> 4) & 0x0f;
-	format!("{:x}.{:x}", first, second)
+	format!("{first:x}.{second:x}")
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -38,7 +38,7 @@ impl fmt::Display for IdentifierType {
 			IdentifierType::Dns => "dns",
 			IdentifierType::Ip => "ip",
 		};
-		write!(f, "{}", name)
+		write!(f, "{name}")
 	}
 }
 
@@ -63,10 +63,8 @@ impl Identifier {
 		};
 		let challenge = Challenge::from_str(challenge)?;
 		if !id_type.supported_challenges().contains(&challenge) {
-			let msg = format!(
-				"challenge {} cannot be used with identifier of type {}",
-				challenge, id_type
-			);
+			let msg =
+				format!("challenge {challenge} cannot be used with identifier of type {id_type}");
 			return Err(msg.into());
 		}
 		Ok(Identifier {
@@ -89,7 +87,7 @@ impl Identifier {
 						.map(|v| v.to_string())
 						.collect::<Vec<String>>()
 						.join(".");
-					let dn = format!("{}.in-addr.arpa", dn);
+					let dn = format!("{dn}.in-addr.arpa");
 					Ok(dn)
 				}
 				IpAddr::V6(ip) => {
@@ -100,7 +98,7 @@ impl Identifier {
 						.map(u8_to_nibbles_string)
 						.collect::<Vec<String>>()
 						.join(".");
-					let dn = format!("{}.ip6.arpa", dn);
+					let dn = format!("{dn}.ip6.arpa");
 					Ok(dn)
 				}
 			},

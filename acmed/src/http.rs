@@ -41,8 +41,8 @@ impl ValidHttpResponse {
 	fn from_response(response: Response) -> Result<Self, Error> {
 		let (_status, headers, body) = response.split();
 		let body = body.text()?;
-		log::trace!("HTTP response headers: {:?}", headers);
-		log::trace!("HTTP response body: {}", body);
+		log::trace!("HTTP response headers: {headers:?}");
+		log::trace!("HTTP response body: {body}");
 		Ok(ValidHttpResponse { headers, body })
 	}
 }
@@ -117,7 +117,7 @@ fn update_nonce(endpoint: &mut Endpoint, response: &Response) -> Result<(), Erro
 	if let Some(nonce) = response.headers().get(HEADER_NONCE) {
 		let nonce = header_to_string(nonce)?;
 		if !is_nonce(&nonce) {
-			let msg = format!("{}: invalid nonce.", &nonce);
+			let msg = format!("{nonce}: invalid nonce.");
 			return Err(msg.into());
 		}
 		endpoint.nonce = Some(nonce);
@@ -202,7 +202,7 @@ where
 		let nonce = &endpoint.nonce.clone().unwrap_or_default();
 		let body = data_builder(nonce, url)?;
 		rate_limit(endpoint);
-		log::trace!("POST request body: {}", body);
+		log::trace!("POST request body: {body}");
 		let response = session.post(url).text(&body).send()?;
 		update_nonce(endpoint, &response)?;
 		match check_status(&response) {

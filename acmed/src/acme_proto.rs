@@ -32,7 +32,7 @@ impl Challenge {
 			"http-01" => Ok(Challenge::Http01),
 			"dns-01" => Ok(Challenge::Dns01),
 			"tls-alpn-01" => Ok(Challenge::TlsAlpn01),
-			_ => Err(format!("{}: unknown challenge.", s).into()),
+			_ => Err(format!("{s}: unknown challenge.").into()),
 		}
 	}
 }
@@ -44,7 +44,7 @@ impl fmt::Display for Challenge {
 			Challenge::Dns01 => "dns-01",
 			Challenge::TlsAlpn01 => "tls-alpn-01",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 

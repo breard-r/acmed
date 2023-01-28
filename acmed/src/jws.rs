@@ -31,7 +31,7 @@ fn get_jws_data(
 ) -> Result<String, Error> {
 	let protected = b64_encode(protected);
 	let payload = b64_encode(payload);
-	let signing_input = format!("{}.{}", protected, payload);
+	let signing_input = format!("{protected}.{payload}");
 	let signature = key_pair.sign(sign_alg, signing_input.as_bytes())?;
 	let signature = b64_encode(&signature);
 	let data = JwsData {
@@ -97,13 +97,13 @@ pub fn encode_kid_mac(
 	let protected = serde_json::to_string(&protected)?;
 	let protected = b64_encode(&protected);
 	let payload = b64_encode(payload);
-	let signing_input = format!("{}.{}", protected, payload);
+	let signing_input = format!("{protected}.{payload}");
 	let hash_func = match sign_alg {
 		JwsSignatureAlgorithm::Hs256 => HashFunction::Sha256,
 		JwsSignatureAlgorithm::Hs384 => HashFunction::Sha384,
 		JwsSignatureAlgorithm::Hs512 => HashFunction::Sha512,
 		_ => {
-			return Err(format!("{}: not a HMAC-based signature algorithm", sign_alg).into());
+			return Err(format!("{sign_alg}: not a HMAC-based signature algorithm").into());
 		}
 	};
 	let signature = hash_func.hmac(key, signing_input.as_bytes())?;

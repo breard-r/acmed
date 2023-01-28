@@ -106,10 +106,7 @@ macro_rules! get_hook_output {
 		match $out {
 			Some(path) => {
 				let path = render_template(path, $data)?;
-				$logger.trace(&format!(
-					"hook \"{}\": {}: {}",
-					$hook_name, $out_name, &path
-				));
+				$logger.trace(&format!("hook \"{}\": {}: {path}", $hook_name, $out_name));
 				let file = File::create(&path)?;
 				Stdio::from(file)
 			}
@@ -136,7 +133,7 @@ where
 		None => &[],
 	};
 	logger.trace(&format!("hook \"{}\": cmd: {}", hook.name, hook.cmd));
-	logger.trace(&format!("hook \"{}\": args: {:?}", hook.name, args));
+	logger.trace(&format!("hook \"{}\": args: {args:?}", hook.name));
 	let mut cmd = Command::new(&hook.cmd)
 		.envs(data.get_env())
 		.args(args)
@@ -162,19 +159,13 @@ where
 	match &hook.stdin {
 		HookStdin::Str(s) => {
 			let data_in = render_template(s, &data)?;
-			logger.trace(&format!(
-				"hook \"{}\": string stdin: {}",
-				hook.name, &data_in
-			));
+			logger.trace(&format!("hook \"{}\": string stdin: {data_in}", hook.name));
 			let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
 			stdin.write_all(data_in.as_bytes())?;
 		}
 		HookStdin::File(f) => {
 			let file_name = render_template(f, &data)?;
-			logger.trace(&format!(
-				"hook \"{}\": file stdin: {}",
-				hook.name, &file_name
-			));
+			logger.trace(&format!("hook \"{}\": file stdin: {file_name}", hook.name));
 			let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
 			let file = File::open(&file_name).map_err(|e| Error::from(e).prefix(&file_name))?;
 			let buf_reader = BufReader::new(file);
@@ -189,13 +180,13 @@ where
 	let status = cmd.wait()?;
 	if !status.success() && !hook.allow_failure {
 		let msg = match status.code() {
-			Some(code) => format!("unrecoverable failure: code {}", code).into(),
+			Some(code) => format!("unrecoverable failure: code {code}").into(),
 			None => "unrecoverable failure".into(),
 		};
 		return Err(msg);
 	}
 	match status.code() {
-		Some(code) => logger.debug(&format!("hook \"{}\": exited: code {}", hook.name, code)),
+		Some(code) => logger.debug(&format!("hook \"{}\": exited: code {code}", hook.name)),
 		None => logger.debug(&format!("hook \"{}\": exited", hook.name)),
 	};
 	Ok(())

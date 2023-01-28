@@ -34,19 +34,19 @@ impl fmt::Display for Certificate {
 
 impl HasLogger for Certificate {
 	fn warn(&self, msg: &str) {
-		warn!("certificate \"{}\": {}", &self, msg);
+		warn!("certificate \"{self}\": {msg}");
 	}
 
 	fn info(&self, msg: &str) {
-		info!("certificate \"{}\": {}", &self, msg);
+		info!("certificate \"{self}\": {msg}");
 	}
 
 	fn debug(&self, msg: &str) {
-		debug!("certificate \"{}\": {}", &self, msg);
+		debug!("certificate \"{self}\": {msg}");
 	}
 
 	fn trace(&self, msg: &str) {
-		trace!("certificate \"{}\": {}", &self, msg);
+		trace!("certificate \"{self}\": {msg}");
 	}
 }
 
@@ -67,7 +67,7 @@ impl Certificate {
 				return Ok(d.clone());
 			}
 		}
-		Err(format!("{}: identifier not found", identifier).into())
+		Err(format!("{identifier}: identifier not found").into())
 	}
 
 	fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
@@ -95,8 +95,7 @@ impl Certificate {
 				.collect::<Vec<String>>()
 				.join(", ");
 			self.debug(&format!(
-				"the certificate does not include the following domains: {}",
-				domains
+				"the certificate does not include the following domains: {domains}"
 			));
 		}
 		has_miss

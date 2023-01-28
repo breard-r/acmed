@@ -33,7 +33,7 @@ impl FromStr for JwsSignatureAlgorithm {
 			"ed25519" => Ok(JwsSignatureAlgorithm::Ed25519),
 			#[cfg(ed448)]
 			"ed448" => Ok(JwsSignatureAlgorithm::Ed448),
-			_ => Err(format!("{}: unknown algorithm.", s).into()),
+			_ => Err(format!("{s}: unknown algorithm.").into()),
 		}
 	}
 }
@@ -53,7 +53,7 @@ impl fmt::Display for JwsSignatureAlgorithm {
 			#[cfg(ed448)]
 			JwsSignatureAlgorithm::Ed448 => "Ed448",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 

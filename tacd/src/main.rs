@@ -36,8 +36,7 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 		Some(v) => Ok(v.to_string()),
 		None => {
 			debug!(
-				"reading {} from {}",
-				opt,
+				"reading {opt} from {}",
 				cnf.get_one::<String>(opt_file)
 					.map(|e| e.as_str())
 					.unwrap_or("stdin")
@@ -68,15 +67,14 @@ fn init(cnf: &ArgMatches) -> Result<(), Error> {
 		None => DEFAULT_CRT_DIGEST,
 	};
 	let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg, crt_digest)?;
-	info!("starting {} on {} for {}", APP_NAME, listen_addr, domain);
+	info!("starting {APP_NAME} on {listen_addr} for {domain}");
 	server_start(listen_addr, &cert, &pk)?;
 	Ok(())
 }
 
 fn main() {
 	let full_version = format!(
-		"{} built for {}\n\nCryptographic library:\n - {} {}",
-		APP_VERSION,
+		"{APP_VERSION} built for {}\n\nCryptographic library:\n - {} {}",
 		env!("TACD_TARGET"),
 		get_lib_name(),
 		get_lib_version(),
@@ -204,7 +202,7 @@ fn main() {
 	) {
 		Ok(_) => {}
 		Err(e) => {
-			eprintln!("Error: {}", e);
+			eprintln!("Error: {e}");
 			std::process::exit(2);
 		}
 	};
@@ -212,7 +210,7 @@ fn main() {
 	match init(&matches) {
 		Ok(_) => {}
 		Err(e) => {
-			error!("{}", e);
+			error!("{e}");
 			let pid_file = matches.get_one::<String>("pid-file").map(|e| e.as_str());
 			let _ = clean_pid_file(pid_file);
 			std::process::exit(1);

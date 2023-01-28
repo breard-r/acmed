@@ -50,8 +50,7 @@ pub const MIN_RATE_LIMIT_SLEEP_MILISEC: u64 = 100;
 
 fn main() {
 	let full_version = format!(
-		"{} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
-		APP_VERSION,
+		"{APP_VERSION} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
 		env!("ACMED_TARGET"),
 		get_lib_name(),
 		get_lib_version(),
@@ -135,7 +134,7 @@ fn main() {
 	) {
 		Ok(_) => {}
 		Err(e) => {
-			eprintln!("Error: {}", e);
+			eprintln!("Error: {e}");
 			std::process::exit(2);
 		}
 	};
@@ -156,7 +155,7 @@ fn main() {
 	let mut srv = match MainEventLoop::new(config_file, &root_certs) {
 		Ok(s) => s,
 		Err(e) => {
-			error!("{}", e);
+			error!("{e}");
 			let _ = clean_pid_file(pid_file);
 			std::process::exit(1);
 		}

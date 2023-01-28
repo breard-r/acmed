@@ -21,7 +21,7 @@ fn get_loglevel(log_level: Option<&str>) -> Result<LevelFilter, Error> {
 			"debug" => LevelFilter::Debug,
 			"trace" => LevelFilter::Trace,
 			_ => {
-				return Err(format!("{}: invalid log level", v).into());
+				return Err(format!("{v}: invalid log level").into());
 			}
 		},
 		None => DEFAULT_LOG_LEVEL,

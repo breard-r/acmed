@@ -44,8 +44,8 @@ pub fn parse_duration(input: &str) -> Result<Duration, Error> {
 	match get_duration(input) {
 		Ok((r, d)) => match r.len() {
 			0 => Ok(d),
-			_ => Err(format!("{}: invalid duration", input).into()),
+			_ => Err(format!("{input}: invalid duration").into()),
 		},
-		Err(_) => Err(format!("{}: invalid duration", input).into()),
+		Err(_) => Err(format!("{input}: invalid duration").into()),
 	}
 }

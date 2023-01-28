@@ -36,7 +36,7 @@ impl FromStr for ContactType {
 	fn from_str(s: &str) -> Result<Self, Error> {
 		match s.to_lowercase().as_str() {
 			"mailto" => Ok(ContactType::Mailto),
-			_ => Err(format!("{}: unknown contact type.", s).into()),
+			_ => Err(format!("{s}: unknown contact type.").into()),
 		}
 	}
 }
@@ -46,7 +46,7 @@ impl fmt::Display for ContactType {
 		let s = match self {
 			ContactType::Mailto => "mailto",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 

@@ -30,7 +30,7 @@ impl FromStr for AccountContactType {
 	fn from_str(s: &str) -> Result<Self, Error> {
 		match s.to_lowercase().as_str() {
 			"mailfrom" => Ok(AccountContactType::Mailfrom),
-			_ => Err(format!("{}: unknown contact type.", s).into()),
+			_ => Err(format!("{s}: unknown contact type.").into()),
 		}
 	}
 }
@@ -40,7 +40,7 @@ impl fmt::Display for AccountContactType {
 		let s = match self {
 			AccountContactType::Mailfrom => "mailfrom",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 
@@ -97,19 +97,19 @@ pub struct Account {
 
 impl HasLogger for Account {
 	fn warn(&self, msg: &str) {
-		log::warn!("account \"{}\": {}", &self.name, msg);
+		log::warn!("account \"{}\": {msg}", &self.name);
 	}
 
 	fn info(&self, msg: &str) {
-		log::info!("account \"{}\": {}", &self.name, msg);
+		log::info!("account \"{}\": {msg}", &self.name);
 	}
 
 	fn debug(&self, msg: &str) {
-		log::debug!("account \"{}\": {}", &self.name, msg);
+		log::debug!("account \"{}\": {msg}", &self.name);
 	}
 
 	fn trace(&self, msg: &str) {
-		log::trace!("account \"{}\": {}", &self.name, msg);
+		log::trace!("account \"{}\": {msg}", &self.name);
 	}
 }
 
@@ -288,10 +288,7 @@ impl Account {
 			self.past_keys.push(self.current_key.to_owned());
 			self.current_key = AccountKey::new(key_type, signature_algorithm)?;
 			self.save()?;
-			let msg = format!(
-				"new {} account key created, using {} as signing algorithm",
-				key_type, signature_algorithm
-			);
+			let msg = format!("new {key_type} account key created, using {signature_algorithm} as signing algorithm");
 			self.info(&msg);
 		} else {
 			self.trace("account key is up to date");

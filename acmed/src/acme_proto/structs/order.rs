@@ -66,7 +66,7 @@ impl fmt::Display for OrderStatus {
 			OrderStatus::Valid => "valid",
 			OrderStatus::Invalid => "invalid",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 

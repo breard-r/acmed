@@ -82,8 +82,7 @@ pub fn update_account_contacts(
 ) -> Result<(), Error> {
 	let endpoint_name = endpoint.name.clone();
 	account.debug(&format!(
-		"updating account contacts on endpoint \"{}\"...",
-		&endpoint_name
+		"updating account contacts on endpoint \"{endpoint_name}\"..."
 	));
 	let new_contacts: Vec<String> = account.contacts.iter().map(|c| c.to_string()).collect();
 	let acc_up_struct = AccountUpdate::new(&new_contacts);
@@ -98,8 +97,7 @@ pub fn update_account_contacts(
 	account.update_contacts_hash(&endpoint_name)?;
 	account.save()?;
 	account.info(&format!(
-		"account contacts updated on endpoint \"{}\"",
-		&endpoint_name
+		"account contacts updated on endpoint \"{endpoint_name}\""
 	));
 	Ok(())
 }
@@ -107,8 +105,7 @@ pub fn update_account_contacts(
 pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) -> Result<(), Error> {
 	let endpoint_name = endpoint.name.clone();
 	account.debug(&format!(
-		"updating account key on endpoint \"{}\"...",
-		&endpoint_name
+		"updating account key on endpoint \"{endpoint_name}\"..."
 	));
 	let url = endpoint.dir.key_change.clone();
 	let ep = account.get_endpoint(&endpoint_name)?;
@@ -142,8 +139,7 @@ pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) ->
 	account.update_key_hash(&endpoint_name)?;
 	account.save()?;
 	account.info(&format!(
-		"account key updated on endpoint \"{}\"",
-		&endpoint_name
+		"account key updated on endpoint \"{endpoint_name}\""
 	));
 	Ok(())
 }

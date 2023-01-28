@@ -7,14 +7,14 @@ pub fn get_lib_version() -> String {
 	let mut version = vec![];
 	for i in 0..3 {
 		let n = get_openssl_version_unit(v, i);
-		version.push(format!("{}", n));
+		version.push(format!("{n}"));
 	}
 	let version = version.join(".");
 	let p = get_openssl_version_unit(v, 3);
 	if p != 0 {
 		let p = p + 0x60;
 		let p = std::char::from_u32(p as u32).unwrap();
-		format!("{}{}", version, p)
+		format!("{version}{p}")
 	} else {
 		version
 	}

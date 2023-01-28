@@ -78,7 +78,7 @@ impl Config {
 				return Ok((rl.number, rl.period.to_owned()));
 			}
 		}
-		Err(format!("{}: rate limit not found", name).into())
+		Err(format!("{name}: rate limit not found").into())
 	}
 
 	pub fn get_account_dir(&self) -> String {
@@ -120,7 +120,7 @@ impl Config {
 				return Ok(ret);
 			}
 		}
-		Err(format!("{}: hook not found", name).into())
+		Err(format!("{name}: hook not found").into())
 	}
 
 	pub fn get_cert_file_mode(&self) -> u32 {
@@ -341,11 +341,7 @@ impl ExternalAccount {
 			| JwsSignatureAlgorithm::Hs384
 			| JwsSignatureAlgorithm::Hs512 => {}
 			_ => {
-				return Err(format!(
-					"{}: invalid signature algorithm for external account binding",
-					signature_algorithm
-				)
-				.into());
+				return Err(format!("{signature_algorithm}: invalid signature algorithm for external account binding").into());
 			}
 		};
 		Ok(crate::account::ExternalAccount {
@@ -584,7 +580,7 @@ impl fmt::Display for Identifier {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		let s = String::new();
 		let msg = self.dns.as_ref().or(self.ip.as_ref()).unwrap_or(&s);
-		write!(f, "{}", msg)
+		write!(f, "{msg}")
 	}
 }
 
@@ -666,16 +662,14 @@ fn get_cnf_path(from: &Path, file: &str) -> Result<Vec<PathBuf>, Error> {
 	let mut path = from.to_path_buf().canonicalize()?;
 	path.pop();
 	path.push(file);
-	let err = format!("{:?}: invalid UTF-8 path", path);
+	let err = format!("{path:?}: invalid UTF-8 path");
 	let raw_path = path.to_str().ok_or(err)?;
 	let g = glob(raw_path)?
 		.filter_map(Result::ok)
 		.collect::<Vec<PathBuf>>();
 	if g.is_empty() {
 		log::warn!(
-			"pattern `{}` (expanded as `{}`): no matching configuration file found",
-			file,
-			raw_path
+			"pattern `{file}` (expanded as `{raw_path}`): no matching configuration file found"
 		);
 	}
 	Ok(g)

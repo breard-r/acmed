@@ -15,7 +15,7 @@ macro_rules! exit_match {
 		match $e {
 			Ok(_) => {}
 			Err(e) => {
-				log::error!("error: {}", e);
+				log::error!("error: {e}");
 				std::process::exit(3);
 			}
 		}
@@ -32,7 +32,7 @@ pub fn to_idna(domain_name: &str) -> Result<String, error::Error> {
 		} else {
 			let idna_name = punycode::encode(&raw_name)
 				.map_err(|_| error::Error::from("IDNA encoding failed."))?;
-			format!("xn--{}", idna_name)
+			format!("xn--{idna_name}")
 		};
 		idna_parts.push(idna_name);
 	}

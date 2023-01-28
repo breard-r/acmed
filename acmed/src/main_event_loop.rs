@@ -137,7 +137,7 @@ impl MainEventLoop {
 			};
 			let crt_id = cert.get_id();
 			if certs.iter().any(|c| c.get_id() == crt_id) {
-				let msg = format!("{}: duplicate certificate id", crt_id);
+				let msg = format!("{crt_id}: duplicate certificate id");
 				return Err(msg.into());
 			}
 			match accounts.get_mut(&crt.account) {

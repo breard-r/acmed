@@ -63,7 +63,7 @@ impl fmt::Display for AuthorizationStatus {
 			AuthorizationStatus::Expired => "expired",
 			AuthorizationStatus::Revoked => "revoked",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 
@@ -102,22 +102,19 @@ impl Challenge {
 				Ok(a)
 			}
 			Challenge::TlsAlpn01(tc) => {
-				let acme_ext_name = format!("{}.{}", ACME_OID, ID_PE_ACME_ID);
+				let acme_ext_name = format!("{ACME_OID}.{ID_PE_ACME_ID}");
 				let ka = tc.key_authorization(key_pair)?;
 				let proof = HashFunction::Sha256.hash(ka.as_bytes());
 				let proof_str = proof
 					.iter()
-					.map(|e| format!("{:02x}", e))
+					.map(|e| format!("{e:02x}"))
 					.collect::<Vec<String>>()
 					.join(":");
 				let value = format!(
-					"critical,{}:{:02x}:{:02x}:{}",
-					DER_STRUCT_NAME,
-					DER_OCTET_STRING_ID,
+					"critical,{DER_STRUCT_NAME}:{DER_OCTET_STRING_ID:02x}:{:02x}:{proof_str}",
 					proof.len(),
-					proof_str
 				);
-				let acme_ext = format!("{}={}", acme_ext_name, value);
+				let acme_ext = format!("{acme_ext_name}={value}");
 				Ok(acme_ext)
 			}
 			Challenge::Unknown => Ok(String::new()),
@@ -158,7 +155,7 @@ impl TokenChallenge {
 		let thumbprint = key_pair.jwk_public_key_thumbprint()?;
 		let thumbprint = HashFunction::Sha256.hash(thumbprint.to_string().as_bytes());
 		let thumbprint = b64_encode(&thumbprint);
-		let auth = format!("{}.{}", self.token, thumbprint);
+		let auth = format!("{}.{thumbprint}", self.token);
 		Ok(auth)
 	}
 }

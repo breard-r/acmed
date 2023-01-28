@@ -175,14 +175,10 @@ fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
 
 pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
 	do_fetch(file_manager, name).map_err(|_| {
-		format!(
-			"account \"{}\": unable to load account file: file may be corrupted",
-			name
-		)
-		.into()
+		format!("account \"{name}\": unable to load account file: file may be corrupted").into()
 	})
 }
 
 pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
-	do_save(file_manager, account).map_err(|e| format!("unable to save account file: {}", e).into())
+	do_save(file_manager, account).map_err(|e| format!("unable to save account file: {e}").into())
 }

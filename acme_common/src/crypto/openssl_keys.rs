@@ -104,8 +104,8 @@ impl KeyPair {
 			JwsSignatureAlgorithm::Hs256
 			| JwsSignatureAlgorithm::Hs384
 			| JwsSignatureAlgorithm::Hs512 => Err(format!(
-				"{} key pair cannot be used for the {} signature algorithm",
-				self.key_type, alg
+				"{} key pair cannot be used for the {alg} signature algorithm",
+				self.key_type
 			)
 			.into()),
 			JwsSignatureAlgorithm::Rs256 => self.sign_rsa(&MessageDigest::sha256(), data),
@@ -336,7 +336,7 @@ pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
 		#[cfg(ed448)]
 		KeyType::Ed448 => gen_ed448_pair(),
 	}
-	.map_err(|_| Error::from(format!("unable to generate a {} key pair", key_type)))?;
+	.map_err(|_| Error::from(format!("unable to generate a {key_type} key pair")))?;
 	let key_pair = KeyPair {
 		key_type,
 		inner_key: priv_key,

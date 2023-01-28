@@ -33,7 +33,7 @@ macro_rules! set_runstate_path_if_absent {
 
 fn main() {
 	if let Ok(target) = env::var("TARGET") {
-		println!("cargo:rustc-env=TACD_TARGET={}", target);
+		println!("cargo:rustc-env=TACD_TARGET={target}");
 	};
 
 	set_runstate_path_if_absent!("TACD_DEFAULT_PID_FILE", "tacd.pid");

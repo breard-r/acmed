@@ -63,7 +63,7 @@ impl FromStr for BaseHashFunction {
 			"sha256" => Ok(BaseHashFunction::Sha256),
 			"sha384" => Ok(BaseHashFunction::Sha384),
 			"sha512" => Ok(BaseHashFunction::Sha512),
-			_ => Err(format!("{}: unknown hash function.", s).into()),
+			_ => Err(format!("{s}: unknown hash function.").into()),
 		}
 	}
 }
@@ -75,7 +75,7 @@ impl fmt::Display for BaseHashFunction {
 			BaseHashFunction::Sha384 => "sha384",
 			BaseHashFunction::Sha512 => "sha512",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 

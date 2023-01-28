@@ -45,10 +45,10 @@ pub fn start(
 	let acceptor = Arc::new(acceptor.build());
 	if cfg!(unix) && listen_addr.starts_with("unix:") {
 		let listen_addr = &listen_addr[5..];
-		debug!("listening on unix socket {}", listen_addr);
+		debug!("listening on unix socket {listen_addr}");
 		listen_and_accept!(UnixListener, listen_addr, acceptor);
 	} else {
-		debug!("listening on {}", listen_addr);
+		debug!("listening on {listen_addr}");
 		listen_and_accept!(TcpListener, listen_addr, acceptor);
 	}
 	Err("main thread loop unexpectedly exited".into())

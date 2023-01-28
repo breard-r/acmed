@@ -99,7 +99,7 @@ impl fmt::Display for AcmeError {
             AcmeError::UserActionRequired => "visit the \"instance\" URL and take actions specified there",
             AcmeError::Unknown => "unknown error",
         };
-		write!(f, "{}", msg)
+		write!(f, "{msg}")
 	}
 }
 
@@ -147,10 +147,10 @@ impl fmt::Display for HttpApiError {
 			.to_owned()
 			.unwrap_or_else(|| self.get_acme_type().to_string());
 		let msg = match self.status {
-			Some(s) => format!("status {}: {}", s, msg),
+			Some(s) => format!("status {s}: {msg}"),
 			None => msg,
 		};
-		write!(f, "{}", msg)
+		write!(f, "{msg}")
 	}
 }
 

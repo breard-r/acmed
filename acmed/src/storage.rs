@@ -34,19 +34,19 @@ pub struct FileManager {
 
 impl HasLogger for FileManager {
 	fn warn(&self, msg: &str) {
-		log::warn!("{}: {}", self, msg);
+		log::warn!("{self}: {msg}");
 	}
 
 	fn info(&self, msg: &str) {
-		log::info!("{}: {}", self, msg);
+		log::info!("{self}: {msg}");
 	}
 
 	fn debug(&self, msg: &str) {
-		log::debug!("{}: {}", self, msg);
+		log::debug!("{self}: {msg}");
 	}
 
 	fn trace(&self, msg: &str) {
-		log::trace!("{}: {}", self, msg);
+		log::trace!("{self}: {msg}");
 	}
 }
 
@@ -57,7 +57,7 @@ impl fmt::Display for FileManager {
 		} else {
 			format!("account \"{}\"", self.account_name)
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 
@@ -75,7 +75,7 @@ impl fmt::Display for FileType {
 			FileType::PrivateKey => "pk",
 			FileType::Certificate => "crt",
 		};
-		write!(f, "{}", s)
+		write!(f, "{s}")
 	}
 }
 
@@ -124,7 +124,7 @@ fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error
 }
 
 fn read_file(fm: &FileManager, path: &Path) -> Result<Vec<u8>, Error> {
-	fm.trace(&format!("reading file {:?}", path));
+	fm.trace(&format!("reading file {path:?}"));
 	let mut file =
 		File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
 	let mut contents = vec![];
@@ -173,16 +173,16 @@ fn set_owner(fm: &FileManager, path: &Path, file_type: FileType) -> Result<(), E
 		None => None,
 	};
 	match uid {
-		Some(u) => fm.trace(&format!("{:?}: setting the uid to {}", path, u.as_raw())),
-		None => fm.trace(&format!("{:?}: uid unchanged", path)),
+		Some(u) => fm.trace(&format!("{path:?}: setting the uid to {}", u.as_raw())),
+		None => fm.trace(&format!("{path:?}: uid unchanged")),
 	};
 	match gid {
-		Some(g) => fm.trace(&format!("{:?}: setting the gid to {}", path, g.as_raw())),
-		None => fm.trace(&format!("{:?}: gid unchanged", path)),
+		Some(g) => fm.trace(&format!("{path:?}: setting the gid to {}", g.as_raw())),
+		None => fm.trace(&format!("{path:?}: gid unchanged")),
 	};
 	match nix::unistd::chown(path, uid, gid) {
 		Ok(_) => Ok(()),
-		Err(e) => Err(format!("{}", e).into()),
+		Err(e) => Err(format!("{e}").into()),
 	}
 }
 
@@ -203,7 +203,7 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
 		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreEdit)?;
 	}
 
-	fm.trace(&format!("writing file {:?}", path));
+	fm.trace(&format!("writing file {path:?}"));
 	let mut file = if cfg!(unix) {
 		let mut options = OpenOptions::new();
 		options.mode(match &file_type {
