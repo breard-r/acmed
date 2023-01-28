@@ -248,17 +248,15 @@ impl KeyPair {
 			}
 		};
 
-		/*
-		 * /!\ WARNING: HAZARDOUS AND UGLY CODE /!\
-		 *
-		 * I couldn't find a way to get the value of `x` using the OpenSSL
-		 * interface, therefore I had to hack my way arround.
-		 *
-		 * The idea behind this hack is to export the public key in PEM, then
-		 * get the PEM base64 part, convert it to base64url without padding
-		 * and finally truncate the first part so only the value of `x`
-		 * remains.
-		 */
+		// /!\ WARNING: HAZARDOUS AND UGLY CODE /!\
+		//
+		// I couldn't find a way to get the value of `x` using the OpenSSL
+		// interface, therefore I had to hack my way arround.
+		//
+		// The idea behind this hack is to export the public key in PEM, then
+		// get the PEM base64 part, convert it to base64url without padding
+		// and finally truncate the first part so only the value of `x`
+		// remains.
 
 		// -----BEGIN UGLY-----
 		let mut x = String::new();

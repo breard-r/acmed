@@ -139,13 +139,13 @@ mod tests {
 	#[test]
 	fn test_account_response() {
 		let data = "{
-  \"status\": \"valid\",
-  \"contact\": [
-    \"mailto:cert-admin@example.org\",
-    \"mailto:admin@example.org\"
-  ],
-  \"termsOfServiceAgreed\": true,
-  \"orders\": \"https://example.com/acme/orders/rzGoeA\"
+	\"status\": \"valid\",
+	\"contact\": [
+		\"mailto:cert-admin@example.org\",
+		\"mailto:admin@example.org\"
+	],
+	\"termsOfServiceAgreed\": true,
+	\"orders\": \"https://example.com/acme/orders/rzGoeA\"
 }";
 		let account_resp = AccountResponse::from_str(data);
 		assert!(account_resp.is_ok());

@@ -83,117 +83,117 @@ fn main() {
 	let default_crt_digest = DEFAULT_CRT_DIGEST.to_string();
 	let default_log_level = DEFAULT_LOG_LEVEL.to_string().to_lowercase();
 	let matches = Command::new(APP_NAME)
-        .version(APP_VERSION)
-        .long_version(full_version)
-        .arg(
-            Arg::new("listen")
-                .long("listen")
-                .short('l')
-                .help("Host and port to listen on")
-                .num_args(1)
-                .value_name("host:port|unix:path")
-                .default_value(DEFAULT_LISTEN_ADDR),
-        )
-        .arg(
-            Arg::new("domain")
-                .long("domain")
-                .short('d')
-                .help("The domain that is being validated")
-                .num_args(1)
-                .value_name("STRING")
-                .conflicts_with("domain-file"),
-        )
-        .arg(
-            Arg::new("domain-file")
-                .long("domain-file")
-                .help("File from which is read the domain that is being validated")
-                .num_args(1)
-                .value_name("FILE")
-                .conflicts_with("domain"),
-        )
-        .arg(
-            Arg::new("acme-ext")
-                .long("acme-ext")
-                .short('e')
-                .help("The acmeIdentifier extension to set in the self-signed certificate")
-                .num_args(1)
-                .value_name("STRING")
-                .conflicts_with("acme-ext-file"),
-        )
-        .arg(
-            Arg::new("acme-ext-file")
-                .long("acme-ext-file")
-                .help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
-                .num_args(1)
-                .value_name("FILE")
-                .conflicts_with("acme-ext"),
-        )
-        .arg(
-            Arg::new("crt-signature-alg")
-                .long("crt-signature-alg")
-                .help("The certificate's signature algorithm")
-                .num_args(1)
-                .value_name("STRING")
-                .value_parser(PossibleValuesParser::new(KeyType::list_possible_values()))
-                .default_value(default_crt_key_type),
-        )
-        .arg(
-            Arg::new("crt-digest")
-                .long("crt-digest")
-                .help("The certificate's digest algorithm")
-                .num_args(1)
-                .value_name("STRING")
-                .value_parser(PossibleValuesParser::new(HashFunction::list_possible_values()))
-                .default_value(default_crt_digest),
-        )
-        .arg(
-            Arg::new("log-level")
-                .long("log-level")
-                .help("Specify the log level")
-                .num_args(1)
-                .value_name("LEVEL")
-                .value_parser(["error", "warn", "info", "debug", "trace"])
-                .default_value(default_log_level),
-        )
-        .arg(
-            Arg::new("to-syslog")
-                .long("log-syslog")
-                .help("Sends log messages via syslog")
-                .conflicts_with("to-stderr")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("to-stderr")
-                .long("log-stderr")
-                .help("Prints log messages to the standard error output")
-                .conflicts_with("to-syslog")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("foreground")
-                .long("foreground")
-                .short('f')
-                .help("Runs in the foreground")
-                .action(ArgAction::SetTrue),
-        )
-        .arg(
-            Arg::new("pid-file")
-                .long("pid-file")
-                .help("Path to the PID file")
-                .num_args(1)
-                .value_name("FILE")
-                .default_value(DEFAULT_PID_FILE)
-                .default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
-                .conflicts_with("no-pid-file"),
-        )
-        .arg(
-            Arg::new("no-pid-file")
-                .long("no-pid-file")
-                .help("Do not create any PID file")
-                .conflicts_with("pid-file")
-                .action(ArgAction::SetTrue),
-        )
-        .get_matches();
+		.version(APP_VERSION)
+		.long_version(full_version)
+		.arg(
+			Arg::new("listen")
+				.long("listen")
+				.short('l')
+				.help("Host and port to listen on")
+				.num_args(1)
+				.value_name("host:port|unix:path")
+				.default_value(DEFAULT_LISTEN_ADDR),
+		)
+		.arg(
+			Arg::new("domain")
+				.long("domain")
+				.short('d')
+				.help("The domain that is being validated")
+				.num_args(1)
+				.value_name("STRING")
+				.conflicts_with("domain-file"),
+		)
+		.arg(
+			Arg::new("domain-file")
+				.long("domain-file")
+				.help("File from which is read the domain that is being validated")
+				.num_args(1)
+				.value_name("FILE")
+				.conflicts_with("domain"),
+		)
+		.arg(
+			Arg::new("acme-ext")
+				.long("acme-ext")
+				.short('e')
+				.help("The acmeIdentifier extension to set in the self-signed certificate")
+				.num_args(1)
+				.value_name("STRING")
+				.conflicts_with("acme-ext-file"),
+		)
+		.arg(
+			Arg::new("acme-ext-file")
+				.long("acme-ext-file")
+				.help("File from which is read the acmeIdentifier extension to set in the self-signed certificate")
+				.num_args(1)
+				.value_name("FILE")
+				.conflicts_with("acme-ext"),
+		)
+		.arg(
+			Arg::new("crt-signature-alg")
+				.long("crt-signature-alg")
+				.help("The certificate's signature algorithm")
+				.num_args(1)
+				.value_name("STRING")
+				.value_parser(PossibleValuesParser::new(KeyType::list_possible_values()))
+				.default_value(default_crt_key_type),
+		)
+		.arg(
+			Arg::new("crt-digest")
+				.long("crt-digest")
+				.help("The certificate's digest algorithm")
+				.num_args(1)
+				.value_name("STRING")
+				.value_parser(PossibleValuesParser::new(HashFunction::list_possible_values()))
+				.default_value(default_crt_digest),
+		)
+		.arg(
+			Arg::new("log-level")
+				.long("log-level")
+				.help("Specify the log level")
+				.num_args(1)
+				.value_name("LEVEL")
+				.value_parser(["error", "warn", "info", "debug", "trace"])
+				.default_value(default_log_level),
+		)
+		.arg(
+			Arg::new("to-syslog")
+				.long("log-syslog")
+				.help("Sends log messages via syslog")
+				.conflicts_with("to-stderr")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("to-stderr")
+				.long("log-stderr")
+				.help("Prints log messages to the standard error output")
+				.conflicts_with("to-syslog")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("foreground")
+				.long("foreground")
+				.short('f')
+				.help("Runs in the foreground")
+				.action(ArgAction::SetTrue),
+		)
+		.arg(
+			Arg::new("pid-file")
+				.long("pid-file")
+				.help("Path to the PID file")
+				.num_args(1)
+				.value_name("FILE")
+				.default_value(DEFAULT_PID_FILE)
+				.default_value_if("no-pid-file", clap::builder::ArgPredicate::IsPresent, None)
+				.conflicts_with("no-pid-file"),
+		)
+		.arg(
+			Arg::new("no-pid-file")
+				.long("no-pid-file")
+				.help("Do not create any PID file")
+				.conflicts_with("pid-file")
+				.action(ArgAction::SetTrue),
+		)
+		.get_matches();
 
 	match set_log_system(
 		matches.get_one::<String>("log-level").map(|e| e.as_str()),

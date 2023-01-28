@@ -56,10 +56,10 @@ pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> R
 		Some(url) => url,
 		None => {
 			let msg = format!(
-                "endpoint \"{}\": account \"{}\": the server has not provided an order URL upon account creation",
-                &endpoint.name,
-                &account.name
-            );
+				"endpoint \"{}\": account \"{}\": the server has not provided an order URL upon account creation",
+				&endpoint.name,
+				&account.name
+			);
 			account.warn(&msg);
 			String::new()
 		}

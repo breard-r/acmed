@@ -178,12 +178,12 @@ mod tests {
 	#[test]
 	fn test_authorization() {
 		let data = "{
-    \"status\": \"pending\",
-    \"identifier\": {
-        \"type\": \"dns\",
-        \"value\": \"example.com\"
-    },
-    \"challenges\": []
+	\"status\": \"pending\",
+	\"identifier\": {
+		\"type\": \"dns\",
+		\"value\": \"example.com\"
+	},
+	\"challenges\": []
 }";
 		let a = Authorization::from_str(data);
 		assert!(a.is_ok());
@@ -198,19 +198,19 @@ mod tests {
 	#[test]
 	fn test_authorization_challenge() {
 		let data = "{
-    \"status\": \"pending\",
-    \"identifier\": {
-        \"type\": \"dns\",
-        \"value\": \"example.com\"
-    },
-    \"challenges\": [
-        {
-            \"type\": \"dns-01\",
-            \"status\": \"pending\",
-            \"url\": \"https://example.com/chall/jYWxob3N0OjE\",
-            \"token\": \"1y9UVMUvkqQVljCsnwlRLsbJcwN9nx-qDd6JHzXQQsw\"
-        }
-    ]
+	\"status\": \"pending\",
+	\"identifier\": {
+		\"type\": \"dns\",
+		\"value\": \"example.com\"
+	},
+	\"challenges\": [
+		{
+			\"type\": \"dns-01\",
+			\"status\": \"pending\",
+			\"url\": \"https://example.com/chall/jYWxob3N0OjE\",
+			\"token\": \"1y9UVMUvkqQVljCsnwlRLsbJcwN9nx-qDd6JHzXQQsw\"
+		}
+	]
 }";
 		let a = Authorization::from_str(data);
 		assert!(a.is_ok());
@@ -225,19 +225,19 @@ mod tests {
 	#[test]
 	fn test_authorization_unknown_challenge() {
 		let data = "{
-    \"status\": \"pending\",
-    \"identifier\": {
-        \"type\": \"dns\",
-        \"value\": \"example.com\"
-    },
-    \"challenges\": [
-        {
-            \"type\": \"invalid-challenge-01\",
-            \"status\": \"pending\",
-            \"url\": \"https://example.com/chall/jYWxob3N0OjE\",
-            \"token\": \"1y9UVMUvkqQVljCsnwlRLsbJcwN9nx-qDd6JHzXQQsw\"
-        }
-    ]
+	\"status\": \"pending\",
+	\"identifier\": {
+		\"type\": \"dns\",
+		\"value\": \"example.com\"
+	},
+	\"challenges\": [
+		{
+			\"type\": \"invalid-challenge-01\",
+			\"status\": \"pending\",
+			\"url\": \"https://example.com/chall/jYWxob3N0OjE\",
+			\"token\": \"1y9UVMUvkqQVljCsnwlRLsbJcwN9nx-qDd6JHzXQQsw\"
+		}
+	]
 }";
 		let a = Authorization::from_str(data);
 		assert!(a.is_ok());
@@ -252,12 +252,12 @@ mod tests {
 	#[test]
 	fn test_invalid_authorization() {
 		let data = "{
-    \"status\": \"pending\",
-    \"identifier\": {
-        \"type\": \"foo\",
-        \"value\": \"bar\"
-    },
-    \"challenges\": []
+	\"status\": \"pending\",
+	\"identifier\": {
+		\"type\": \"foo\",
+		\"value\": \"bar\"
+	},
+	\"challenges\": []
 }";
 		let a = Authorization::from_str(data);
 		assert!(a.is_err());
@@ -266,10 +266,10 @@ mod tests {
 	#[test]
 	fn test_http01_challenge() {
 		let data = "{
-    \"type\": \"http-01\",
-    \"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
-    \"status\": \"pending\",
-    \"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
+	\"type\": \"http-01\",
+	\"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
+	\"status\": \"pending\",
+	\"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
 }";
 		let challenge = Challenge::from_str(data);
 		assert!(challenge.is_ok());
@@ -297,10 +297,10 @@ mod tests {
 	#[test]
 	fn test_dns01_challenge() {
 		let data = "{
-    \"type\": \"http-01\",
-    \"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
-    \"status\": \"valid\",
-    \"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
+	\"type\": \"http-01\",
+	\"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
+	\"status\": \"valid\",
+	\"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
 }";
 		let challenge = Challenge::from_str(data);
 		assert!(challenge.is_ok());
@@ -328,10 +328,10 @@ mod tests {
 	#[test]
 	fn test_unknown_challenge_type() {
 		let data = "{
-    \"type\": \"invalid-01\",
-    \"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
-    \"status\": \"pending\",
-    \"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
+	\"type\": \"invalid-01\",
+	\"url\": \"https://example.com/acme/chall/prV_B7yEyA4\",
+	\"status\": \"pending\",
+	\"token\": \"LoqXcYV8q5ONbJQxbmR7SCTNo3tiAXDfowyjxAjEuX0\"
 }";
 		let challenge = Challenge::from_str(data);
 		assert!(challenge.is_ok());
