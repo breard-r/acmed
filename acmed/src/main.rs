@@ -4,12 +4,16 @@ use acme_common::crypto::{
 };
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, init_server};
+use async_lock::RwLock;
 use clap::{Arg, ArgAction, Command};
 use log::error;
+use std::sync::Arc;
+use tokio::runtime::Builder;
 
 mod account;
 mod acme_proto;
 mod certificate;
+mod certificate_manager;
 mod config;
 mod duration;
 mod endpoint;
@@ -23,6 +27,7 @@ mod storage;
 mod template;
 
 pub const APP_NAME: &str = "ACMEd";
+pub const APP_THREAD_NAME: &str = "acmed-runtime";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const DEFAULT_ACCOUNTS_DIR: &str = env!("ACMED_DEFAULT_ACCOUNTS_DIR");
 pub const DEFAULT_CERT_DIR: &str = env!("ACMED_DEFAULT_CERT_DIR");
@@ -48,7 +53,19 @@ pub const DEFAULT_HOOK_ALLOW_FAILURE: bool = false;
 pub const MAX_RATE_LIMIT_SLEEP_MILISEC: u64 = 3_600_000;
 pub const MIN_RATE_LIMIT_SLEEP_MILISEC: u64 = 100;
 
+type AccountSync = Arc<RwLock<account::Account>>;
+type EndpointSync = Arc<RwLock<endpoint::Endpoint>>;
+
 fn main() {
+	Builder::new_multi_thread()
+		.enable_all()
+		.thread_name(APP_THREAD_NAME)
+		.build()
+		.unwrap()
+		.block_on(inner_main());
+}
+
+async fn inner_main() {
 	let full_version = format!(
 		"{APP_VERSION} built for {}\n\nCryptographic library:\n - {} {}\nHTTP client library:\n - {} {}",
 		env!("ACMED_TARGET"),
@@ -160,5 +177,5 @@ fn main() {
 			std::process::exit(1);
 		}
 	};
-	srv.run();
+	srv.run().await;
 }

@@ -1,40 +1,20 @@
 use crate::account::Account;
-use crate::acme_proto::request_certificate;
 use crate::certificate::Certificate;
+use crate::certificate_manager::CertificateManager;
 use crate::config;
 use crate::endpoint::Endpoint;
 use crate::hooks::HookType;
-use crate::logs::HasLogger;
 use crate::storage::FileManager;
+use crate::{AccountSync, EndpointSync};
 use acme_common::error::Error;
+use async_lock::RwLock;
+use futures::stream::FuturesUnordered;
+use futures::StreamExt;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
-use std::thread;
-use std::time::Duration;
-
-type AccountSync = Arc<RwLock<Account>>;
-type EndpointSync = Arc<RwLock<Endpoint>>;
-
-fn renew_certificate(crt: &Certificate, endpoint: &mut Endpoint, account: &mut Account) {
-	let (status, is_success) = match request_certificate(crt, endpoint, account) {
-		Ok(_) => ("success".to_string(), true),
-		Err(e) => {
-			let e = e.prefix("unable to renew the certificate");
-			crt.warn(&e.message);
-			(e.message, false)
-		}
-	};
-	match crt.call_post_operation_hooks(&status, is_success) {
-		Ok(_) => {}
-		Err(e) => {
-			let e = e.prefix("post-operation hook error");
-			crt.warn(&e.message);
-		}
-	};
-}
+use std::sync::Arc;
 
 pub struct MainEventLoop {
-	certs: Vec<Certificate>,
+	cert_managers: HashMap<String, CertificateManager>,
 	accounts: HashMap<String, AccountSync>,
 	endpoints: HashMap<String, EndpointSync>,
 }
@@ -62,8 +42,8 @@ impl MainEventLoop {
 		.into_iter()
 		.collect();
 
-		let mut accounts = HashMap::new();
-		for acc in cnf.account.iter() {
+		let mut accounts: HashMap<String, Account> = HashMap::new();
+		for acc in &cnf.account {
 			let fm = FileManager {
 				account_directory: cnf.get_account_dir(),
 				account_name: acc.name.clone(),
@@ -86,11 +66,14 @@ impl MainEventLoop {
 				env: acc.env.clone(),
 			};
 			let account = acc.to_generic(&fm)?;
-			accounts.insert(acc.name.clone(), account);
+			let name = acc.name.clone();
+			accounts.insert(name, account);
 		}
 
-		let mut certs: Vec<Certificate> = Vec::new();
-		let mut endpoints = HashMap::new();
+		// TODO: Virer la création de l'endpoint de ce bloc
+		// TODO: Construire une liste de CertificateManager et non de Certificate
+		let mut endpoints: HashMap<String, Endpoint> = HashMap::new();
+		let mut cert_managers: HashMap<String, CertificateManager> = HashMap::new();
 		for crt in cnf.certificate.iter() {
 			let endpoint = crt.get_endpoint(&cnf, root_certs)?;
 			let endpoint_name = endpoint.name.clone();
@@ -136,7 +119,7 @@ impl MainEventLoop {
 				file_manager: fm,
 			};
 			let crt_id = cert.get_id();
-			if certs.iter().any(|c| c.get_id() == crt_id) {
+			if cert_managers.contains_key(&crt_id) {
 				let msg = format!("{crt_id}: duplicate certificate id");
 				return Err(msg.into());
 			}
@@ -147,12 +130,14 @@ impl MainEventLoop {
 					return Err(msg.into());
 				}
 			};
-			endpoints.entry(endpoint_name).or_insert(endpoint);
-			certs.push(cert);
+			if !endpoints.contains_key(&endpoint.name) {
+				endpoints.insert(endpoint.name.clone(), endpoint);
+			}
+			cert_managers.insert(crt_id, CertificateManager::new(cert));
 		}
 
 		Ok(MainEventLoop {
-			certs,
+			cert_managers,
 			accounts: accounts
 				.iter()
 				.map(|(k, v)| (k.to_owned(), Arc::new(RwLock::new(v.to_owned()))))
@@ -164,46 +149,26 @@ impl MainEventLoop {
 		})
 	}
 
-	pub fn run(&mut self) {
-		loop {
-			self.renew_certificates();
-			thread::sleep(Duration::from_secs(crate::DEFAULT_SLEEP_TIME));
-		}
-	}
-
-	fn renew_certificates(&mut self) {
-		let mut handles = vec![];
-		for (ep_name, endpoint_lock) in self.endpoints.iter_mut() {
-			let mut certs_to_renew = vec![];
-			for crt in self.certs.iter() {
-				if crt.endpoint_name == *ep_name {
-					match crt.should_renew() {
-						Ok(true) => {
-							let crt_arc = Arc::new(crt.clone());
-							certs_to_renew.push(crt_arc);
-						}
-						Ok(false) => {}
-						Err(e) => {
-							crt.warn(&e.message);
-						}
-					}
+	pub async fn run(&mut self) {
+		let mut renewals = FuturesUnordered::new();
+		for (_, crt) in self.cert_managers.iter_mut() {
+			log::trace!("Adding certificate: {}", crt.get_id());
+			if let Some(acc) = self.accounts.get(&crt.get_account_name()) {
+				if let Some(ept) = self.endpoints.get(&crt.get_endpoint_name()) {
+					renewals.push(crt.renew(acc.clone(), ept.clone()));
+				} else {
 				}
+			} else {
 			}
-			let mut accounts_lock = self.accounts.clone();
-			let ep_lock = endpoint_lock.clone();
-			let handle = thread::spawn(move || {
-				let mut endpoint = ep_lock.write().unwrap();
-				for crt in certs_to_renew {
-					if let Some(acc_lock) = accounts_lock.get_mut(&crt.account_name) {
-						let mut account = acc_lock.write().unwrap();
-						renew_certificate(&crt, &mut endpoint, &mut account);
-					};
-				}
-			});
-			handles.push(handle);
 		}
-		for handle in handles {
-			let _ = handle.join();
+		loop {
+			if renewals.is_empty() {
+				log::error!("No certificate found.");
+				return;
+			}
+			if let Some((crt, acc, ept)) = renewals.next().await {
+				renewals.push(crt.renew(acc, ept));
+			}
 		}
 	}
 }
