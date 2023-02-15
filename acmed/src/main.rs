@@ -13,7 +13,6 @@ use tokio::runtime::Builder;
 mod account;
 mod acme_proto;
 mod certificate;
-mod certificate_manager;
 mod config;
 mod duration;
 mod endpoint;
