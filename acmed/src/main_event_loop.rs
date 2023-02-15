@@ -189,16 +189,15 @@ async fn renew_certificate(
 		}
 		sleep(Duration::from_secs(crate::DEFAULT_SLEEP_TIME)).await;
 	}
-	let mut account = account_s.write().await;
-	let mut endpoint = endpoint_s.write().await;
-	let (status, is_success) = match request_certificate(certificate, &mut endpoint, &mut account) {
-		Ok(_) => ("success".to_string(), true),
-		Err(e) => {
-			let e = e.prefix("unable to renew the certificate");
-			certificate.warn(&e.message);
-			(e.message, false)
-		}
-	};
+	let (status, is_success) =
+		match request_certificate(certificate, account_s.clone(), endpoint_s.clone()).await {
+			Ok(_) => ("success".to_string(), true),
+			Err(e) => {
+				let e = e.prefix("unable to renew the certificate");
+				certificate.warn(&e.message);
+				(e.message, false)
+			}
+		};
 	match certificate.call_post_operation_hooks(&status, is_success) {
 		Ok(_) => {}
 		Err(e) => {

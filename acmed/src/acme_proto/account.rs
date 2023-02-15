@@ -5,7 +5,7 @@ use crate::endpoint::Endpoint;
 use crate::http::HttpError;
 use crate::jws::{encode_jwk, encode_kid};
 use crate::logs::HasLogger;
-use crate::set_data_builder;
+use crate::set_data_builder_sync;
 use acme_common::error::Error;
 
 macro_rules! create_account_if_does_not_exist {
@@ -87,7 +87,9 @@ pub fn update_account_contacts(
 	let new_contacts: Vec<String> = account.contacts.iter().map(|c| c.to_string()).collect();
 	let acc_up_struct = AccountUpdate::new(&new_contacts);
 	let acc_up_struct = serde_json::to_string(&acc_up_struct)?;
-	let data_builder = set_data_builder!(account, endpoint_name, acc_up_struct.as_bytes());
+	let account_owned = account.clone();
+	let data_builder =
+		set_data_builder_sync!(account_owned, endpoint_name, acc_up_struct.as_bytes());
 	let url = account.get_endpoint(&endpoint_name)?.account_url.clone();
 	create_account_if_does_not_exist!(
 		http::post_jose_no_response(endpoint, &data_builder, &url),
