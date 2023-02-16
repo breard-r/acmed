@@ -20,29 +20,20 @@ A great way to contribute to the project is to package it. You can check the pac
 
 ### botan and botan-sys
 
-Although Botan isn't a dependency, it is considered for the replacement of OpenSSL as the default cryptographic API (although OpenSSL will be kept as an alternative). But before this can be done, the Botan crate need to support a few features:
+Although Botan isn't a dependency, it is considered as an alternative to OpenSSL. But before this can be done, the Botan crate need to support a few features:
 
-- Implement `Clone` for `botan::Privkey`.
 - Access to a certificate's expiration time (via `botan_sys::botan_x509_cert_get_time_expires`).
 - Access to a certificate's subject's alt names.
 - Self-signed certificate generation (via `botan_sys::botan_x509_cert_gen_selfsigned`).
 - CSR (requires to add bindings to [create_cert_req](https://botan.randombit.net/handbook/api_ref/x509.html#creating-pkcs-10-requests)) with DER export.
+- Implement `Clone` for `botan::Privkey`.
 
-If you know C/C++ and are highly motivated:
-
-1. Implement Botan's FFI for TLS.
-2. Implement TLS bindings in the `botan-sys` crate.
-3. Implement a TLS abstraction in the `botan` crate.
-
-### attohttpc
-
-Add an optional Botan support as the cryptographic library.
 
 ## Improving the code
 
-As a one-man project, it has several goals already set but not explicitly written in an issue or any other follow-up file. It will not be the case before version 1.0 is released since everything may change at any moment. Therefore, it is recommended to request change instead of implementing them, this way we can discuss how things should be made.
+As a one-man project, it has several goals already set but not explicitly written in an issue or any other follow-up file. It will not be the case before version 1.0 is released since everything may change at any moment. Therefore, it is recommended to request change instead of implementing them, this way we can discuss how things should be made. That said, there might be a few [good first issues](https://github.com/breard-r/acmed/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) you might want to look into.
 
-If you really want to submit a pull request, please :
+If you want to submit a pull request, please :
 
 - document your changes in the man pages and the `CHANGELOG.md` file
 - write as much tests as you can
@@ -50,10 +41,8 @@ If you really want to submit a pull request, please :
 - format your code using [rustfmt](https://github.com/rust-lang/rustfmt)
 - be sure not to have any warning when compiling
 - run [clippy](https://github.com/rust-lang/rust-clippy) and fix any issue
-- refrain from including a new dependency (crates having `ring` in their dependency tree are a no-go, see #2)
+- refrain from including a new dependency
 - beware of potential repercussions on the default hooks: those should remain usable
-
-Not following the rules above will delay the merge since they will have to be fixed first.
 
 
 ## Author vs. contributor
