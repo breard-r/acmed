@@ -2,6 +2,8 @@ pub use crate::config::HookType;
 use crate::logs::HasLogger;
 use crate::template::render_template;
 use acme_common::error::Error;
+use async_process::{Command, Stdio};
+use futures::AsyncWriteExt;
 use serde::Serialize;
 use std::collections::hash_map::Iter;
 use std::collections::{HashMap, HashSet};
@@ -9,7 +11,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
 use std::{env, fmt};
 
 pub trait HookEnvData {
@@ -115,7 +116,7 @@ macro_rules! get_hook_output {
 	}};
 }
 
-fn call_single<L, T>(logger: &L, data: &T, hook: &Hook) -> Result<(), Error>
+async fn call_single<L, T>(logger: &L, data: &T, hook: &Hook) -> Result<(), Error>
 where
 	L: HasLogger,
 	T: Clone + HookEnvData + Serialize,
@@ -161,7 +162,7 @@ where
 			let data_in = render_template(s, &data)?;
 			logger.trace(&format!("hook \"{}\": string stdin: {data_in}", hook.name));
 			let stdin = cmd.stdin.as_mut().ok_or("stdin not found")?;
-			stdin.write_all(data_in.as_bytes())?;
+			stdin.write_all(data_in.as_bytes()).await?;
 		}
 		HookStdin::File(f) => {
 			let file_name = render_template(f, &data)?;
@@ -171,13 +172,13 @@ where
 			let buf_reader = BufReader::new(file);
 			for line in buf_reader.lines() {
 				let line = format!("{}\n", line?);
-				stdin.write_all(line.as_bytes())?;
+				stdin.write_all(line.as_bytes()).await?;
 			}
 		}
 		HookStdin::None => {}
 	}
 	// TODO: add a timeout
-	let status = cmd.wait()?;
+	let status = cmd.status().await?;
 	if !status.success() && !hook.allow_failure {
 		let msg = match status.code() {
 			Some(code) => format!("unrecoverable failure: code {code}").into(),
@@ -192,13 +193,20 @@ where
 	Ok(())
 }
 
-pub fn call<L, T>(logger: &L, hooks: &[Hook], data: &T, hook_type: HookType) -> Result<(), Error>
+pub async fn call<L, T>(
+	logger: &L,
+	hooks: &[Hook],
+	data: &T,
+	hook_type: HookType,
+) -> Result<(), Error>
 where
 	L: HasLogger,
 	T: Clone + HookEnvData + Serialize,
 {
 	for hook in hooks.iter().filter(|h| h.hook_type.contains(&hook_type)) {
-		call_single(logger, data, hook).map_err(|e| e.prefix(&hook.name))?;
+		call_single(logger, data, hook)
+			.await
+			.map_err(|e| e.prefix(&hook.name))?;
 	}
 	Ok(())
 }

@@ -100,7 +100,8 @@ pub async fn request_certificate(
 	account_s
 		.write()
 		.await
-		.synchronize(&mut *(endpoint_s.write().await))?;
+		.synchronize(&mut *(endpoint_s.write().await))
+		.await?;
 
 	// Create a new order
 	let mut new_reg = false;
@@ -117,10 +118,12 @@ pub async fn request_certificate(
 			}
 			Err(e) => {
 				if !new_reg && e.is_acme_err(AcmeError::AccountDoesNotExist) {
+					drop(data_builder);
 					account_s
 						.write()
 						.await
-						.register(&mut *(endpoint_s.write().await))?;
+						.register(&mut *(endpoint_s.write().await))
+						.await?;
 					new_reg = true;
 				} else {
 					return Err(HttpError::in_err(e));
@@ -136,6 +139,7 @@ pub async fn request_certificate(
 		let auth =
 			http::get_authorization(&mut *(endpoint_s.write().await), &data_builder, auth_url)
 				.map_err(HttpError::in_err)?;
+		drop(data_builder);
 		if let Some(e) = auth.get_error() {
 			cert.warn(&e.prefix("error").message);
 		}
@@ -160,7 +164,9 @@ pub async fn request_certificate(
 				let identifier = auth.identifier.value.to_owned();
 
 				// Call the challenge hook in order to complete it
-				let mut data = cert.call_challenge_hooks(&file_name, &proof, &identifier)?;
+				let mut data = cert
+					.call_challenge_hooks(&file_name, &proof, &identifier)
+					.await?;
 				data.0.is_clean_hook = true;
 				hook_datas.push(data);
 
@@ -173,6 +179,7 @@ pub async fn request_certificate(
 					&chall_url,
 				)
 				.map_err(HttpError::in_err)?;
+				drop(data_builder);
 			}
 		}
 
@@ -186,8 +193,10 @@ pub async fn request_certificate(
 			auth_url,
 		)
 		.map_err(HttpError::in_err)?;
+		drop(data_builder);
 		for (data, hook_type) in hook_datas.iter() {
-			cert.call_challenge_hooks_clean(data, (*hook_type).to_owned())?;
+			cert.call_challenge_hooks_clean(data, (*hook_type).to_owned())
+				.await?;
 		}
 		hook_datas.clear();
 	}
@@ -203,9 +212,10 @@ pub async fn request_certificate(
 		&order_url,
 	)
 	.map_err(HttpError::in_err)?;
+	drop(data_builder);
 
 	// Finalize the order by sending the CSR
-	let key_pair = certificate::get_key_pair(cert)?;
+	let key_pair = certificate::get_key_pair(cert).await?;
 	let domains: Vec<String> = cert
 		.identifiers
 		.iter()
@@ -237,6 +247,7 @@ pub async fn request_certificate(
 		&order.finalize,
 	)
 	.map_err(HttpError::in_err)?;
+	drop(data_builder);
 	if let Some(e) = order.get_error() {
 		cert.warn(&e.prefix("error").message);
 	}
@@ -251,6 +262,7 @@ pub async fn request_certificate(
 		&order_url,
 	)
 	.map_err(HttpError::in_err)?;
+	drop(data_builder);
 
 	// Download the certificate
 	let crt_url = order
@@ -259,7 +271,8 @@ pub async fn request_certificate(
 	let data_builder = set_data_builder!(account_s, endpoint_name, b"").await;
 	let crt = http::get_certificate(&mut *(endpoint_s.write().await), &data_builder, &crt_url)
 		.map_err(HttpError::in_err)?;
-	storage::write_certificate(&cert.file_manager, crt.as_bytes())?;
+	drop(data_builder);
+	storage::write_certificate(&cert.file_manager, crt.as_bytes()).await?;
 
 	cert.info(&format!(
 		"certificate renewed (identifiers: {})",

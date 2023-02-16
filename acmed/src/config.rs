@@ -381,7 +381,10 @@ impl Account {
 		Ok(lst)
 	}
 
-	pub fn to_generic(&self, file_manager: &FileManager) -> Result<crate::account::Account, Error> {
+	pub async fn to_generic(
+		&self,
+		file_manager: &FileManager,
+	) -> Result<crate::account::Account, Error> {
 		let contacts: Vec<(String, String)> = self
 			.contacts
 			.iter()
@@ -399,6 +402,7 @@ impl Account {
 			&self.signature_algorithm,
 			&external_account,
 		)
+		.await
 	}
 }
 

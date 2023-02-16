@@ -101,9 +101,9 @@ struct AccountStorage {
 	external_account: Option<ExternalAccountStorage>,
 }
 
-fn do_fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
+async fn do_fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
 	if account_files_exists(file_manager) {
-		let data = get_account_data(file_manager)?;
+		let data = get_account_data(file_manager).await?;
 		let obj: AccountStorage = bincode::deserialize(&data[..])
 			.map_err(|e| Error::from(&e.to_string()).prefix(name))?;
 		let endpoints = obj
@@ -140,7 +140,7 @@ fn do_fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, E
 	}
 }
 
-fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
+async fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
 	let endpoints: HashMap<String, AccountEndpointStorage> = account
 		.endpoints
 		.iter()
@@ -170,15 +170,17 @@ fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
 	};
 	let encoded: Vec<u8> = bincode::serialize(&account_storage)
 		.map_err(|e| Error::from(&e.to_string()).prefix(&account.name))?;
-	set_account_data(file_manager, &encoded)
+	set_account_data(file_manager, &encoded).await
 }
 
-pub fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
-	do_fetch(file_manager, name).map_err(|_| {
+pub async fn fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
+	do_fetch(file_manager, name).await.map_err(|_| {
 		format!("account \"{name}\": unable to load account file: file may be corrupted").into()
 	})
 }
 
-pub fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
-	do_save(file_manager, account).map_err(|e| format!("unable to save account file: {e}").into())
+pub async fn save(file_manager: &FileManager, account: &Account) -> Result<(), Error> {
+	do_save(file_manager, account)
+		.await
+		.map_err(|e| format!("unable to save account file: {e}").into())
 }

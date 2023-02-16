@@ -22,6 +22,7 @@ openssl_vendored = ["crypto_openssl", "acme_common/openssl_vendored", "attohttpc
 [dependencies]
 acme_common = { path = "../acme_common" }
 async-lock = "2.6"
+async-process = "1.6"
 attohttpc = { version = "0.24", default-features = false, features = ["charsets", "json"] }
 bincode = "1.3"
 clap = { version = "4.0", features = ["string"] }

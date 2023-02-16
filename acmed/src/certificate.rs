@@ -110,7 +110,7 @@ impl Certificate {
 			.join(",")
 	}
 
-	pub fn should_renew(&self) -> Result<bool, Error> {
+	pub async fn should_renew(&self) -> Result<bool, Error> {
 		self.debug(&format!(
 			"checking for renewal (identifiers: {})",
 			self.identifier_list()
@@ -119,7 +119,7 @@ impl Certificate {
 			self.debug("certificate does not exist: requesting one");
 			return Ok(true);
 		}
-		let cert = get_certificate(&self.file_manager)?;
+		let cert = get_certificate(&self.file_manager).await?;
 
 		let renew_ident = self.has_missing_identifiers(&cert);
 		if renew_ident {
@@ -139,7 +139,7 @@ impl Certificate {
 		Ok(renew)
 	}
 
-	pub fn call_challenge_hooks(
+	pub async fn call_challenge_hooks(
 		&self,
 		file_name: &str,
 		proof: &str,
@@ -165,19 +165,23 @@ impl Certificate {
 				HookType::ChallengeTlsAlpn01Clean,
 			),
 		};
-		hooks::call(self, &self.hooks, &hook_data, hook_type.0)?;
+		hooks::call(self, &self.hooks, &hook_data, hook_type.0).await?;
 		Ok((hook_data, hook_type.1))
 	}
 
-	pub fn call_challenge_hooks_clean(
+	pub async fn call_challenge_hooks_clean(
 		&self,
 		data: &ChallengeHookData,
 		hook_type: HookType,
 	) -> Result<(), Error> {
-		hooks::call(self, &self.hooks, data, hook_type)
+		hooks::call(self, &self.hooks, data, hook_type).await
 	}
 
-	pub fn call_post_operation_hooks(&self, status: &str, is_success: bool) -> Result<(), Error> {
+	pub async fn call_post_operation_hooks(
+		&self,
+		status: &str,
+		is_success: bool,
+	) -> Result<(), Error> {
 		let identifiers = self
 			.identifiers
 			.iter()
@@ -191,7 +195,7 @@ impl Certificate {
 			env: HashMap::new(),
 		};
 		hook_data.set_env(&self.env);
-		hooks::call(self, &self.hooks, &hook_data, HookType::PostOperation)?;
+		hooks::call(self, &self.hooks, &hook_data, HookType::PostOperation).await?;
 		Ok(())
 	}
 }

@@ -3,23 +3,23 @@ use crate::storage;
 use acme_common::crypto::{gen_keypair, KeyPair};
 use acme_common::error::Error;
 
-fn gen_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
+async fn gen_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
 	let key_pair = gen_keypair(cert.key_type)?;
-	storage::set_keypair(&cert.file_manager, &key_pair)?;
+	storage::set_keypair(&cert.file_manager, &key_pair).await?;
 	Ok(key_pair)
 }
 
-fn read_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
-	storage::get_keypair(&cert.file_manager)
+async fn read_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
+	storage::get_keypair(&cert.file_manager).await
 }
 
-pub fn get_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
+pub async fn get_key_pair(cert: &Certificate) -> Result<KeyPair, Error> {
 	if cert.kp_reuse {
-		match read_key_pair(cert) {
+		match read_key_pair(cert).await {
 			Ok(key_pair) => Ok(key_pair),
-			Err(_) => gen_key_pair(cert),
+			Err(_) => gen_key_pair(cert).await,
 		}
 	} else {
-		gen_key_pair(cert)
+		gen_key_pair(cert).await
 	}
 }

@@ -168,7 +168,7 @@ async fn inner_main() {
 
 	init_server(matches.get_flag("foreground"), pid_file);
 
-	let mut srv = match MainEventLoop::new(config_file, &root_certs) {
+	let mut srv = match MainEventLoop::new(config_file, &root_certs).await {
 		Ok(s) => s,
 		Err(e) => {
 			error!("{e}");

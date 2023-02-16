@@ -23,7 +23,7 @@ pub struct MainEventLoop {
 }
 
 impl MainEventLoop {
-	pub fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
+	pub async fn new(config_file: &str, root_certs: &[&str]) -> Result<Self, Error> {
 		let cnf = config::from_file(config_file)?;
 		let file_hooks = vec![
 			HookType::FilePreCreate,
@@ -68,7 +68,7 @@ impl MainEventLoop {
 					.collect(),
 				env: acc.env.clone(),
 			};
-			let account = acc.to_generic(&fm)?;
+			let account = acc.to_generic(&fm).await?;
 			let name = acc.name.clone();
 			accounts.insert(name, account);
 		}
@@ -180,7 +180,7 @@ async fn renew_certificate(
 	endpoint_s: EndpointSync,
 ) -> (&mut Certificate, AccountSync, EndpointSync) {
 	loop {
-		match certificate.should_renew() {
+		match certificate.should_renew().await {
 			Ok(true) => break,
 			Ok(false) => {}
 			Err(e) => {
@@ -198,7 +198,10 @@ async fn renew_certificate(
 				(e.message, false)
 			}
 		};
-	match certificate.call_post_operation_hooks(&status, is_success) {
+	match certificate
+		.call_post_operation_hooks(&status, is_success)
+		.await
+	{
 		Ok(_) => {}
 		Err(e) => {
 			let e = e.prefix("post-operation hook error");

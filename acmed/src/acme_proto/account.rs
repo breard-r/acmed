@@ -20,7 +20,7 @@ macro_rules! create_account_if_does_not_exist {
 							$endpoint.name
 						);
 						$account.debug(&msg);
-						return register_account($endpoint, $account);
+						return register_account($endpoint, $account).await;
 					}
 					_ => Err(HttpError::in_err(he.to_owned())),
 				},
@@ -30,7 +30,10 @@ macro_rules! create_account_if_does_not_exist {
 	};
 }
 
-pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> Result<(), Error> {
+pub async fn register_account(
+	endpoint: &mut Endpoint,
+	account: &mut BaseAccount,
+) -> Result<(), Error> {
 	account.debug(&format!(
 		"creating account on endpoint \"{}\"...",
 		&endpoint.name
@@ -68,7 +71,7 @@ pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> R
 	account.update_key_hash(&endpoint.name)?;
 	account.update_contacts_hash(&endpoint.name)?;
 	account.update_external_account_hash(&endpoint.name)?;
-	account.save()?;
+	account.save().await?;
 	account.info(&format!(
 		"account created on endpoint \"{}\"",
 		&endpoint.name
@@ -76,7 +79,7 @@ pub fn register_account(endpoint: &mut Endpoint, account: &mut BaseAccount) -> R
 	Ok(())
 }
 
-pub fn update_account_contacts(
+pub async fn update_account_contacts(
 	endpoint: &mut Endpoint,
 	account: &mut BaseAccount,
 ) -> Result<(), Error> {
@@ -97,14 +100,17 @@ pub fn update_account_contacts(
 		account
 	)?;
 	account.update_contacts_hash(&endpoint_name)?;
-	account.save()?;
+	account.save().await?;
 	account.info(&format!(
 		"account contacts updated on endpoint \"{endpoint_name}\""
 	));
 	Ok(())
 }
 
-pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) -> Result<(), Error> {
+pub async fn update_account_key(
+	endpoint: &mut Endpoint,
+	account: &mut BaseAccount,
+) -> Result<(), Error> {
 	let endpoint_name = endpoint.name.clone();
 	account.debug(&format!(
 		"updating account key on endpoint \"{endpoint_name}\"..."
@@ -139,7 +145,7 @@ pub fn update_account_key(endpoint: &mut Endpoint, account: &mut BaseAccount) ->
 		account
 	)?;
 	account.update_key_hash(&endpoint_name)?;
-	account.save()?;
+	account.save().await?;
 	account.info(&format!(
 		"account key updated on endpoint \"{endpoint_name}\""
 	));

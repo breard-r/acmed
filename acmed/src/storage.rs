@@ -7,12 +7,9 @@ use acme_common::error::Error;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fmt;
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-
-#[cfg(target_family = "unix")]
-use std::os::unix::fs::OpenOptionsExt;
+use tokio::fs::{File, OpenOptions};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Clone, Debug)]
 pub struct FileManager {
@@ -123,12 +120,13 @@ fn get_file_path(fm: &FileManager, file_type: FileType) -> Result<PathBuf, Error
 	Ok(path)
 }
 
-fn read_file(fm: &FileManager, path: &Path) -> Result<Vec<u8>, Error> {
+async fn read_file(fm: &FileManager, path: &Path) -> Result<Vec<u8>, Error> {
 	fm.trace(&format!("reading file {path:?}"));
-	let mut file =
-		File::open(path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
+	let mut file = File::open(path)
+		.await
+		.map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
 	let mut contents = vec![];
-	file.read_to_end(&mut contents)?;
+	file.read_to_end(&mut contents).await?;
 	Ok(contents)
 }
 
@@ -186,7 +184,7 @@ fn set_owner(fm: &FileManager, path: &Path, file_type: FileType) -> Result<(), E
 	}
 }
 
-fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), Error> {
+async fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), Error> {
 	let (file_directory, file_name, path) = get_file_full_path(fm, file_type.clone())?;
 	let mut hook_data = FileStorageHookData {
 		file_name,
@@ -198,9 +196,9 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
 	let is_new = !path.is_file();
 
 	if is_new {
-		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreCreate)?;
+		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreCreate).await?;
 	} else {
-		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreEdit)?;
+		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePreEdit).await?;
 	}
 
 	fm.trace(&format!("writing file {path:?}"));
@@ -215,54 +213,58 @@ fn write_file(fm: &FileManager, file_type: FileType, data: &[u8]) -> Result<(), 
 			.write(true)
 			.create(true)
 			.open(&path)
+			.await
 			.map_err(|e| Error::from(e).prefix(&path.display().to_string()))?
 	} else {
-		File::create(&path).map_err(|e| Error::from(e).prefix(&path.display().to_string()))?
+		File::create(&path)
+			.await
+			.map_err(|e| Error::from(e).prefix(&path.display().to_string()))?
 	};
 	file.write_all(data)
+		.await
 		.map_err(|e| Error::from(e).prefix(&path.display().to_string()))?;
 	if cfg!(unix) {
 		set_owner(fm, &path, file_type).map_err(|e| e.prefix(&path.display().to_string()))?;
 	}
 
 	if is_new {
-		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostCreate)?;
+		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostCreate).await?;
 	} else {
-		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostEdit)?;
+		hooks::call(fm, &fm.hooks, &hook_data, HookType::FilePostEdit).await?;
 	}
 	Ok(())
 }
 
-pub fn get_account_data(fm: &FileManager) -> Result<Vec<u8>, Error> {
+pub async fn get_account_data(fm: &FileManager) -> Result<Vec<u8>, Error> {
 	let path = get_file_path(fm, FileType::Account)?;
-	read_file(fm, &path)
+	read_file(fm, &path).await
 }
 
-pub fn set_account_data(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
-	write_file(fm, FileType::Account, data)
+pub async fn set_account_data(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
+	write_file(fm, FileType::Account, data).await
 }
 
-pub fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
+pub async fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
 	let path = get_file_path(fm, FileType::PrivateKey)?;
-	let raw_key = read_file(fm, &path)?;
+	let raw_key = read_file(fm, &path).await?;
 	let key = KeyPair::from_pem(&raw_key)?;
 	Ok(key)
 }
 
-pub fn set_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Error> {
+pub async fn set_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Error> {
 	let data = key_pair.private_key_to_pem()?;
-	write_file(fm, FileType::PrivateKey, &data)
+	write_file(fm, FileType::PrivateKey, &data).await
 }
 
-pub fn get_certificate(fm: &FileManager) -> Result<X509Certificate, Error> {
+pub async fn get_certificate(fm: &FileManager) -> Result<X509Certificate, Error> {
 	let path = get_file_path(fm, FileType::Certificate)?;
-	let raw_crt = read_file(fm, &path)?;
+	let raw_crt = read_file(fm, &path).await?;
 	let crt = X509Certificate::from_pem(&raw_crt)?;
 	Ok(crt)
 }
 
-pub fn write_certificate(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
-	write_file(fm, FileType::Certificate, data)
+pub async fn write_certificate(fm: &FileManager, data: &[u8]) -> Result<(), Error> {
+	write_file(fm, FileType::Certificate, data).await
 }
 
 fn check_files(fm: &FileManager, file_types: &[FileType]) -> bool {

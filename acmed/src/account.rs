@@ -151,7 +151,7 @@ impl Account {
 		Err("key not found".into())
 	}
 
-	pub fn load(
+	pub async fn load(
 		file_manager: &FileManager,
 		name: &str,
 		contacts: &[(String, String)],
@@ -172,9 +172,9 @@ impl Account {
 			None => key_type.get_default_signature_alg(),
 		};
 		key_type.check_alg_compatibility(&signature_algorithm)?;
-		let account = match storage::fetch(file_manager, name)? {
+		let account = match storage::fetch(file_manager, name).await? {
 			Some(mut a) => {
-				a.update_keys(key_type, signature_algorithm)?;
+				a.update_keys(key_type, signature_algorithm).await?;
 				a.contacts = contacts;
 				a.external_account = external_account.to_owned();
 				a
@@ -202,7 +202,7 @@ impl Account {
 			.or_insert_with(AccountEndpoint::new);
 	}
 
-	pub fn synchronize(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
+	pub async fn synchronize(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
 		let acc_ep = self.get_endpoint(&endpoint.name)?;
 		if !acc_ep.account_url.is_empty() {
 			if let Some(ec) = &self.external_account {
@@ -213,7 +213,7 @@ impl Account {
 						&endpoint.name
 					);
 					self.info(&msg);
-					register_account(endpoint, self)?;
+					register_account(endpoint, self).await?;
 					return Ok(());
 				}
 			}
@@ -222,23 +222,23 @@ impl Account {
 			let contacts_changed = ct_hash != acc_ep.contacts_hash;
 			let key_changed = key_hash != acc_ep.key_hash;
 			if contacts_changed {
-				update_account_contacts(endpoint, self)?;
+				update_account_contacts(endpoint, self).await?;
 			}
 			if key_changed {
-				update_account_key(endpoint, self)?;
+				update_account_key(endpoint, self).await?;
 			}
 		} else {
-			register_account(endpoint, self)?;
+			register_account(endpoint, self).await?;
 		}
 		Ok(())
 	}
 
-	pub fn register(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
-		register_account(endpoint, self)
+	pub async fn register(&mut self, endpoint: &mut Endpoint) -> Result<(), Error> {
+		register_account(endpoint, self).await
 	}
 
-	pub fn save(&self) -> Result<(), Error> {
-		storage::save(&self.file_manager, self)
+	pub async fn save(&self) -> Result<(), Error> {
+		storage::save(&self.file_manager, self).await
 	}
 
 	pub fn set_account_url(&mut self, endpoint_name: &str, account_url: &str) -> Result<(), Error> {
@@ -276,7 +276,7 @@ impl Account {
 		Ok(())
 	}
 
-	fn update_keys(
+	async fn update_keys(
 		&mut self,
 		key_type: KeyType,
 		signature_algorithm: JwsSignatureAlgorithm,
@@ -287,7 +287,7 @@ impl Account {
 			self.debug("account key has been changed in the configuration, creating a new one...");
 			self.past_keys.push(self.current_key.to_owned());
 			self.current_key = AccountKey::new(key_type, signature_algorithm)?;
-			self.save()?;
+			self.save().await?;
 			let msg = format!("new {key_type} account key created, using {signature_algorithm} as signing algorithm");
 			self.info(&msg);
 		} else {
