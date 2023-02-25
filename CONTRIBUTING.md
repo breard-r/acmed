@@ -44,6 +44,8 @@ If you want to submit a pull request, please :
 - refrain from including a new dependency
 - beware of potential repercussions on the default hooks: those should remain usable
 
+Notice: man pages are written using the mdoc syntax, documentation is available in [`man 7 mdoc`](https://man.freebsd.org/cgi/man.cgi?query=mdoc&sektion=7&apropos=0&manpath=FreeBSD+13.1-RELEASE).
+
 
 ## Author vs. contributor
 
