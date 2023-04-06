@@ -206,6 +206,11 @@ Name of the certificate. Must be unique unless the key type is different. Will b
 and
 .Sq /
 characters will be replaced by an underscore. Default is the first identifier.
+.It Cm random_early_renew Ar string
+Period of time before the usual certificate renewal, in which the certificate will renew at a random time. This is useful for when
+you want to even out your certificate orders when you're dealing with very large numbers of certificates. The format is described in the
+.Sx TIME PERIODS
+section. Default is the value defined in the associated endpoint.
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
@@ -246,6 +251,11 @@ element.
 The name the endpoint is registered under. Must be unique.
 .It Cm rate_limits Ar array
 Array containing the names of the HTTPS rate limits to apply.
+.It Cm random_early_renew Ar string
+Period of time before the usual certificate renewal, in which the certificate will renew at a random time. This is useful for when
+you want to even out your certificate orders when you're dealing with very large numbers of certificates. The format is described in the
+.Sx TIME PERIODS
+section. Default is the value defined in the global section.
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS
@@ -297,6 +307,11 @@ for more details.
 Specify the user who will own newly-created private-key files. See
 .Xr chown 2
 for more details.
+.It Cm random_early_renew Ar string
+Period of time before the usual certificate renewal, in which the certificate will renew at a random time. This is useful for when
+you want to even out your certificate orders when you're dealing with very large numbers of certificates. The format is described in the
+.Sx TIME PERIODS
+section. By default, this is disabled, or rather, the time frame is set to 0.
 .It Cm renew_delay Ar string
 Period of time between the certificate renewal and its expiration date. The format is described in the
 .Sx TIME PERIODS

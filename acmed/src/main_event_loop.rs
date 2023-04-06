@@ -116,6 +116,7 @@ impl MainEventLoop {
 					.collect(),
 				crt_name,
 				env: crt.env.to_owned(),
+				random_early_renew: crt.get_random_early_renew(&cnf)?,
 				renew_delay: crt.get_renew_delay(&cnf)?,
 				file_manager: fm,
 			};

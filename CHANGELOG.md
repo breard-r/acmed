@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The minimum supported Rust version (MSRV) is now 1.64.
 - Manual (and badly designed) threads have been replaced by async.
+- Randomized early delay, for spacing out renewals when dealing with a lot of certificates.
 
 
 ## [0.21.0] - 2022-12-19

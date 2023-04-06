@@ -6,6 +6,7 @@ use crate::storage::{certificate_files_exists, get_certificate, FileManager};
 use acme_common::crypto::{HashFunction, KeyType, SubjectAttribute, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
+use rand::{thread_rng, Rng};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::time::Duration;
@@ -22,6 +23,7 @@ pub struct Certificate {
 	pub hooks: Vec<Hook>,
 	pub crt_name: String,
 	pub env: HashMap<String, String>,
+	pub random_early_renew: Duration,
 	pub renew_delay: Duration,
 	pub file_manager: FileManager,
 }
@@ -77,7 +79,9 @@ impl Certificate {
 			expires_in.as_secs() / 86400,
 			self.renew_delay.as_secs() / 86400,
 		));
-		Ok(expires_in.saturating_sub(self.renew_delay))
+		Ok(expires_in
+			.saturating_sub(self.renew_delay)
+			.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew)))
 	}
 
 	fn has_missing_identifiers(&self, cert: &X509Certificate) -> bool {
@@ -125,7 +129,7 @@ impl Certificate {
 			self.debug("the current certificate doesn't include all the required identifiers");
 			return Ok(Duration::ZERO);
 		}
-		Ok(self.renew_in(&cert)?)
+		self.renew_in(&cert)
 	}
 
 	pub async fn call_challenge_hooks(

@@ -37,6 +37,7 @@ pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CSR_DIGEST: HashFunction = HashFunction::Sha256;
 pub const DEFAULT_CERT_KEY_TYPE: KeyType = KeyType::Rsa2048;
 pub const DEFAULT_CERT_FILE_MODE: u32 = 0o644;
+pub const DEFAULT_CERT_RANDOM_EARLY_RENEW: u64 = 0; // default to not renewing early
 pub const DEFAULT_CERT_RENEW_DELAY: u64 = 1_814_400; // 1_814_400 is 3 weeks (3 * 7 * 24 * 60 * 60)
 pub const DEFAULT_PK_FILE_MODE: u32 = 0o600;
 pub const DEFAULT_ACCOUNT_FILE_MODE: u32 = 0o600;

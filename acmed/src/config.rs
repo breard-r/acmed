@@ -186,11 +186,19 @@ pub struct GlobalOptions {
 	pub pk_file_group: Option<String>,
 	pub pk_file_mode: Option<u32>,
 	pub pk_file_user: Option<String>,
+	pub random_early_renew: Option<String>,
 	pub renew_delay: Option<String>,
 	pub root_certificates: Option<Vec<String>>,
 }
 
 impl GlobalOptions {
+	pub fn get_random_early_renew(&self) -> Result<Duration, Error> {
+		match &self.random_early_renew {
+			Some(d) => parse_duration(d),
+			None => Ok(Duration::new(crate::DEFAULT_CERT_RANDOM_EARLY_RENEW, 0)),
+		}
+	}
+
 	pub fn get_renew_delay(&self) -> Result<Duration, Error> {
 		match &self.renew_delay {
 			Some(d) => parse_duration(d),
@@ -211,6 +219,7 @@ impl GlobalOptions {
 pub struct Endpoint {
 	pub file_name_format: Option<String>,
 	pub name: String,
+	pub random_early_renew: Option<String>,
 	#[serde(default)]
 	pub rate_limits: Vec<String>,
 	pub renew_delay: Option<String>,
@@ -220,6 +229,16 @@ pub struct Endpoint {
 }
 
 impl Endpoint {
+	pub fn get_random_early_renew(&self, cnf: &Config) -> Result<Duration, Error> {
+		match &self.random_early_renew {
+			Some(d) => parse_duration(d),
+			None => match &cnf.global {
+				Some(g) => g.get_random_early_renew(),
+				None => Ok(Duration::new(crate::DEFAULT_CERT_RANDOM_EARLY_RENEW, 0)),
+			},
+		}
+	}
+
 	pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
 		match &self.renew_delay {
 			Some(d) => parse_duration(d),
@@ -437,6 +456,7 @@ pub struct Certificate {
 	pub key_type: Option<String>,
 	pub kp_reuse: Option<bool>,
 	pub name: Option<String>,
+	pub random_early_renew: Option<String>,
 	pub renew_delay: Option<String>,
 	#[serde(default)]
 	pub subject_attributes: SubjectAttributes,
@@ -536,6 +556,16 @@ impl Certificate {
 			res.append(&mut h);
 		}
 		Ok(res)
+	}
+
+	pub fn get_random_early_renew(&self, cnf: &Config) -> Result<Duration, Error> {
+		match &self.random_early_renew {
+			Some(d) => parse_duration(d),
+			None => {
+				let endpoint = self.do_get_endpoint(cnf)?;
+				endpoint.get_random_early_renew(cnf)
+			}
+		}
 	}
 
 	pub fn get_renew_delay(&self, cnf: &Config) -> Result<Duration, Error> {
