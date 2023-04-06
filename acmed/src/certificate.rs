@@ -70,14 +70,14 @@ impl Certificate {
 		Err(format!("{identifier}: identifier not found").into())
 	}
 
-	fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
+	fn renew_in(&self, cert: &X509Certificate) -> Result<Duration, Error> {
 		let expires_in = cert.expires_in()?;
 		self.debug(&format!(
 			"certificate expires in {} days ({} days delay)",
 			expires_in.as_secs() / 86400,
 			self.renew_delay.as_secs() / 86400,
 		));
-		Ok(expires_in <= self.renew_delay)
+		Ok(expires_in.saturating_sub(self.renew_delay))
 	}
 
 	fn has_missing_identifiers(&self, cert: &X509Certificate) -> bool {
@@ -110,33 +110,22 @@ impl Certificate {
 			.join(",")
 	}
 
-	pub async fn should_renew(&self) -> Result<bool, Error> {
+	pub async fn schedule_renewal(&self) -> Result<Duration, Error> {
 		self.debug(&format!(
 			"checking for renewal (identifiers: {})",
 			self.identifier_list()
 		));
 		if !certificate_files_exists(&self.file_manager) {
 			self.debug("certificate does not exist: requesting one");
-			return Ok(true);
+			return Ok(Duration::ZERO);
 		}
 		let cert = get_certificate(&self.file_manager).await?;
 
-		let renew_ident = self.has_missing_identifiers(&cert);
-		if renew_ident {
+		if self.has_missing_identifiers(&cert) {
 			self.debug("the current certificate doesn't include all the required identifiers");
+			return Ok(Duration::ZERO);
 		}
-		let renew_exp = self.is_expiring(&cert)?;
-		if renew_exp {
-			self.debug("the certificate is expiring");
-		}
-		let renew = renew_ident || renew_exp;
-
-		if renew {
-			self.debug("the certificate will be renewed now");
-		} else {
-			self.debug("the certificate will not be renewed now");
-		}
-		Ok(renew)
+		Ok(self.renew_in(&cert)?)
 	}
 
 	pub async fn call_challenge_hooks(

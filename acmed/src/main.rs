@@ -33,7 +33,6 @@ pub const DEFAULT_CERT_DIR: &str = env!("ACMED_DEFAULT_CERT_DIR");
 pub const DEFAULT_CERT_FORMAT: &str = env!("ACMED_DEFAULT_CERT_FORMAT");
 pub const DEFAULT_CONFIG_FILE: &str = env!("ACMED_DEFAULT_CONFIG_FILE");
 pub const DEFAULT_PID_FILE: &str = env!("ACMED_DEFAULT_PID_FILE");
-pub const DEFAULT_SLEEP_TIME: u64 = 3600;
 pub const DEFAULT_POOL_TIME: u64 = 5000;
 pub const DEFAULT_CSR_DIGEST: HashFunction = HashFunction::Sha256;
 pub const DEFAULT_CERT_KEY_TYPE: KeyType = KeyType::Rsa2048;
