@@ -116,6 +116,7 @@ impl MainEventLoop {
 					.collect(),
 				crt_name,
 				env: crt.env.to_owned(),
+				random_early_renew: crt.get_random_early_renew(&cnf)?,
 				renew_delay: crt.get_renew_delay(&cnf)?,
 				file_manager: fm,
 			};
@@ -179,15 +180,23 @@ async fn renew_certificate(
 	account_s: AccountSync,
 	endpoint_s: EndpointSync,
 ) -> (&mut Certificate, AccountSync, EndpointSync) {
+	let backoff = [60, 10 * 60, 100 * 60, 24 * 60 * 60];
+	let mut scheduling_retries = 0;
 	loop {
-		match certificate.should_renew().await {
-			Ok(true) => break,
-			Ok(false) => {}
+		match certificate.schedule_renewal().await {
+			Ok(duration) => {
+				sleep(duration).await;
+				break;
+			}
 			Err(e) => {
 				certificate.warn(&e.message);
+				sleep(Duration::from_secs(
+					backoff[scheduling_retries.min(backoff.len() - 1)],
+				))
+				.await;
+				scheduling_retries += 1;
 			}
 		}
-		sleep(Duration::from_secs(crate::DEFAULT_SLEEP_TIME)).await;
 	}
 	let (status, is_success) =
 		match request_certificate(certificate, account_s.clone(), endpoint_s.clone()).await {

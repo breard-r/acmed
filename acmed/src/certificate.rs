@@ -6,6 +6,7 @@ use crate::storage::{certificate_files_exists, get_certificate, FileManager};
 use acme_common::crypto::{HashFunction, KeyType, SubjectAttribute, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
+use rand::{thread_rng, Rng};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::time::Duration;
@@ -22,6 +23,7 @@ pub struct Certificate {
 	pub hooks: Vec<Hook>,
 	pub crt_name: String,
 	pub env: HashMap<String, String>,
+	pub random_early_renew: Duration,
 	pub renew_delay: Duration,
 	pub file_manager: FileManager,
 }
@@ -70,14 +72,16 @@ impl Certificate {
 		Err(format!("{identifier}: identifier not found").into())
 	}
 
-	fn is_expiring(&self, cert: &X509Certificate) -> Result<bool, Error> {
+	fn renew_in(&self, cert: &X509Certificate) -> Result<Duration, Error> {
 		let expires_in = cert.expires_in()?;
 		self.debug(&format!(
 			"certificate expires in {} days ({} days delay)",
 			expires_in.as_secs() / 86400,
 			self.renew_delay.as_secs() / 86400,
 		));
-		Ok(expires_in <= self.renew_delay)
+		Ok(expires_in
+			.saturating_sub(self.renew_delay)
+			.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew)))
 	}
 
 	fn has_missing_identifiers(&self, cert: &X509Certificate) -> bool {
@@ -110,33 +114,22 @@ impl Certificate {
 			.join(",")
 	}
 
-	pub async fn should_renew(&self) -> Result<bool, Error> {
+	pub async fn schedule_renewal(&self) -> Result<Duration, Error> {
 		self.debug(&format!(
 			"checking for renewal (identifiers: {})",
 			self.identifier_list()
 		));
 		if !certificate_files_exists(&self.file_manager) {
 			self.debug("certificate does not exist: requesting one");
-			return Ok(true);
+			return Ok(Duration::ZERO);
 		}
 		let cert = get_certificate(&self.file_manager).await?;
 
-		let renew_ident = self.has_missing_identifiers(&cert);
-		if renew_ident {
+		if self.has_missing_identifiers(&cert) {
 			self.debug("the current certificate doesn't include all the required identifiers");
+			return Ok(Duration::ZERO);
 		}
-		let renew_exp = self.is_expiring(&cert)?;
-		if renew_exp {
-			self.debug("the certificate is expiring");
-		}
-		let renew = renew_ident || renew_exp;
-
-		if renew {
-			self.debug("the certificate will be renewed now");
-		} else {
-			self.debug("the certificate will not be renewed now");
-		}
-		Ok(renew)
+		self.renew_in(&cert)
 	}
 
 	pub async fn call_challenge_hooks(
