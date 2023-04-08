@@ -107,7 +107,7 @@ fn is_nonce(data: &str) -> bool {
 }
 
 async fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
-	rate_limit(endpoint);
+	rate_limit(endpoint).await;
 	let url = endpoint.dir.new_nonce.clone();
 	let _ = get(endpoint, &url).await?;
 	Ok(())
@@ -134,8 +134,8 @@ fn check_status(response: &Response) -> Result<(), Error> {
 	Ok(())
 }
 
-fn rate_limit(endpoint: &mut Endpoint) {
-	endpoint.rl.block_until_allowed();
+async fn rate_limit(endpoint: &mut Endpoint) {
+	endpoint.rl.block_until_allowed().await;
 }
 
 fn header_to_string(header_value: &HeaderValue) -> Result<String, Error> {
@@ -175,7 +175,7 @@ fn get_client(root_certs: &[String]) -> Result<Client, Error> {
 
 pub async fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse, HttpError> {
 	let client = get_client(&endpoint.root_certificates)?;
-	rate_limit(endpoint);
+	rate_limit(endpoint).await;
 	let response = client
 		.get(url)
 		.header(header::ACCEPT, CONTENT_TYPE_JSON)
@@ -208,7 +208,7 @@ where
 		request = request.header(header::CONTENT_TYPE, content_type);
 		let nonce = &endpoint.nonce.clone().unwrap_or_default();
 		let body = data_builder(nonce, url)?;
-		rate_limit(endpoint);
+		rate_limit(endpoint).await;
 		log::trace!("POST request body: {body}");
 		let response = request.body(body).send().await?;
 		update_nonce(endpoint, &response)?;
