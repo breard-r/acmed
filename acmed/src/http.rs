@@ -1,9 +1,9 @@
 use crate::acme_proto::structs::{AcmeError, HttpApiError};
 use crate::endpoint::Endpoint;
 #[cfg(feature = "crypto_openssl")]
-use acme_common::crypto::X509Certificate;
 use acme_common::error::Error;
-use attohttpc::{charsets, header, Response, Session};
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::{header, Client, ClientBuilder, Response};
 use std::fs::File;
 #[cfg(feature = "crypto_openssl")]
 use std::io::prelude::*;
@@ -16,7 +16,7 @@ pub const HEADER_NONCE: &str = "Replay-Nonce";
 pub const HEADER_LOCATION: &str = "Location";
 
 pub struct ValidHttpResponse {
-	headers: attohttpc::header::HeaderMap,
+	headers: HeaderMap,
 	pub body: String,
 }
 
@@ -38,9 +38,9 @@ impl ValidHttpResponse {
 		serde_json::from_str(&self.body).map_err(Error::from)
 	}
 
-	fn from_response(response: Response) -> Result<Self, Error> {
-		let (_status, headers, body) = response.split();
-		let body = body.text()?;
+	async fn from_response(response: Response) -> Result<Self, Error> {
+		let headers = response.headers().clone();
+		let body = response.text().await?;
 		log::trace!("HTTP response headers: {headers:?}");
 		log::trace!("HTTP response body: {body}");
 		Ok(ValidHttpResponse { headers, body })
@@ -93,8 +93,8 @@ impl From<String> for HttpError {
 	}
 }
 
-impl From<attohttpc::Error> for HttpError {
-	fn from(error: attohttpc::Error) -> Self {
+impl From<reqwest::Error> for HttpError {
+	fn from(error: reqwest::Error) -> Self {
 		HttpError::GenericError(error.into())
 	}
 }
@@ -106,10 +106,10 @@ fn is_nonce(data: &str) -> bool {
 			.all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
 }
 
-fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
+async fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
 	rate_limit(endpoint);
 	let url = endpoint.dir.new_nonce.clone();
-	let _ = get(endpoint, &url)?;
+	let _ = get(endpoint, &url).await?;
 	Ok(())
 }
 
@@ -126,7 +126,7 @@ fn update_nonce(endpoint: &mut Endpoint, response: &Response) -> Result<(), Erro
 }
 
 fn check_status(response: &Response) -> Result<(), Error> {
-	if !response.is_success() {
+	if !response.status().is_success() {
 		let status = response.status();
 		let msg = format!("HTTP error: {}: {}", status.as_u16(), status.as_str());
 		return Err(msg.into());
@@ -138,14 +138,14 @@ fn rate_limit(endpoint: &mut Endpoint) {
 	endpoint.rl.block_until_allowed();
 }
 
-fn header_to_string(header_value: &header::HeaderValue) -> Result<String, Error> {
+fn header_to_string(header_value: &HeaderValue) -> Result<String, Error> {
 	let s = header_value
 		.to_str()
 		.map_err(|_| Error::from("invalid header format"))?;
 	Ok(s.to_string())
 }
 
-fn get_session(root_certs: &[String]) -> Result<Session, Error> {
+fn get_client(root_certs: &[String]) -> Result<Client, Error> {
 	let useragent = format!(
 		"{}/{} ({}) {}",
 		crate::APP_NAME,
@@ -154,10 +154,11 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
 		env!("ACMED_HTTP_LIB_AGENT")
 	);
 	// TODO: allow to change the language
-	let mut session = Session::new();
-	session.default_charset(Some(charsets::UTF_8));
-	session.try_header(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5")?;
-	session.try_header(header::USER_AGENT, &useragent)?;
+	let mut client_builder = ClientBuilder::new();
+	let mut default_headers = HeaderMap::new();
+	default_headers.append(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5".parse().unwrap());
+	default_headers.append(header::USER_AGENT, useragent.parse().unwrap());
+	client_builder = client_builder.default_headers(default_headers);
 	for crt_file in root_certs.iter() {
 		#[cfg(feature = "crypto_openssl")]
 		{
@@ -165,24 +166,29 @@ fn get_session(root_certs: &[String]) -> Result<Session, Error> {
 			File::open(crt_file)
 				.map_err(|e| Error::from(e).prefix(crt_file))?
 				.read_to_end(&mut buff)?;
-			let crt = X509Certificate::from_pem_native(&buff)?;
-			session.add_root_certificate(crt);
+			let crt = reqwest::Certificate::from_pem(&buff)?;
+			client_builder = client_builder.add_root_certificate(crt);
 		}
 	}
-	Ok(session)
+	Ok(client_builder.build()?)
 }
 
-pub fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse, HttpError> {
-	let mut session = get_session(&endpoint.root_certificates)?;
-	session.try_header(header::ACCEPT, CONTENT_TYPE_JSON)?;
+pub async fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse, HttpError> {
+	let client = get_client(&endpoint.root_certificates)?;
 	rate_limit(endpoint);
-	let response = session.get(url).send()?;
+	let response = client
+		.get(url)
+		.header(header::ACCEPT, CONTENT_TYPE_JSON)
+		.send()
+		.await?;
 	update_nonce(endpoint, &response)?;
 	check_status(&response)?;
-	ValidHttpResponse::from_response(response).map_err(HttpError::from)
+	ValidHttpResponse::from_response(response)
+		.await
+		.map_err(HttpError::from)
 }
 
-pub fn post<F>(
+pub async fn post<F>(
 	endpoint: &mut Endpoint,
 	url: &str,
 	data_builder: &F,
@@ -192,25 +198,28 @@ pub fn post<F>(
 where
 	F: Fn(&str, &str) -> Result<String, Error>,
 {
-	let mut session = get_session(&endpoint.root_certificates)?;
-	session.try_header(header::ACCEPT, accept)?;
-	session.try_header(header::CONTENT_TYPE, content_type)?;
+	let client = get_client(&endpoint.root_certificates)?;
 	if endpoint.nonce.is_none() {
-		let _ = new_nonce(endpoint);
+		let _ = new_nonce(endpoint).await;
 	}
 	for _ in 0..crate::DEFAULT_HTTP_FAIL_NB_RETRY {
+		let mut request = client.post(url);
+		request = request.header(header::ACCEPT, accept);
+		request = request.header(header::CONTENT_TYPE, content_type);
 		let nonce = &endpoint.nonce.clone().unwrap_or_default();
 		let body = data_builder(nonce, url)?;
 		rate_limit(endpoint);
 		log::trace!("POST request body: {body}");
-		let response = session.post(url).text(&body).send()?;
+		let response = request.body(body).send().await?;
 		update_nonce(endpoint, &response)?;
 		match check_status(&response) {
 			Ok(_) => {
-				return ValidHttpResponse::from_response(response).map_err(HttpError::from);
+				return ValidHttpResponse::from_response(response)
+					.await
+					.map_err(HttpError::from);
 			}
 			Err(_) => {
-				let resp = ValidHttpResponse::from_response(response)?;
+				let resp = ValidHttpResponse::from_response(response).await?;
 				let api_err = resp.json::<HttpApiError>()?;
 				let acme_err = api_err.get_acme_type();
 				if !acme_err.is_recoverable() {
@@ -223,7 +232,7 @@ where
 	Err("too much errors, will not retry".into())
 }
 
-pub fn post_jose<F>(
+pub async fn post_jose<F>(
 	endpoint: &mut Endpoint,
 	url: &str,
 	data_builder: &F,
@@ -238,6 +247,7 @@ where
 		CONTENT_TYPE_JOSE,
 		CONTENT_TYPE_JSON,
 	)
+	.await
 }
 
 #[cfg(test)]

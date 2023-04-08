@@ -93,8 +93,8 @@ impl From<serde_json::error::Error> for Error {
 	}
 }
 
-impl From<attohttpc::Error> for Error {
-	fn from(error: attohttpc::Error) -> Self {
+impl From<reqwest::Error> for Error {
+	fn from(error: reqwest::Error) -> Self {
 		format!("HTTP error: {error}").into()
 	}
 }

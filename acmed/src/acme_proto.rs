@@ -94,7 +94,9 @@ pub async fn request_certificate(
 	let endpoint_name = endpoint_s.read().await.name.clone();
 
 	// Refresh the directory
-	http::refresh_directory(&mut *(endpoint_s.write().await)).map_err(HttpError::in_err)?;
+	http::refresh_directory(&mut *(endpoint_s.write().await))
+		.await
+		.map_err(HttpError::in_err)?;
 
 	// Synchronize the account
 	account_s
@@ -109,7 +111,7 @@ pub async fn request_certificate(
 		let new_order = NewOrder::new(&cert.identifiers);
 		let new_order = serde_json::to_string(&new_order)?;
 		let data_builder = set_data_builder!(account_s, endpoint_name, new_order.as_bytes()).await;
-		match http::new_order(&mut *(endpoint_s.write().await), &data_builder) {
+		match http::new_order(&mut *(endpoint_s.write().await), &data_builder).await {
 			Ok((order, order_url)) => {
 				if let Some(e) = order.get_error() {
 					cert.warn(&e.prefix("Error").message);
@@ -138,6 +140,7 @@ pub async fn request_certificate(
 		let data_builder = set_data_builder!(account_s, endpoint_name, b"").await;
 		let auth =
 			http::get_authorization(&mut *(endpoint_s.write().await), &data_builder, auth_url)
+				.await
 				.map_err(HttpError::in_err)?;
 		drop(data_builder);
 		if let Some(e) = auth.get_error() {
@@ -178,6 +181,7 @@ pub async fn request_certificate(
 					&data_builder,
 					&chall_url,
 				)
+				.await
 				.map_err(HttpError::in_err)?;
 				drop(data_builder);
 			}
@@ -192,6 +196,7 @@ pub async fn request_certificate(
 			&break_fn,
 			auth_url,
 		)
+		.await
 		.map_err(HttpError::in_err)?;
 		drop(data_builder);
 		for (data, hook_type) in hook_datas.iter() {
@@ -211,6 +216,7 @@ pub async fn request_certificate(
 		&break_fn,
 		&order_url,
 	)
+	.await
 	.map_err(HttpError::in_err)?;
 	drop(data_builder);
 
@@ -246,6 +252,7 @@ pub async fn request_certificate(
 		&data_builder,
 		&order.finalize,
 	)
+	.await
 	.map_err(HttpError::in_err)?;
 	drop(data_builder);
 	if let Some(e) = order.get_error() {
@@ -261,6 +268,7 @@ pub async fn request_certificate(
 		&break_fn,
 		&order_url,
 	)
+	.await
 	.map_err(HttpError::in_err)?;
 	drop(data_builder);
 
@@ -270,6 +278,7 @@ pub async fn request_certificate(
 		.ok_or_else(|| Error::from("no certificate available for download"))?;
 	let data_builder = set_data_builder!(account_s, endpoint_name, b"").await;
 	let crt = http::get_certificate(&mut *(endpoint_s.write().await), &data_builder, &crt_url)
+		.await
 		.map_err(HttpError::in_err)?;
 	drop(data_builder);
 	storage::write_certificate(&cert.file_manager, crt.as_bytes()).await?;

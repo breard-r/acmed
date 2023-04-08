@@ -19,7 +19,6 @@ openssl_dyn = ["crypto_openssl", "openssl", "openssl-sys"]
 openssl_vendored = ["crypto_openssl", "openssl/vendored", "openssl-sys/vendored"]
 
 [dependencies]
-attohttpc = { version = "0.24", default-features = false }
 base64 = "0.21"
 daemonize = "0.5"
 env_logger = "0.10"
@@ -29,6 +28,7 @@ native-tls = "0.2"
 openssl = { version = "0.10", optional = true }
 openssl-sys = { version = "0.9", optional = true }
 punycode = "0.4"
+reqwest = { version = "0.11.16", default-features = false }
 serde_json = "1.0"
 syslog = "6.0"
 tinytemplate = "1.2"

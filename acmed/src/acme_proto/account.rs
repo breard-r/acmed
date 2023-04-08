@@ -52,8 +52,9 @@ pub async fn register_account(
 			Some(n.to_string()),
 		)
 	};
-	let (acc_rep, account_url) =
-		http::new_account(endpoint, &data_builder).map_err(HttpError::in_err)?;
+	let (acc_rep, account_url) = http::new_account(endpoint, &data_builder)
+		.await
+		.map_err(HttpError::in_err)?;
 	account.set_account_url(&endpoint.name, &account_url)?;
 	let orders_url = match acc_rep.orders {
 		Some(url) => url,
@@ -95,7 +96,7 @@ pub async fn update_account_contacts(
 		set_data_builder_sync!(account_owned, endpoint_name, acc_up_struct.as_bytes());
 	let url = account.get_endpoint(&endpoint_name)?.account_url.clone();
 	create_account_if_does_not_exist!(
-		http::post_jose_no_response(endpoint, &data_builder, &url),
+		http::post_jose_no_response(endpoint, &data_builder, &url).await,
 		endpoint,
 		account
 	)?;
@@ -140,7 +141,7 @@ pub async fn update_account_key(
 		)
 	};
 	create_account_if_does_not_exist!(
-		http::post_jose_no_response(endpoint, &data_builder, &url),
+		http::post_jose_no_response(endpoint, &data_builder, &url).await,
 		endpoint,
 		account
 	)?;
