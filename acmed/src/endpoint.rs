@@ -1,17 +1,24 @@
-use crate::acme_proto::structs::Directory;
+use crate::config::NamedAcmeResource;
 use crate::duration::parse_duration;
+use crate::{acme_proto::structs::Directory, config};
 use acme_common::error::Error;
-use std::cmp;
-use std::time::{Duration, Instant};
-use tokio::time::sleep;
+use governor::{
+	clock::DefaultClock,
+	state::{direct::NotKeyed, InMemoryState},
+	Quota, RateLimiter,
+};
+use itertools::Itertools;
+use regex::Regex;
+use std::convert::{TryFrom, TryInto};
+use std::time::Duration;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Endpoint {
 	pub name: String,
 	pub url: String,
 	pub tos_agreed: bool,
 	pub nonce: Option<String>,
-	pub rl: RateLimit,
+	pub rl: RateLimits,
 	pub dir: Directory,
 	pub root_certificates: Vec<String>,
 }
@@ -21,7 +28,7 @@ impl Endpoint {
 		name: &str,
 		url: &str,
 		tos_agreed: bool,
-		limits: &[(usize, String)],
+		limits: &[config::RateLimit],
 		root_certs: &[String],
 	) -> Result<Self, Error> {
 		Ok(Self {
@@ -29,7 +36,7 @@ impl Endpoint {
 			url: url.to_string(),
 			tos_agreed,
 			nonce: None,
-			rl: RateLimit::new(limits)?,
+			rl: RateLimits::new(limits)?,
 			dir: Directory {
 				meta: None,
 				new_nonce: String::new(),
@@ -44,87 +51,121 @@ impl Endpoint {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
+pub struct RateLimits {
+	limits: Vec<RateLimit>,
+}
+
+impl RateLimits {
+	pub fn new(raw_limits: &[config::RateLimit]) -> Result<Self, Error> {
+		let limits: Result<Vec<RateLimit>, Error> = raw_limits
+			.iter()
+			.sorted_by(rate_limit_cmp)
+			// We're reverting the comparison here, as we want to get the strongest limits (those
+			// with the highest waiting period per request) first.
+			.rev()
+			.map(|raw| raw.try_into())
+			.collect();
+		Ok(Self { limits: limits? })
+	}
+
+	pub async fn block_until_allowed(&mut self, resource: Option<NamedAcmeResource>, path: &str) {
+		for limit in &self.limits {
+			if limit.matches(resource, path) {
+				limit.until_ready().await
+			}
+		}
+	}
+}
+
+fn rate_limit_cmp(a: &&config::RateLimit, b: &&config::RateLimit) -> std::cmp::Ordering {
+	let a_dur = parse_duration(&a.period).unwrap_or(Duration::ZERO) / u32::from(a.number);
+	let b_dur = parse_duration(&b.period).unwrap_or(Duration::ZERO) / u32::from(b.number);
+
+	// A limit is "stronger" if it's period is long. The duration calculated here is the time
+	// per request. A shorter duration to wait, hence more requests, is *less* of a limit, so
+	// directly using the result of the comparison of the two calculated durations is correct.
+	Ord::cmp(&a_dur, &b_dur)
+}
+
+#[derive(Debug)]
 pub struct RateLimit {
-	limits: Vec<(usize, Duration)>,
-	query_log: Vec<Instant>,
+	limiter: RateLimiter<NotKeyed, InMemoryState, DefaultClock>,
+	resources: Vec<NamedAcmeResource>,
+	path: Option<Regex>,
 }
 
 impl RateLimit {
-	pub fn new(raw_limits: &[(usize, String)]) -> Result<Self, Error> {
-		let mut limits = vec![];
-		for (nb, raw_duration) in raw_limits.iter() {
-			let parsed_duration = parse_duration(raw_duration)?;
-			limits.push((*nb, parsed_duration));
-		}
-		limits.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-		limits.reverse();
+	fn matches(&self, resource: Option<NamedAcmeResource>, path: &str) -> bool {
+		let resource_matches = resource
+			.map(|resource| self.resources.contains(&resource))
+			.unwrap_or(false);
+		let path_matches = self
+			.path
+			.as_ref()
+			.map(|matcher| matcher.is_match(path))
+			.unwrap_or(false);
+		resource_matches || path_matches
+	}
+	async fn until_ready(&self) {
+		self.limiter.until_ready().await
+	}
+}
+
+impl TryFrom<&config::RateLimit> for RateLimit {
+	type Error = Error;
+
+	fn try_from(value: &config::RateLimit) -> Result<Self, Self::Error> {
+		let period = parse_duration(&value.period)?;
+		let amount = value.number;
+		let quota = Quota::with_period(period / u32::from(amount))
+			.ok_or("rate-limit period was passed as zero, which is illegal")?
+			.allow_burst(amount);
+		let limiter = RateLimiter::direct(quota);
+		let path = match &value.path {
+			Some(path) => Some(Regex::new(path).map_err(|e| e.to_string())?),
+			None => None,
+		};
 		Ok(Self {
-			limits,
-			query_log: vec![],
+			limiter,
+			resources: value.acme_resources.clone(),
+			path,
 		})
 	}
+}
 
-	pub async fn block_until_allowed(&mut self) {
-		if self.limits.is_empty() {
-			return;
-		}
-		let mut sleep_duration = self.get_sleep_duration();
-		loop {
-			sleep(sleep_duration).await;
-			self.prune_log();
-			if self.request_allowed() {
-				self.query_log.push(Instant::now());
-				return;
-			}
-			sleep_duration = self.get_sleep_duration();
-		}
+#[cfg(test)]
+mod tests {
+	use std::{cmp::Ordering, num::NonZeroU32};
+
+	use crate::config;
+
+	#[test]
+	fn check_ratelimit_ordering() {
+		let sixty_per_hour = cfg_ratelimit_helper(NonZeroU32::new(60).unwrap(), "1h".into());
+		let one_per_minute = cfg_ratelimit_helper(NonZeroU32::new(1).unwrap(), "1m".into());
+		let one_per_second = cfg_ratelimit_helper(NonZeroU32::new(1).unwrap(), "1s".into());
+		assert_eq!(
+			super::rate_limit_cmp(&&sixty_per_hour, &&one_per_minute),
+			Ordering::Equal
+		);
+		assert_eq!(
+			super::rate_limit_cmp(&&one_per_second, &&one_per_minute),
+			Ordering::Less
+		);
+		assert_eq!(
+			super::rate_limit_cmp(&&sixty_per_hour, &&one_per_second),
+			Ordering::Greater
+		);
 	}
 
-	fn get_sleep_duration(&self) -> Duration {
-		let (nb_req, min_duration) = match self.limits.last() {
-			Some((n, d)) => (*n as u64, *d),
-			None => {
-				return Duration::from_millis(0);
-			}
-		};
-		let nb_mili = match min_duration.as_secs() {
-			0 | 1 => crate::MIN_RATE_LIMIT_SLEEP_MILISEC,
-			n => {
-				let a = n * 200 / nb_req;
-				let a = cmp::min(a, crate::MAX_RATE_LIMIT_SLEEP_MILISEC);
-				cmp::max(a, crate::MIN_RATE_LIMIT_SLEEP_MILISEC)
-			}
-		};
-		Duration::from_millis(nb_mili)
-	}
-
-	fn request_allowed(&self) -> bool {
-		for (max_allowed, duration) in self.limits.iter() {
-			match Instant::now().checked_sub(*duration) {
-				Some(max_date) => {
-					let nb_req = self
-						.query_log
-						.iter()
-						.filter(move |x| **x > max_date)
-						.count();
-					if nb_req >= *max_allowed {
-						return false;
-					}
-				}
-				None => {
-					return false;
-				}
-			};
-		}
-		true
-	}
-
-	fn prune_log(&mut self) {
-		if let Some((_, max_limit)) = self.limits.first() {
-			if let Some(prune_date) = Instant::now().checked_sub(*max_limit) {
-				self.query_log.retain(move |&d| d > prune_date);
-			}
+	fn cfg_ratelimit_helper(number: NonZeroU32, period: String) -> config::RateLimit {
+		config::RateLimit {
+			name: String::new(),
+			number,
+			period,
+			acme_resources: vec![],
+			path: None,
 		}
 	}
 }

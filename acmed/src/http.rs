@@ -1,4 +1,5 @@
 use crate::acme_proto::structs::{AcmeError, HttpApiError};
+use crate::config::NamedAcmeResource;
 use crate::endpoint::Endpoint;
 #[cfg(feature = "crypto_openssl")]
 use acme_common::error::Error;
@@ -107,9 +108,8 @@ fn is_nonce(data: &str) -> bool {
 }
 
 async fn new_nonce(endpoint: &mut Endpoint) -> Result<(), HttpError> {
-	rate_limit(endpoint).await;
 	let url = endpoint.dir.new_nonce.clone();
-	let _ = get(endpoint, &url).await?;
+	let _ = get(endpoint, &url, Some(NamedAcmeResource::NewNonce)).await?;
 	Ok(())
 }
 
@@ -134,8 +134,8 @@ fn check_status(response: &Response) -> Result<(), Error> {
 	Ok(())
 }
 
-async fn rate_limit(endpoint: &mut Endpoint) {
-	endpoint.rl.block_until_allowed().await;
+async fn rate_limit(endpoint: &mut Endpoint, resource: Option<NamedAcmeResource>, path: &str) {
+	endpoint.rl.block_until_allowed(resource, path).await;
 }
 
 fn header_to_string(header_value: &HeaderValue) -> Result<String, Error> {
@@ -173,9 +173,13 @@ fn get_client(root_certs: &[String]) -> Result<Client, Error> {
 	Ok(client_builder.build()?)
 }
 
-pub async fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse, HttpError> {
+pub async fn get(
+	endpoint: &mut Endpoint,
+	url: &str,
+	resource: Option<NamedAcmeResource>,
+) -> Result<ValidHttpResponse, HttpError> {
 	let client = get_client(&endpoint.root_certificates)?;
-	rate_limit(endpoint).await;
+	rate_limit(endpoint, resource, url).await;
 	let response = client
 		.get(url)
 		.header(header::ACCEPT, CONTENT_TYPE_JSON)
@@ -191,6 +195,7 @@ pub async fn get(endpoint: &mut Endpoint, url: &str) -> Result<ValidHttpResponse
 pub async fn post<F>(
 	endpoint: &mut Endpoint,
 	url: &str,
+	resource: Option<NamedAcmeResource>,
 	data_builder: &F,
 	content_type: &str,
 	accept: &str,
@@ -208,7 +213,7 @@ where
 		request = request.header(header::CONTENT_TYPE, content_type);
 		let nonce = &endpoint.nonce.clone().unwrap_or_default();
 		let body = data_builder(nonce, url)?;
-		rate_limit(endpoint).await;
+		rate_limit(endpoint, resource, url).await;
 		log::trace!("POST request body: {body}");
 		let response = request.body(body).send().await?;
 		update_nonce(endpoint, &response)?;
@@ -235,6 +240,7 @@ where
 pub async fn post_jose<F>(
 	endpoint: &mut Endpoint,
 	url: &str,
+	resource: Option<NamedAcmeResource>,
 	data_builder: &F,
 ) -> Result<ValidHttpResponse, HttpError>
 where
@@ -243,6 +249,7 @@ where
 	post(
 		endpoint,
 		url,
+		resource,
 		data_builder,
 		CONTENT_TYPE_JOSE,
 		CONTENT_TYPE_JSON,

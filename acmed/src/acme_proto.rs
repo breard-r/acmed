@@ -180,6 +180,7 @@ pub async fn request_certificate(
 					&mut *(endpoint_s.write().await),
 					&data_builder,
 					&chall_url,
+					None,
 				)
 				.await
 				.map_err(HttpError::in_err)?;

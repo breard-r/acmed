@@ -141,12 +141,12 @@ impl MainEventLoop {
 		Ok(MainEventLoop {
 			certificates,
 			accounts: accounts
-				.iter()
-				.map(|(k, v)| (k.to_owned(), Arc::new(RwLock::new(v.to_owned()))))
+				.into_iter()
+				.map(|(k, v)| (k, Arc::new(RwLock::new(v))))
 				.collect(),
 			endpoints: endpoints
-				.iter()
-				.map(|(k, v)| (k.to_owned(), Arc::new(RwLock::new(v.to_owned()))))
+				.into_iter()
+				.map(|(k, v)| (k, Arc::new(RwLock::new(v))))
 				.collect(),
 		})
 	}

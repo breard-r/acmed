@@ -12,6 +12,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
+use std::num::NonZeroU32;
 use std::path::{Path, PathBuf};
 use std::result::Result;
 use std::time::Duration;
@@ -72,10 +73,10 @@ pub struct Config {
 }
 
 impl Config {
-	fn get_rate_limit(&self, name: &str) -> Result<(usize, String), Error> {
+	fn get_rate_limit(&self, name: &str) -> Result<RateLimit, Error> {
 		for rl in self.rate_limit.iter() {
 			if rl.name == name {
-				return Ok((rl.number, rl.period.to_owned()));
+				return Ok(rl.clone());
 			}
 		}
 		Err(format!("{name}: rate limit not found").into())
@@ -266,8 +267,7 @@ impl Endpoint {
 	) -> Result<crate::endpoint::Endpoint, Error> {
 		let mut limits = vec![];
 		for rl_name in self.rate_limits.iter() {
-			let (nb, timeframe) = cnf.get_rate_limit(rl_name)?;
-			limits.push((nb, timeframe));
+			limits.push(cnf.get_rate_limit(rl_name)?);
 		}
 		let mut root_lst: Vec<String> = vec![];
 		root_lst.extend(root_certs.iter().map(|v| v.to_string()));
@@ -293,8 +293,23 @@ impl Endpoint {
 #[serde(deny_unknown_fields)]
 pub struct RateLimit {
 	pub name: String,
-	pub number: usize,
+	pub number: NonZeroU32,
 	pub period: String,
+	#[serde(default)]
+	pub acme_resources: Vec<NamedAcmeResource>,
+	pub path: Option<String>,
+}
+
+#[derive(Deserialize, PartialEq, Eq, Clone, Copy, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum NamedAcmeResource {
+	Directory,
+	NewNonce,
+	NewAccount,
+	NewOrder,
+	NewAuthz,
+	RevokeCert,
+	KeyChange,
 }
 
 #[derive(Deserialize)]
