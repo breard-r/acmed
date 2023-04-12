@@ -6,7 +6,7 @@ version = 3
 name = "acme_common"
 version = "0.21.0"
 dependencies = [
- "attohttpc",
+ "attohttpc 0.24.1",
  "base64",
  "daemonize",
  "env_logger",
@@ -30,7 +30,7 @@ dependencies = [
  "acme_common",
  "async-lock",
  "async-process",
- "attohttpc",
+ "attohttpc 0.25.0",
  "bincode",
  "clap",
  "futures",
@@ -170,6 +170,17 @@ name = "attohttpc"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d9a9bf8b79a749ee0b911b91b671cc2b6c670bdbc7e3dfd537576ddc94bb2a2"
+dependencies = [
+ "http",
+ "log",
+ "url",
+]
+
+[[package]]
+name = "attohttpc"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e57d6e7a84f33ff3316e97af3180fe7f86597a6a60161c0be70c0e45f382620"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
