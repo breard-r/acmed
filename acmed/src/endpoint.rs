@@ -2,8 +2,8 @@ use crate::acme_proto::structs::Directory;
 use crate::duration::parse_duration;
 use acme_common::error::Error;
 use std::cmp;
-use std::thread;
 use std::time::{Duration, Instant};
+use tokio::time::sleep;
 
 #[derive(Clone, Debug)]
 pub struct Endpoint {
@@ -65,19 +65,19 @@ impl RateLimit {
 		})
 	}
 
-	pub fn block_until_allowed(&mut self) {
+	pub async fn block_until_allowed(&mut self) {
 		if self.limits.is_empty() {
 			return;
 		}
-		let sleep_duration = self.get_sleep_duration();
+		let mut sleep_duration = self.get_sleep_duration();
 		loop {
+			sleep(sleep_duration).await;
 			self.prune_log();
 			if self.request_allowed() {
 				self.query_log.push(Instant::now());
 				return;
 			}
-			// TODO: find a better sleep duration
-			thread::sleep(sleep_duration);
+			sleep_duration = self.get_sleep_duration();
 		}
 	}
 
