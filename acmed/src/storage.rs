@@ -244,8 +244,12 @@ pub async fn set_account_data(fm: &FileManager, data: &[u8]) -> Result<(), Error
 	write_file(fm, FileType::Account, data).await
 }
 
+pub async fn get_keypair_path(fm: &FileManager) -> Result<PathBuf, Error> {
+	get_file_path(fm, FileType::PrivateKey)
+}
+
 pub async fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
-	let path = get_file_path(fm, FileType::PrivateKey)?;
+	let path = get_keypair_path(&fm).await?;
 	let raw_key = read_file(fm, &path).await?;
 	let key = KeyPair::from_pem(&raw_key)?;
 	Ok(key)
@@ -256,8 +260,12 @@ pub async fn set_keypair(fm: &FileManager, key_pair: &KeyPair) -> Result<(), Err
 	write_file(fm, FileType::PrivateKey, &data).await
 }
 
+pub async fn get_certificate_path(fm: &FileManager) -> Result<PathBuf, Error> {
+	get_file_path(fm, FileType::Certificate)
+}
+
 pub async fn get_certificate(fm: &FileManager) -> Result<X509Certificate, Error> {
-	let path = get_file_path(fm, FileType::Certificate)?;
+	let path = get_certificate_path(&fm).await?;
 	let raw_crt = read_file(fm, &path).await?;
 	let crt = X509Certificate::from_pem(&raw_crt)?;
 	Ok(crt)
