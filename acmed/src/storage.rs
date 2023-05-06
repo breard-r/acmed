@@ -249,7 +249,7 @@ pub async fn get_keypair_path(fm: &FileManager) -> Result<PathBuf, Error> {
 }
 
 pub async fn get_keypair(fm: &FileManager) -> Result<KeyPair, Error> {
-	let path = get_keypair_path(&fm).await?;
+	let path = get_keypair_path(fm).await?;
 	let raw_key = read_file(fm, &path).await?;
 	let key = KeyPair::from_pem(&raw_key)?;
 	Ok(key)
@@ -265,7 +265,7 @@ pub async fn get_certificate_path(fm: &FileManager) -> Result<PathBuf, Error> {
 }
 
 pub async fn get_certificate(fm: &FileManager) -> Result<X509Certificate, Error> {
-	let path = get_certificate_path(&fm).await?;
+	let path = get_certificate_path(fm).await?;
 	let raw_crt = read_file(fm, &path).await?;
 	let crt = X509Certificate::from_pem(&raw_crt)?;
 	Ok(crt)
