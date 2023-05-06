@@ -48,6 +48,8 @@ pub struct PostOperationHookData {
 	pub key_type: String,
 	pub status: String,
 	pub is_success: bool,
+	pub certificate_path: PathBuf,
+	pub private_key_path: PathBuf,
 	pub env: HashMap<String, String>,
 }
 

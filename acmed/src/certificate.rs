@@ -185,6 +185,8 @@ impl Certificate {
 			key_type: self.key_type.to_string(),
 			status: status.to_string(),
 			is_success,
+			certificate_path: crate::storage::get_certificate_path(&self.file_manager).await?,
+			private_key_path: crate::storage::get_keypair_path(&self.file_manager).await?,
 			env: HashMap::new(),
 		};
 		hook_data.set_env(&self.env);
