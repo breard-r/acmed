@@ -189,6 +189,7 @@ fn gen_certificate(
 		if !v.is_empty() {
 			return Err(Error::from(super::INVALID_EXT_MSG));
 		}
+		#[allow(deprecated)]
 		let acme_ext = X509Extension::new(None, Some(&ctx), acme_ext_name, value)
 			.map_err(|_| Error::from(super::INVALID_EXT_MSG))?;
 		builder
