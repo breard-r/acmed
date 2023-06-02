@@ -309,7 +309,7 @@ Specify the user who will own newly-created private-key files. See
 for more details.
 .It Cm random_early_renew Ar string
 Period of time before the usual certificate renewal, in which the certificate will renew at a random time. This is useful for when
-you want to even out your certificate orders when you're dealing with very large numbers of certificates. The format is described in the
+you want to even outoyour certificate orders when you're dealing with very large numbers of certificates. The format is described in the
 .Sx TIME PERIODS
 section. By default, this is disabled, or rather, the time frame is set to 0.
 .It Cm renew_delay Ar string
@@ -391,17 +391,39 @@ and all three defines the same global option, the final value will be the one de
 .Pp
 Unix style globing is supported.
 .It Ic rate-limit
-Array of table where each element defines a HTTPS rate limit.
+Array of table where each element defines a HTTPS rate limit. For a rate-limit to apply, the request must match the limit by requesting one of the named ACME resources listed in
+.Em acme_resources
+or by having a path matching the regular expression in
+.Em path .
 .Bl -tag
 .It Cm name Ar string
 The name the rate limit is registered under. Must be unique.
 .It Cm number Ar integer
-Number of requests authorized withing the time period.
+Number of requests authorized withing the time period. The amount of requests must be non-zero.
 .It Cm period Ar string
 Period of time during which a maximal number of requests is authorized. The format is described in the
 .Sx TIME PERIODS
-section.
+section. The period must be non-zero.
+.It Cm acme_resources Ar array
+Array of strings, containing named ACME resources that this limit applies to. Possible values are:
+.Bl -dash -compact
+.It
+directory
+.It
+newNonce
+.It
+newAccount
+.It
+newOrder
+.It
+newAuthz
+.It
+revokeCert
+.It
+keyChange
 .El
+.It Cm path Ar string
+A regular expression matching the paths that this rate-limit should apply to.
 .El
 .Sh WRITING A HOOK
 When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every identifier to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.

@@ -1,16 +1,43 @@
 [[rate-limit]]
-name = "Let's Encrypt rate-limit"
+name = "Let's Encrypt newOrder"
+acme_resources = ["newOrder"]
+number = 300
+period = "3h"
+
+[[rate-limit]]
+name = "Let's Encrypt overall named resources"
+acme_resources = ["newNonce", "newAccount", "newOrder", "revokeCert"]
 number = 20
+period = "1s"
+
+[[rate-limit]]
+name = "Let's Encrypt overall path prefix"
+path = "^https://acmed-v02.api\.letsencrypt\.org/(directory)|(acme/.*)$"
+number = 40
 period = "1s"
 
 [[endpoint]]
 name = "Let's Encrypt v2 production"
 url = "https://acme-v02.api.letsencrypt.org/directory"
-rate_limits = ["Let's Encrypt rate-limit"]
+rate_limits = [
+  "Let's Encrypt newOrder",
+  "Let's Encrypt overall named resources",
+  "Let's Encrypt overall path prefix"
+]
 tos_agreed = false
+
+[[rate-limit]]
+name = "Let's Encrypt newOrder staging"
+acme_resources = ["newOrder"]
+number = 300
+period = "3h"
 
 [[endpoint]]
 name = "Let's Encrypt v2 staging"
 url = "https://acme-staging-v02.api.letsencrypt.org/directory"
-rate_limits = ["Let's Encrypt rate-limit"]
+rate_limits = [
+  "Let's Encrypt newOrder staging",
+  "Let's Encrypt overall named resources",
+  "Let's Encrypt overall path prefix"
+]
 tos_agreed = false

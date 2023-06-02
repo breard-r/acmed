@@ -96,7 +96,7 @@ pub async fn update_account_contacts(
 		set_data_builder_sync!(account_owned, endpoint_name, acc_up_struct.as_bytes());
 	let url = account.get_endpoint(&endpoint_name)?.account_url.clone();
 	create_account_if_does_not_exist!(
-		http::post_jose_no_response(endpoint, &data_builder, &url).await,
+		http::post_jose_no_response(endpoint, &data_builder, &url, None).await,
 		endpoint,
 		account
 	)?;
@@ -141,7 +141,7 @@ pub async fn update_account_key(
 		)
 	};
 	create_account_if_does_not_exist!(
-		http::post_jose_no_response(endpoint, &data_builder, &url).await,
+		http::post_jose_no_response(endpoint, &data_builder, &url, None).await,
 		endpoint,
 		account
 	)?;
