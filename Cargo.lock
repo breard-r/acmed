@@ -11,6 +11,7 @@ dependencies = [
  "env_logger",
  "glob",
  "log",
+ "minijinja",
  "native-tls",
  "nix",
  "openssl",
@@ -19,7 +20,6 @@ dependencies = [
  "reqwest",
  "serde_json",
  "syslog",
- "tinytemplate",
  "toml",
 ]
 
@@ -35,13 +35,13 @@ dependencies = [
  "futures",
  "glob",
  "log",
+ "minijinja",
  "nix",
  "nom",
  "rand",
  "reqwest",
  "serde",
  "serde_json",
- "tinytemplate",
  "tokio",
  "toml",
 ]
@@ -798,6 +798,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
+name = "minijinja"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f40870a194358132836de5c67e5038c279de3bff7a05f5da201ed13f6064b979"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1385,16 +1394,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "372950940a5f07bf38dbe211d7283c9e6d7327df53794992d293e534c733d09b"
 dependencies = [
  "time-core",
-]
-
-[[package]]
-name = "tinytemplate"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]

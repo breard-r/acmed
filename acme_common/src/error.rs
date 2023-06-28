@@ -105,8 +105,8 @@ impl From<glob::PatternError> for Error {
 	}
 }
 
-impl From<tinytemplate::error::Error> for Error {
-	fn from(error: tinytemplate::error::Error) -> Self {
+impl From<minijinja::Error> for Error {
+	fn from(error: minijinja::Error) -> Self {
 		format!("template error: {error}").into()
 	}
 }
