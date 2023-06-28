@@ -8,6 +8,7 @@ repository = "https://github.com/breard-r/libreauth"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
 publish = false
+rust-version = "1.65.0"
 
 [lib]
 name = "acme_common"
