@@ -12,7 +12,7 @@
 
 
 #
-# http-01 challenge in "/var/www/{ identifier }/"
+# http-01 challenge in "/var/www/{{ identifier }}/"
 #
 
 [[hook]]
@@ -21,7 +21,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge"
+    "-p", "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge"
 ]
 allow_failure = true
 
@@ -30,7 +30,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{ proof }"]
-stdout = "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+stdout = "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -38,7 +38,7 @@ type = ["challenge-http-01"]
 cmd = "chmod"
 args = [
     "a+r",
-    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+    "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 ]
 allow_failure = true
 
@@ -48,7 +48,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+    "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 ]
 allow_failure = true
 
@@ -71,10 +71,10 @@ name = "tls-alpn-01-tacd-start-tcp"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "{{ if env.TACD_PID_ROOT }}{ env.TACD_PID_ROOT }{{ else }}/run{{ endif }}/tacd_{ identifier }.pid",
+    "--pid-file", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
     "--domain", "{ identifier_tls_alpn }",
     "--acme-ext", "{ proof }",
-    "--listen", "{{ if env.TACD_HOST }}{ env.TACD_HOST }{{ else }}{ identifier }{{ endif }}:{{ if env.TACD_PORT }}{ env.TACD_PORT }{{ else }}5001{{ endif }}"
+    "--listen", "{{ env.TACD_PORT | default('5001') }}"
 ]
 
 [[hook]]
@@ -82,10 +82,10 @@ name = "tls-alpn-01-tacd-start-unix"
 type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
-    "--pid-file", "{{ if env.TACD_PID_ROOT }}{ env.TACD_PID_ROOT }{{ else }}/run{{ endif }}/tacd_{ identifier }.pid",
+    "--pid-file", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
     "--domain", "{ identifier_tls_alpn }",
     "--acme-ext", "{ proof }",
-    "--listen", "unix:{{ if env.TACD_SOCK_ROOT }}{ env.TACD_SOCK_ROOT }{{ else }}/run{{ endif }}/tacd_{ identifier }.sock"
+    "--listen", "unix:{{ env.TACD_SOCK_ROOT | default('/run') }}/tacd_{{ identifier }}.sock"
 ]
 
 [[hook]]
@@ -93,7 +93,7 @@ name = "tls-alpn-01-tacd-kill"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "pkill"
 args = [
-    "-F", "{{ if env.TACD_PID_ROOT }}{ env.TACD_PID_ROOT }{{ else }}/run{{ endif }}/tacd_{ identifier }.pid",
+    "-F", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
 ]
 allow_failure = true
 
@@ -102,7 +102,7 @@ name = "tls-alpn-01-tacd-rm"
 type = ["challenge-tls-alpn-01-clean"]
 cmd = "rm"
 args = [
-    "-f", "{{ if env.TACD_PID_ROOT }}{ env.TACD_PID_ROOT }{{ else }}/run{{ endif }}/tacd_{ identifier }.pid",
+    "-f", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
 ]
 allow_failure = true
 
@@ -125,7 +125,7 @@ type = ["file-pre-create", "file-pre-edit"]
 cmd = "git"
 args = [
     "init",
-    "{ file_directory }"
+    "{{ file_directory }}"
 ]
 
 [[hook]]
@@ -133,8 +133,8 @@ name = "git-add"
 type = ["file-post-create", "file-post-edit"]
 cmd = "git"
 args = [
-    "-C", "{ file_directory }",
-    "add", "{ file_name }"
+    "-C", "{{ file_directory }}",
+    "add", "{{ file_name }}"
 ]
 allow_failure = true
 
@@ -143,12 +143,12 @@ name = "git-commit"
 type = ["file-post-create", "file-post-edit"]
 cmd = "git"
 args = [
-    "-C", "{ file_directory }",
-    "-c", "user.name='{{ if env.GIT_USERNAME }}{ env.GIT_USERNAME }{{ else }}ACMEd{{ endif }}'",
-    "-c", "user.email='{{ if env.GIT_EMAIL }}{ env.GIT_EMAIL }{{ else }}acmed@localhost{{ endif }}'",
+    "-C", "{{ file_directory }}",
+    "-c", "user.name='{{ env.GIT_USERNAME | default('ACMEd') }}'",
+    "-c", "user.email='{{ env.GIT_EMAIL | default('acmed@localhost') }}'",
     "commit",
-    "-m", "{ file_name }",
-    "--only", "{ file_name }"
+    "-m", "{{ file_name }}",
+    "--only", "{{ file_name }}"
 ]
 allow_failure = true
 

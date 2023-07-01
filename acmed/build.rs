@@ -117,7 +117,7 @@ fn set_default_values() {
 	set_data_path_if_absent!("ACMED_DEFAULT_CERT_DIR", "certs");
 	set_env_var_if_absent!(
 		"ACMED_DEFAULT_CERT_FORMAT",
-		"{ name }_{ key_type }.{ file_type }.{ ext }"
+		"{{ name }}_{{ key_type }}.{{ file_type }}.{{ ext }}"
 	);
 	set_cfg_path_if_absent!("ACMED_DEFAULT_CONFIG_FILE", "acmed.toml");
 	set_runstate_path_if_absent!("ACMED_DEFAULT_PID_FILE", "acmed.pid");

@@ -122,17 +122,17 @@ Name of the endpoint to use.
 Table of environment variables that will be accessible from hooks.
 .It Ic file_name_format Ar string
 Template used to build the file's name. The template syntax is
-.Em TinyTemplate .
+.Em MiniJinja .
 See the
 .Sx STANDARDS
 section for a link to the
-.Em TinyTemplate
+.Em MiniJinja
 specifications. If not specified, the value defined in the
 .Em endpoint
 element, and then the
 .Em global
 element, is used. Default is
-.Dq { name }_{ key_type }.{ file_type }.{ ext } .
+.Dq {{ name }}_{{ key_type }}.{{ file_type }}.{{ ext }} .
 Possible variables are:
 .Bl -tag
 .It Ic ext Ar string
@@ -424,11 +424,11 @@ and
 are considered as template strings whereas
 .Em cmd
 is not. The template syntax is
-.Em TinyTemplate .
+.Em MiniJinja .
 See the
 .Sx STANDARDS
 section for a link to the
-.Em TinyTemplate
+.Em MiniJinja
 specifications.
 .Pp
 The available types and the associated template variable are described below.
@@ -604,10 +604,10 @@ and
 environment variables.
 .It Pa http-01-echo
 This hook is designed to solve the http-01 challenge. For this purpose, it will write the proof into
-.Pa { env.HTTP_ROOT }/{ identifier }/.well-known/acme-challenge/{ file_name } .
+.Pa {{ env.HTTP_ROOT }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }} .
 .Pp
 The web server must be configured so the file
-.Pa http://{ identifier }/.well-known/acme-challenge/{ file_name }
+.Pa http://{{ identifier }}/.well-known/acme-challenge/{{ file_name }}
 can be accessed from the CA.
 .Pp
 If
@@ -632,7 +632,7 @@ environment variable (default is 5001).
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa { TACD_PID_ROOT }/tacd_{ identifier }.pid .
+.Pa {{ TACD_PID_ROOT }}/tacd_{{ identifier }}.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -648,7 +648,7 @@ option.
 .Pp
 .Xr tacd 8
 will listen on the unix socket
-.Pa { env.TACD_SOCK_ROOT }/tacd_{ identifier }.sock .
+.Pa {{ env.TACD_SOCK_ROOT }}/tacd_{{ identifier }}.sock .
 If
 .Ev TACD_SOCK_ROOT
 is not specified, it will be set to
@@ -656,7 +656,7 @@ is not specified, it will be set to
 .Pp
 .Xr tacd 8
 will store its pid into
-.Pa { TACD_PID_ROOT }/tacd_{ identifier }.pid .
+.Pa {{ TACD_PID_ROOT }}/tacd_{{ identifier }}.pid .
 If
 .Ev TACD_PID_ROOT
 is not specified, it will be set to
@@ -696,8 +696,8 @@ For example,
 and
 .Dq 40s20h4h2s
 both represents a period of one day and forty-two seconds.
-.Sh TEMPLATE FORMATTERS
-In addition the the formatters provided by default by TinyTemplate, ACMEd provides the following formatters:
+.Sh TEMPLATE FILTERS
+In addition the the filters provided by default by MiniJinja, ACMEd provides the following filters:
 .Bl -tag
 .It Pa rev_labels
 Reverts the labels of a domain name (eg:
@@ -763,7 +763,7 @@ type = ["challenge-http-01"]
 cmd = "mkdir"
 args = [
     "-m", "0755",
-    "-p", "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge"
+    "-p", "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge"
 ]
 
 [[hook]]
@@ -771,7 +771,7 @@ name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
 args = ["{ proof }"]
-stdout = "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+stdout = "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 
 [[hook]]
 name = "http-01-echo-chmod"
@@ -779,7 +779,7 @@ type = ["challenge-http-01-clean"]
 cmd = "chmod"
 args = [
     "a+r",
-    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+    "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 ]
 
 [[hook]]
@@ -788,7 +788,7 @@ type = ["challenge-http-01-clean"]
 cmd = "rm"
 args = [
     "-f",
-    "{{ if env.HTTP_ROOT }}{ env.HTTP_ROOT }{{ else }}/var/www{{ endif }}/{ identifier }/.well-known/acme-challenge/{ file_name }"
+    "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 ]
 .Ed
 .Pp
@@ -821,12 +821,12 @@ args = [
     "-f", "noreply.certs@example.net",
     "contact@example.net"
 ]
-stdin_str = """Subject: Certificate renewal {{ if is_success }}succeeded{{ else }}failed{{ endif }} for { identifiers.0 }
+stdin_str = """Subject: Certificate renewal {{ 'succeeded' if is_success else 'failed' }} for {{ identifiers.0 }}
 
-The following certificate has {{ if not is_success }}*not* {{ endif }}been renewed.
-identifiers: {{ for ident in identifiers }}{{ if not @first }}, {{ endif }}{ ident }{{ endfor }}
-key type: { key_type }
-status: { status }"""
+The following certificate has {{ '' if is_success else '*not* ' }}been renewed.
+identifiers: {% for ident in identifiers %}{% if not loop.first %}, {% endif %}{{ ident }}{% endfor %}
+key type: {{ key_type }}
+status: {{ status }}"""
 .Ed
 .Sh SEE ALSO
 .Xr acmed 8 ,
@@ -842,9 +842,9 @@ status: { status }"""
 .Re
 .It
 .Rs
-.%A Brook Heisler
-.%T TinyTemplate
-.%U https://docs.rs/tinytemplate/latest/tinytemplate/syntax/index.html
+.%A Armin Ronacher
+.%T MiniJinja
+.%U https://docs.rs/minijinja/latest/minijinja/syntax/index.html
 .Re
 .It
 .Rs

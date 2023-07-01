@@ -12,6 +12,7 @@ categories = ["cryptography"]
 build = "build.rs"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 publish = false
+rust-version = "1.65.0"
 
 [features]
 default = ["openssl_dyn"]
@@ -31,11 +32,11 @@ log = "0.4"
 nom = { version = "7.0", default-features = false, features = [] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tinytemplate = "1.2"
 toml = "0.7"
 tokio = { version = "1", features = ["full"] }
 rand = "0.8.5"
 reqwest = "0.11.16"
+minijinja = "1.0.3"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.26"

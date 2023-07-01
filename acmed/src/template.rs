@@ -1,37 +1,23 @@
-use acme_common::error::Error;
+use minijinja::{value::Value, Environment};
 use serde::Serialize;
-use serde_json::Value;
-use tinytemplate::TinyTemplate;
 
-macro_rules! default_format {
-	($value: ident, $output: ident) => {{
-		$output.push_str(&$value.to_string());
-		Ok(())
-	}};
-}
-
-fn formatter_rev_labels(value: &Value, output: &mut String) -> tinytemplate::error::Result<()> {
-	match value {
-		Value::Null => Ok(()),
-		Value::Bool(v) => default_format!(v, output),
-		Value::Number(v) => default_format!(v, output),
-		Value::String(v) => {
-			let s = v.rsplit('.').collect::<Vec<&str>>().join(".");
-			output.push_str(&s);
-			Ok(())
-		}
-		_ => Ok(()),
+fn formatter_rev_labels(value: Value) -> Result<Value, minijinja::Error> {
+	if let Some(value) = value.as_str() {
+		Ok(value.rsplit('.').collect::<Vec<&str>>().join(".").into())
+	} else {
+		Ok(value)
 	}
 }
 
-pub fn render_template<T>(template: &str, data: &T) -> Result<String, Error>
+pub fn render_template<T>(template: &str, data: &T) -> Result<String, minijinja::Error>
 where
 	T: Serialize,
 {
-	let mut reg = TinyTemplate::new();
-	reg.add_formatter("rev_labels", formatter_rev_labels);
-	reg.add_template("reg", template)?;
-	Ok(reg.render("reg", data)?)
+	let mut environment = Environment::new();
+	environment.add_filter("rev_labels", formatter_rev_labels);
+	environment.add_template("template", template)?;
+	let template = environment.get_template("template")?;
+	Ok(template.render(data)?)
 }
 
 #[cfg(test)]
@@ -51,7 +37,7 @@ mod tests {
 			foo: String::from("test"),
 			bar: 42,
 		};
-		let tpl = "This is { foo } { bar -} !";
+		let tpl = "This is {{ foo }} {{ bar -}} !";
 		let rendered = render_template(tpl, &c);
 		assert!(rendered.is_ok());
 		let rendered = rendered.unwrap();
@@ -64,7 +50,7 @@ mod tests {
 			foo: String::from("mx1.example.org"),
 			bar: 42,
 		};
-		let tpl = "{ foo } - { foo | rev_labels }";
+		let tpl = "{{ foo }} - {{ foo | rev_labels }}";
 		let rendered = render_template(tpl, &c);
 		assert!(rendered.is_ok());
 		let rendered = rendered.unwrap();
