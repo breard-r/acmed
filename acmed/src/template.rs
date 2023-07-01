@@ -1,3 +1,4 @@
+use acme_common::error::Error;
 use minijinja::{value::Value, Environment};
 use serde::Serialize;
 
@@ -9,7 +10,7 @@ fn formatter_rev_labels(value: Value) -> Result<Value, minijinja::Error> {
 	}
 }
 
-pub fn render_template<T>(template: &str, data: &T) -> Result<String, minijinja::Error>
+pub fn render_template<T>(template: &str, data: &T) -> Result<String, Error>
 where
 	T: Serialize,
 {
