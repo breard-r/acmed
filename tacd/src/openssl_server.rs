@@ -1,5 +1,5 @@
 use acme_common::crypto::{KeyPair, X509Certificate};
-use acme_common::error::Error;
+use anyhow::{bail, Result};
 use log::debug;
 use openssl::ssl::{self, AlpnError, SslAcceptor, SslMethod};
 use std::net::TcpListener;
@@ -29,11 +29,7 @@ macro_rules! listen_and_accept {
 	};
 }
 
-pub fn start(
-	listen_addr: &str,
-	certificate: &X509Certificate,
-	key_pair: &KeyPair,
-) -> Result<(), Error> {
+pub fn start(listen_addr: &str, certificate: &X509Certificate, key_pair: &KeyPair) -> Result<()> {
 	let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
 	acceptor.set_alpn_select_callback(|_, client| {
 		debug!("ALPN negociation");
@@ -51,5 +47,5 @@ pub fn start(
 		debug!("listening on {listen_addr}");
 		listen_and_accept!(TcpListener, listen_addr, acceptor);
 	}
-	Err("main thread loop unexpectedly exited".into())
+	bail!("main thread loop unexpectedly exited")
 }

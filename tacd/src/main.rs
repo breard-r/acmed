@@ -4,9 +4,9 @@ mod openssl_server;
 #[cfg(feature = "crypto_openssl")]
 use crate::openssl_server::start as server_start;
 use acme_common::crypto::{get_lib_name, get_lib_version, HashFunction, KeyType, X509Certificate};
-use acme_common::error::Error;
 use acme_common::logs::{set_log_system, DEFAULT_LOG_LEVEL};
 use acme_common::{clean_pid_file, to_idna};
+use anyhow::{anyhow, Result};
 use clap::builder::PossibleValuesParser;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::{debug, error, info};
@@ -21,7 +21,7 @@ const DEFAULT_CRT_KEY_TYPE: KeyType = KeyType::EcdsaP256;
 const DEFAULT_CRT_DIGEST: HashFunction = HashFunction::Sha256;
 const ALPN_ACME_PROTO_NAME: &[u8] = b"\x0aacme-tls/1";
 
-fn read_line(path: Option<&String>) -> Result<String, Error> {
+fn read_line(path: Option<&String>) -> Result<String> {
 	let mut input = String::new();
 	match path {
 		Some(p) => File::open(p)?.read_to_string(&mut input)?,
@@ -31,7 +31,7 @@ fn read_line(path: Option<&String>) -> Result<String, Error> {
 	Ok(line)
 }
 
-fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String, Error> {
+fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String> {
 	match cnf.get_one::<String>(opt) {
 		Some(v) => Ok(v.to_string()),
 		None => {
@@ -46,27 +46,32 @@ fn get_acme_value(cnf: &ArgMatches, opt: &str, opt_file: &str) -> Result<String,
 	}
 }
 
-fn init(cnf: &ArgMatches) -> Result<(), Error> {
+fn init(cnf: &ArgMatches) -> Result<()> {
 	acme_common::init_server(
 		cnf.get_flag("foreground"),
 		cnf.get_one::<String>("pid-file").map(|e| e.as_str()),
 	);
 	let domain = get_acme_value(cnf, "domain", "domain-file")?;
-	let domain = to_idna(&domain)?;
+	let domain = to_idna(&domain).map_err(|e| anyhow!(e))?;
 	let ext = get_acme_value(cnf, "acme-ext", "acme-ext-file")?;
 	let listen_addr = cnf
 		.get_one::<String>("listen")
 		.map(|e| e.as_str())
 		.unwrap_or(DEFAULT_LISTEN_ADDR);
 	let crt_signature_alg = match cnf.get_one::<&str>("crt-signature-alg") {
-		Some(alg) => alg.parse()?,
+		Some(alg) => alg
+			.parse()
+			.map_err(|e: acme_common::error::Error| anyhow!(e))?,
 		None => DEFAULT_CRT_KEY_TYPE,
 	};
 	let crt_digest = match cnf.get_one::<&str>("crt-digest") {
-		Some(alg) => alg.parse()?,
+		Some(alg) => alg
+			.parse()
+			.map_err(|e: acme_common::error::Error| anyhow!(e))?,
 		None => DEFAULT_CRT_DIGEST,
 	};
-	let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg, crt_digest)?;
+	let (pk, cert) = X509Certificate::from_acme_ext(&domain, &ext, crt_signature_alg, crt_digest)
+		.map_err(|e| anyhow!(e))?;
 	info!("starting {APP_NAME} on {listen_addr} for {domain}");
 	server_start(listen_addr, &cert, &pk)?;
 	Ok(())
