@@ -92,6 +92,10 @@ $ make install
 
 To build ACMEd and tacd inside a temporary Docker container, use the `contrib/docker/build-docker.sh` helper script. It currently supports Debian Buster / Stretch.
 
+You can also build a container image for some k8s deployement, use the `contrib/docker/build-docker-image.sh` script. It supports the same targets as the build-docker.sh script.
+
+When build succeed, you can start the container with `docker run --rm -v /path/to/conf/dir:/etc/acmed acmed:buster`.
+
 ### Advanced options
 
 You can specify a space or comma separated list of features to activate in the `FEATURE` variable. The possible features are:
