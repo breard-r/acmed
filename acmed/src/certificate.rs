@@ -81,7 +81,8 @@ impl Certificate {
 		));
 		let expires_in = expires_in.saturating_sub(self.renew_delay);
 		let expires_in = if !self.random_early_renew.is_zero() {
-			expires_in.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew))
+			expires_in
+				.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew))
 		} else {
 			expires_in
 		};
