@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- ACMEd no longer crashes when the `random_early_renew` parameter is set to zero (GitHub bug #102).
+
 ### Changed
 - The minimum supported Rust version (MSRV) is now 1.65.
 - Manual (and badly designed) threads have been replaced by async.
