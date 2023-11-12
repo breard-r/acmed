@@ -28,7 +28,7 @@ name = "acmed"
 version = "0.21.0"
 dependencies = [
  "acme_common",
- "async-lock 2.8.0",
+ "async-lock 3.0.0",
  "async-process",
  "bincode",
  "clap",
