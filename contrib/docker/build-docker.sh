@@ -31,8 +31,10 @@ docker pull $IMAGE
 log "Starting container..."
 CID=$(docker run --rm -td $IMAGE)
 
+docker exec "$CID" mkdir /code
+
 log "Copying project files..."
-docker cp "$DIR" "$CID":/code/
+docker cp "$DIR/." "$CID":/code/
 
 log "Starting build..."
 docker exec "$CID" /bin/bash -c "cd /code && cargo build --release"
