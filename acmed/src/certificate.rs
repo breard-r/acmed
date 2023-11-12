@@ -79,9 +79,13 @@ impl Certificate {
 			expires_in.as_secs() / 86400,
 			self.renew_delay.as_secs() / 86400,
 		));
-		Ok(expires_in
-			.saturating_sub(self.renew_delay)
-			.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew)))
+		let expires_in = expires_in.saturating_sub(self.renew_delay);
+		let expires_in = if !self.random_early_renew.is_zero() {
+			expires_in.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew))
+		} else {
+			expires_in
+		};
+		Ok(expires_in)
 	}
 
 	fn has_missing_identifiers(&self, cert: &X509Certificate) -> bool {
