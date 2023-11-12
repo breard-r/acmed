@@ -242,27 +242,27 @@ impl Account {
 	}
 
 	pub fn set_account_url(&mut self, endpoint_name: &str, account_url: &str) -> Result<(), Error> {
-		let mut ep = self.get_endpoint_mut(endpoint_name)?;
+		let ep = self.get_endpoint_mut(endpoint_name)?;
 		ep.account_url = account_url.to_string();
 		Ok(())
 	}
 
 	pub fn set_orders_url(&mut self, endpoint_name: &str, orders_url: &str) -> Result<(), Error> {
-		let mut ep = self.get_endpoint_mut(endpoint_name)?;
+		let ep = self.get_endpoint_mut(endpoint_name)?;
 		ep.orders_url = orders_url.to_string();
 		Ok(())
 	}
 
 	pub fn update_key_hash(&mut self, endpoint_name: &str) -> Result<(), Error> {
 		let key = self.current_key.clone();
-		let mut ep = self.get_endpoint_mut(endpoint_name)?;
+		let ep = self.get_endpoint_mut(endpoint_name)?;
 		ep.key_hash = hash_key(&key)?;
 		Ok(())
 	}
 
 	pub fn update_contacts_hash(&mut self, endpoint_name: &str) -> Result<(), Error> {
 		let ct = self.contacts.clone();
-		let mut ep = self.get_endpoint_mut(endpoint_name)?;
+		let ep = self.get_endpoint_mut(endpoint_name)?;
 		ep.contacts_hash = hash_contacts(&ct);
 		Ok(())
 	}
@@ -270,7 +270,7 @@ impl Account {
 	pub fn update_external_account_hash(&mut self, endpoint_name: &str) -> Result<(), Error> {
 		if let Some(ec) = &self.external_account {
 			let ec = ec.clone();
-			let mut ep = self.get_endpoint_mut(endpoint_name)?;
+			let ep = self.get_endpoint_mut(endpoint_name)?;
 			ep.external_account_hash = hash_external_account(&ec);
 		}
 		Ok(())

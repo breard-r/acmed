@@ -760,7 +760,7 @@ fn read_cnf(path: &Path, loaded_files: &mut BTreeSet<PathBuf>) -> Result<Config,
 fn dispatch_global_env_vars(config: &mut Config) {
 	if let Some(glob) = &config.global {
 		if !glob.env.is_empty() {
-			for mut cert in config.certificate.iter_mut() {
+			for cert in config.certificate.iter_mut() {
 				let mut new_vars = glob.env.clone();
 				for (k, v) in cert.env.iter() {
 					new_vars.insert(k.to_string(), v.to_string());
