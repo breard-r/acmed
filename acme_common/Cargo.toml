@@ -33,7 +33,7 @@ punycode = "0.4"
 reqwest = { version = "0.11.16", default-features = false }
 serde_json = "1.0"
 syslog = "6.0"
-toml = "0.7"
+toml = "0.8"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.26"
