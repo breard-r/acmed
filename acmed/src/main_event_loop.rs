@@ -158,9 +158,7 @@ impl MainEventLoop {
 			if let Some(acc) = self.accounts.get(&crt.account_name) {
 				if let Some(ept) = self.endpoints.get(&crt.endpoint_name) {
 					renewals.push(renew_certificate(crt, acc.clone(), ept.clone()));
-				} else {
 				}
-			} else {
 			}
 		}
 		loop {
