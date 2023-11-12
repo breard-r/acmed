@@ -14,10 +14,7 @@ MAN_DST_DIR = $(TARGET_DIR)/man
 
 FEATURES = openssl_dyn
 
-all: update acmed tacd
-
-update:
-	cargo update
+all: acmed tacd
 
 acmed: man_dir
 	if test -n "$(TARGET)"; then \
@@ -64,4 +61,4 @@ install:
 clean:
 	cargo clean
 
-.PHONY: all update acmed tacd man_dir install clean
+.PHONY: all acmed tacd man_dir install clean
