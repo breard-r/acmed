@@ -44,6 +44,14 @@ update_man_date()
     sed -i "s/\.Dd .*/\.Dd ${new_date}/" "man/en/${man_name}"
 }
 
+update_changelog()
+{
+    local new_version="$1"
+    local new_date="$2"
+
+    sed -i "s/\[Unreleased\]/\[${new_version}\] - ${new_date}/" "CHANGELOG.md"
+}
+
 check_working_directory()
 {
     local status
@@ -83,6 +91,8 @@ release_new_version()
     update_man_date "acmed.8" "${current_date}"
     update_man_date "acmed.toml.5" "${current_date}"
     update_man_date "tacd.8" "${current_date}"
+
+    update_changelog "${new_version}" "${current_date}"
 
     git diff
 
