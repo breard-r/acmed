@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Manual (and badly designed) threads have been replaced by async.
 - Randomized early delay, for spacing out renewals when dealing with a lot of certificates.
 - Replaced the template engine TinyTemplate with MiniJinja.
+- The default period of time between the certificate renewal and its expiration date (`renew_delay`) has been changed from 3 weeks to 30 days.
 
 
 ## [0.21.0] - 2022-12-19
