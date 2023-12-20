@@ -94,6 +94,8 @@ release_new_version()
 
     update_changelog "${new_version}"
 
+    cargo update
+
     git diff
 
     echo
