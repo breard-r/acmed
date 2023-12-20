@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.22.1] - 2023-12-20
 
 ### Fixed
 - The `Cargo.lock` file is now updated before a new version is released (GitHub bug #103).
