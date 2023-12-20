@@ -47,7 +47,7 @@ update_man_date()
 update_changelog()
 {
     local new_version="$1"
-    local new_date="$2"
+    local new_date=$(date "+%Y-%m-%d")
 
     sed -i "s/\[Unreleased\]/\[${new_version}\] - ${new_date}/" "CHANGELOG.md"
 }
@@ -92,7 +92,7 @@ release_new_version()
     update_man_date "acmed.toml.5" "${current_date}"
     update_man_date "tacd.8" "${current_date}"
 
-    update_changelog "${new_version}" "${current_date}"
+    update_changelog "${new_version}"
 
     git diff
 
