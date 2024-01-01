@@ -18,6 +18,7 @@ mod directory;
 mod error;
 mod order;
 
+#[allow(unused_imports)]
 pub use account::{
 	Account, AccountDeactivation, AccountKeyRollover, AccountResponse, AccountUpdate,
 };
