@@ -29,7 +29,7 @@ allow_failure = true
 name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
-args = ["{ proof }"]
+args = ["{{ proof }}"]
 stdout = "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 
 [[hook]]
@@ -72,8 +72,8 @@ type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
     "--pid-file", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
-    "--domain", "{ identifier_tls_alpn }",
-    "--acme-ext", "{ proof }",
+    "--domain", "{{ identifier_tls_alpn }}",
+    "--acme-ext", "{{ proof }}",
     "--listen", "{{ env.TACD_PORT | default('5001') }}"
 ]
 
@@ -83,8 +83,8 @@ type = ["challenge-tls-alpn-01"]
 cmd = "tacd"
 args = [
     "--pid-file", "{{ env.TACD_PID_ROOT | default('/run') }}/tacd_{{ identifier }}.pid",
-    "--domain", "{ identifier_tls_alpn }",
-    "--acme-ext", "{ proof }",
+    "--domain", "{{ identifier_tls_alpn }}",
+    "--acme-ext", "{{ proof }}",
     "--listen", "unix:{{ env.TACD_SOCK_ROOT | default('/run') }}/tacd_{{ identifier }}.sock"
 ]
 
