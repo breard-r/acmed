@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "acme_common"
-version = "0.22.1"
+version = "0.22.2"
 dependencies = [
  "base64",
  "daemonize",
@@ -25,7 +25,7 @@ dependencies = [
 
 [[package]]
 name = "acmed"
-version = "0.22.1"
+version = "0.22.2"
 dependencies = [
  "acme_common",
  "async-lock 3.2.0",
@@ -1439,7 +1439,7 @@ dependencies = [
 
 [[package]]
 name = "tacd"
-version = "0.22.1"
+version = "0.22.2"
 dependencies = [
  "acme_common",
  "anyhow",
