@@ -36,7 +36,7 @@ toml = "0.8"
 tokio = { version = "1", features = ["full"] }
 rand = "0.8.5"
 reqwest = "0.11.16"
-minijinja = "1.0.3"
+minijinja = "1.0.11"
 
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.27", features = ["fs", "user"] }
