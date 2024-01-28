@@ -162,13 +162,14 @@ pub async fn request_certificate(
 		let current_challenge = current_identifier.challenge;
 		for challenge in auth.challenges.iter() {
 			if current_challenge == *challenge {
-				let proof = challenge.get_proof(&account_s.read().await.current_key.key)?;
+				let (proof, raw_proof) =
+					challenge.get_proof(&account_s.read().await.current_key.key)?;
 				let file_name = challenge.get_file_name();
 				let identifier = auth.identifier.value.to_owned();
 
 				// Call the challenge hook in order to complete it
 				let mut data = cert
-					.call_challenge_hooks(&file_name, &proof, &identifier)
+					.call_challenge_hooks(&file_name, &proof, raw_proof, &identifier)
 					.await?;
 				data.0.is_clean_hook = true;
 				hook_datas.push(data);

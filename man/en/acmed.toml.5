@@ -522,6 +522,9 @@ ALPN extension value.
 .Xr acmed 8
 will not generate the certificate itself since it can be done using
 .Xr tacd 8 .
+.It Cm raw_proof Ar string
+The SHA-256 digest of the key authorization, encoded using Base64 URL scheme without padding. This is intended for the use of ACMEd with a TLS-ALPN responder other than
+.Xr tacd 8 .
 .El
 .It Ic challenge-tls-alpn-01-clean
 Invoked once an identifier ownership has been proven using the

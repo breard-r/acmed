@@ -62,6 +62,7 @@ pub struct ChallengeHookData {
 	pub challenge: String,
 	pub file_name: String,
 	pub proof: String,
+	pub raw_proof: String,
 	pub is_clean_hook: bool,
 	pub env: HashMap<String, String>,
 }

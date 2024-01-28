@@ -92,19 +92,23 @@ impl Challenge {
 		}
 	}
 
-	pub fn get_proof(&self, key_pair: &KeyPair) -> Result<String, Error> {
+	pub fn get_proof(&self, key_pair: &KeyPair) -> Result<(String, Option<String>), Error> {
 		match self {
-			Challenge::Http01(tc) => tc.key_authorization(key_pair),
+			Challenge::Http01(tc) => {
+				let ka = tc.key_authorization(key_pair)?;
+				Ok((ka, None))
+			}
 			Challenge::Dns01(tc) => {
 				let ka = tc.key_authorization(key_pair)?;
 				let a = HashFunction::Sha256.hash(ka.as_bytes());
 				let a = b64_encode(&a);
-				Ok(a)
+				Ok((a, None))
 			}
 			Challenge::TlsAlpn01(tc) => {
 				let acme_ext_name = format!("{ACME_OID}.{ID_PE_ACME_ID}");
 				let ka = tc.key_authorization(key_pair)?;
 				let proof = HashFunction::Sha256.hash(ka.as_bytes());
+				let b64_hash = b64_encode(&proof);
 				let proof_str = proof
 					.iter()
 					.map(|e| format!("{e:02x}"))
@@ -115,9 +119,9 @@ impl Challenge {
 					proof.len(),
 				);
 				let acme_ext = format!("{acme_ext_name}={value}");
-				Ok(acme_ext)
+				Ok((acme_ext, Some(b64_hash)))
 			}
-			Challenge::Unknown => Ok(String::new()),
+			Challenge::Unknown => Ok((String::new(), None)),
 		}
 	}
 

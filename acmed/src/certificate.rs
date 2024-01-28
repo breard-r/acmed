@@ -141,6 +141,7 @@ impl Certificate {
 		&self,
 		file_name: &str,
 		proof: &str,
+		raw_proof: Option<String>,
 		identifier: &str,
 	) -> Result<(ChallengeHookData, HookType), Error> {
 		let identifier = self.get_identifier_from_str(identifier)?;
@@ -150,6 +151,7 @@ impl Certificate {
 			identifier_tls_alpn: identifier.get_tls_alpn_name().unwrap_or_default(),
 			file_name: file_name.to_string(),
 			proof: proof.to_string(),
+			raw_proof: raw_proof.unwrap_or_default().to_string(),
 			is_clean_hook: false,
 			env: HashMap::new(),
 		};
