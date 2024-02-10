@@ -1,6 +1,6 @@
 [package]
 name = "acmed"
-version = "0.22.2"
+version = "0.23.0"
 authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 description = "ACME (RFC 8555) client daemon"
