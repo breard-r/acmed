@@ -12,7 +12,7 @@ categories = ["cryptography"]
 build = "build.rs"
 include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 publish = false
-rust-version = "1.71.0"
+rust-version = "1.74.0"
 
 [features]
 default = ["openssl_dyn"]

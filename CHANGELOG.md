@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `challenge-tls-alpn-01` hook now exposes the `raw_proof` variable, which contains the SHA-256 digest of the key authorization, encoded using Base64 URL scheme without padding.
 
 ### Changed
-- The minimum supported Rust version (MSRV) is now 1.71.
+- The minimum supported Rust version (MSRV) is now 1.74.
 
 
 ## [0.22.2] - 2024-01-09

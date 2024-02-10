@@ -77,7 +77,7 @@ man =(curl -sSf "https://raw.githubusercontent.com/breard-r/acmed/main/man/en/ta
 
 ## Build from source
 
-In order to compile ACMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimum supported Rust version(MSRV) is 1.71, although it is recommended to use the latest stable one.
+In order to compile ACMEd, you will need the [Rust](https://www.rust-lang.org/) compiler and its package manager, Cargo. The minimum supported Rust version(MSRV) is 1.74, although it is recommended to use the latest stable one.
 
 ACMEd depends OpenSSL 1.1.0 or higher.
 
