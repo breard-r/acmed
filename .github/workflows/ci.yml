@@ -30,7 +30,7 @@ jobs:
       - name: Update Rust
         run: rustup update stable
       - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+        run: cargo +stable fmt --all -- --check
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
