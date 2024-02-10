@@ -27,11 +27,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          components: rustfmt
-      - name: Rustfmt Check
-        uses: actions-rust-lang/rustfmt@v1
+      - name: Update Rust
+        run: rustup update stable
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
   cargo-deny:
     name: Check dependencies
     runs-on: ubuntu-latest
