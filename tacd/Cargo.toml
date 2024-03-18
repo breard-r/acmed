@@ -22,7 +22,7 @@ openssl_vendored = ["crypto_openssl", "acme_common/openssl_vendored"]
 [dependencies]
 acme_common = { path = "../acme_common" }
 anyhow = "1.0"
-clap = { version = "4.0", features = ["string"] }
+clap = { version = "4.5", features = ["string"] }
 log = "0.4"
 openssl = "0.10"
 thiserror = "1.0"
