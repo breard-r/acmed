@@ -20,20 +20,20 @@ openssl_dyn = ["crypto_openssl", "openssl", "openssl-sys"]
 openssl_vendored = ["crypto_openssl", "openssl/vendored", "openssl-sys/vendored"]
 
 [dependencies]
-base64 = "0.21"
-daemonize = "0.5"
-env_logger = "0.11"
-glob = "0.3"
-log = "0.4"
-minijinja = "1.0.3"
-native-tls = "0.2"
-openssl = { version = "0.10", optional = true }
-openssl-sys = { version = "0.9", optional = true }
-punycode = "0.4"
-reqwest = { version = "0.11.16", default-features = false }
-serde_json = "1.0"
-syslog = "6.0"
-toml = "0.8"
+base64 = "0.22.0"
+daemonize = "0.5.0"
+env_logger = "0.11.3"
+glob = "0.3.1"
+log = "0.4.21"
+minijinja = "1.0.15"
+native-tls = "0.2.11"
+openssl = { version = "0.10.64", optional = true }
+openssl-sys = { version = "0.9.101", optional = true }
+punycode = "0.4.1"
+reqwest = { version = "0.12.1", default-features = false }
+serde_json = "1.0.114"
+syslog = "6.1.0"
+toml = "0.8.12"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.27"
+nix = "0.28.0"
