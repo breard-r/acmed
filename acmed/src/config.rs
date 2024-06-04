@@ -147,6 +147,13 @@ impl Config {
 		}
 	}
 
+	pub fn get_cert_file_ext(&self) -> Option<String> {
+		match &self.global {
+			Some(g) => g.cert_file_ext.to_owned(),
+			None => None,
+		}
+	}
+
 	pub fn get_pk_file_mode(&self) -> u32 {
 		match &self.global {
 			Some(g) => match g.pk_file_mode {
@@ -170,6 +177,13 @@ impl Config {
 			None => None,
 		}
 	}
+
+	pub fn get_pk_file_ext(&self) -> Option<String> {
+		match &self.global {
+			Some(g) => g.pk_file_ext.to_owned(),
+			None => None,
+		}
+	}
 }
 
 #[derive(Clone, Deserialize)]
@@ -179,6 +193,7 @@ pub struct GlobalOptions {
 	pub cert_file_group: Option<String>,
 	pub cert_file_mode: Option<u32>,
 	pub cert_file_user: Option<String>,
+	pub cert_file_ext: Option<String>,
 	pub certificates_directory: Option<String>,
 	#[serde(default)]
 	pub env: HashMap<String, String>,
@@ -186,6 +201,7 @@ pub struct GlobalOptions {
 	pub pk_file_group: Option<String>,
 	pub pk_file_mode: Option<u32>,
 	pub pk_file_user: Option<String>,
+	pub pk_file_ext: Option<String>,
 	pub random_early_renew: Option<String>,
 	pub renew_delay: Option<String>,
 	pub root_certificates: Option<Vec<String>>,

@@ -57,9 +57,11 @@ impl MainEventLoop {
 				cert_file_mode: cnf.get_cert_file_mode(),
 				cert_file_owner: cnf.get_cert_file_user(),
 				cert_file_group: cnf.get_cert_file_group(),
+				cert_file_ext: cnf.get_cert_file_ext(),
 				pk_file_mode: cnf.get_pk_file_mode(),
 				pk_file_owner: cnf.get_pk_file_user(),
 				pk_file_group: cnf.get_pk_file_group(),
+				pk_file_ext: cnf.get_pk_file_ext(),
 				hooks: acc
 					.get_hooks(&cnf)?
 					.iter()
@@ -91,9 +93,11 @@ impl MainEventLoop {
 				cert_file_mode: cnf.get_cert_file_mode(),
 				cert_file_owner: cnf.get_cert_file_user(),
 				cert_file_group: cnf.get_cert_file_group(),
+				cert_file_ext: cnf.get_cert_file_ext(),
 				pk_file_mode: cnf.get_pk_file_mode(),
 				pk_file_owner: cnf.get_pk_file_user(),
 				pk_file_group: cnf.get_pk_file_group(),
+				pk_file_ext: cnf.get_pk_file_ext(),
 				hooks: hooks
 					.iter()
 					.filter(|h| !h.hook_type.is_disjoint(&file_hooks))
