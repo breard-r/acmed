@@ -9,10 +9,7 @@ use std::thread;
 #[cfg(target_family = "unix")]
 use std::os::unix::net::UnixListener;
 
-#[cfg(ossl110)]
 const ALPN_ERROR: AlpnError = AlpnError::ALERT_FATAL;
-#[cfg(not(ossl110))]
-const ALPN_ERROR: AlpnError = AlpnError::NOACK;
 
 macro_rules! listen_and_accept {
 	($lt: ident, $addr: ident, $acceptor: ident) => {
