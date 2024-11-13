@@ -22,9 +22,11 @@ pub struct FileManager {
 	pub cert_file_mode: u32,
 	pub cert_file_owner: Option<String>,
 	pub cert_file_group: Option<String>,
+	pub cert_file_ext: Option<String>,
 	pub pk_file_mode: u32,
 	pub pk_file_owner: Option<String>,
 	pub pk_file_group: Option<String>,
+	pub pk_file_ext: Option<String>,
 	pub hooks: Vec<Hook>,
 	pub env: HashMap<String, String>,
 }
@@ -93,17 +95,22 @@ fn get_file_full_path(
 		FileType::PrivateKey => &fm.crt_directory,
 		FileType::Certificate => &fm.crt_directory,
 	};
+	let ext = match file_type {
+		FileType::Account => "bin".to_string(),
+		FileType::PrivateKey => fm.pk_file_ext.clone().unwrap_or("pem".to_string()),
+		FileType::Certificate => fm.cert_file_ext.clone().unwrap_or("pem".to_string()),
+	};
 	let file_name = match file_type {
 		FileType::Account => format!(
 			"{account}.{file_type}.{ext}",
 			account = b64_encode(&fm.account_name),
 			file_type = file_type,
-			ext = "bin"
+			ext = ext
 		),
 		FileType::PrivateKey | FileType::Certificate => {
 			let fmt_data = CertFileFormat {
 				key_type: fm.crt_key_type.to_string(),
-				ext: "pem".into(),
+				ext,
 				file_type: file_type.to_string(),
 				name: fm.crt_name.to_owned(),
 			};

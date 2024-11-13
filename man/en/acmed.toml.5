@@ -136,9 +136,10 @@ element, is used. Default is
 Possible variables are:
 .Bl -tag
 .It Ic ext Ar string
-File extension. Currently, only
-.Dq pem
-is supported.
+File extension. See
+.Xr cert_file_ext
+and
+.Xr pk_file_ext
 .It Ic file_type Ar string
 Contains
 .Dq pk
@@ -285,6 +286,8 @@ for more details.
 Specify the user who will own newly-created certificates files. See
 .Xr chown 2
 for more details.
+.It Cm cert_file_ext Ft string
+Specify the file extension of certificate files.
 .It Cm certificates_directory Ar string
 Specify the directory where the certificates and their associated private keys are stored.
 .It Ic env Ar table
@@ -307,6 +310,8 @@ for more details.
 Specify the user who will own newly-created private-key files. See
 .Xr chown 2
 for more details.
+.It Cm pk_file_ext Ft string
+Specify the file extension of private-key files.
 .It Cm random_early_renew Ar string
 Period of time before the usual certificate renewal, in which the certificate will renew at a random time. This is useful for when
 you want to even out your certificate orders when you're dealing with very large numbers of certificates. The format is described in the
