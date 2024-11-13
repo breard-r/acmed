@@ -29,9 +29,13 @@ impl NewOrder {
 #[serde(rename_all = "camelCase")]
 pub struct Order {
 	pub status: OrderStatus,
+	#[allow(dead_code)]
 	pub expires: Option<String>,
+	#[allow(dead_code)]
 	pub identifiers: Vec<Identifier>,
+	#[allow(dead_code)]
 	pub not_before: Option<String>,
+	#[allow(dead_code)]
 	pub not_after: Option<String>,
 	pub error: Option<HttpApiError>,
 	pub authorizations: Vec<String>,

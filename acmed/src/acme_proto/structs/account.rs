@@ -49,9 +49,13 @@ impl Account {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountResponse {
+	#[allow(dead_code)]
 	pub status: String,
+	#[allow(dead_code)]
 	pub contact: Option<Vec<String>>,
+	#[allow(dead_code)]
 	pub terms_of_service_agreed: Option<bool>,
+	#[allow(dead_code)]
 	pub external_account_binding: Option<Value>,
 	pub orders: Option<String>,
 }

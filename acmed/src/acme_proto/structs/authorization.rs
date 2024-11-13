@@ -15,8 +15,10 @@ const DER_STRUCT_NAME: &str = "DER";
 pub struct Authorization {
 	pub identifier: Identifier,
 	pub status: AuthorizationStatus,
+	#[allow(dead_code)]
 	pub expires: Option<String>,
 	pub challenges: Vec<Challenge>,
+	#[allow(dead_code)]
 	pub wildcard: Option<bool>,
 }
 

@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub struct DirectoryMeta {
 	pub terms_of_service: Option<String>,
 	pub website: Option<String>,
@@ -14,11 +15,14 @@ pub struct DirectoryMeta {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Directory {
+	#[allow(dead_code)]
 	pub meta: Option<DirectoryMeta>,
 	pub new_nonce: String,
 	pub new_account: String,
 	pub new_order: String,
+	#[allow(dead_code)]
 	pub new_authz: Option<String>,
+	#[allow(dead_code)]
 	pub revoke_cert: String,
 	pub key_change: String,
 }
