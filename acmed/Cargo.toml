@@ -36,10 +36,10 @@ toml = "0.8.12"
 tokio = { version = "1.36.0", features = ["full"] }
 rand = "0.8.5"
 reqwest = "0.12.1"
-minijinja = "1.0.3"
+minijinja = "2.5.0"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["fs", "user"] }
+nix = { version = "0.29.0", features = ["fs", "user"] }
 
 [build-dependencies]
 serde = { version = "1.0.197", features = ["derive"] }

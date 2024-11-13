@@ -25,4 +25,4 @@ anyhow = "1.0.81"
 clap = { version = "4.5.3", features = ["string"] }
 log = "0.4.21"
 openssl = "0.10.64"
-thiserror = "1.0.58"
+thiserror = "2.0.3"
