@@ -10,9 +10,9 @@ pub enum KeyType {
 	EcdsaP256,
 	EcdsaP384,
 	EcdsaP521,
-	#[cfg(ed25519)]
+	#[cfg(feature = "ed25519")]
 	Ed25519,
-	#[cfg(ed448)]
+	#[cfg(feature = "ed448")]
 	Ed448,
 }
 
@@ -23,9 +23,9 @@ impl KeyType {
 			KeyType::EcdsaP256 => JwsSignatureAlgorithm::Es256,
 			KeyType::EcdsaP384 => JwsSignatureAlgorithm::Es384,
 			KeyType::EcdsaP521 => JwsSignatureAlgorithm::Es512,
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			KeyType::Ed25519 => JwsSignatureAlgorithm::Ed25519,
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			KeyType::Ed448 => JwsSignatureAlgorithm::Ed448,
 		}
 	}
@@ -36,9 +36,9 @@ impl KeyType {
 			KeyType::EcdsaP256 | KeyType::EcdsaP384 | KeyType::EcdsaP521 => {
 				*alg == self.get_default_signature_alg()
 			}
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			KeyType::Ed25519 => *alg == self.get_default_signature_alg(),
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			KeyType::Ed448 => *alg == self.get_default_signature_alg(),
 		};
 		if ok {
@@ -58,9 +58,9 @@ impl KeyType {
 			"ecdsa-p256",
 			"ecdsa-p384",
 			"ecdsa-p521",
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			"ed25519",
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			"ed448",
 		]
 	}
@@ -76,9 +76,9 @@ impl FromStr for KeyType {
 			"ecdsa_p256" => Ok(KeyType::EcdsaP256),
 			"ecdsa_p384" => Ok(KeyType::EcdsaP384),
 			"ecdsa_p521" => Ok(KeyType::EcdsaP521),
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			"ed25519" => Ok(KeyType::Ed25519),
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			"ed448" => Ok(KeyType::Ed448),
 			_ => Err(format!("{s}: unknown algorithm").into()),
 		}
@@ -93,9 +93,9 @@ impl fmt::Display for KeyType {
 			KeyType::EcdsaP256 => "ecdsa-p256",
 			KeyType::EcdsaP384 => "ecdsa-p384",
 			KeyType::EcdsaP521 => "ecdsa-p521",
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			KeyType::Ed25519 => "ed25519",
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			KeyType::Ed448 => "ed448",
 		};
 		write!(f, "{s}")

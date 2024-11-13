@@ -13,14 +13,14 @@ use std::net::IpAddr;
 use std::time::Duration;
 
 fn get_digest(digest: HashFunction, key_pair: &KeyPair) -> MessageDigest {
-	#[cfg(not(any(ed25519, ed448)))]
+	#[cfg(not(any(feature = "ed25519", feature = "ed448")))]
 	let digest = digest.native_digest();
 	let _ = key_pair;
-	#[cfg(any(ed25519, ed448))]
+	#[cfg(any(feature = "ed25519", feature = "ed448"))]
 	let digest = match key_pair.key_type {
-		#[cfg(ed25519)]
+		#[cfg(feature = "ed25519")]
 		KeyType::Ed25519 => MessageDigest::null(),
-		#[cfg(ed448)]
+		#[cfg(feature = "ed448")]
 		KeyType::Ed448 => MessageDigest::null(),
 		_ => digest.native_digest(),
 	};

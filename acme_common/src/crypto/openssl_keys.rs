@@ -33,9 +33,9 @@ macro_rules! get_key_type {
 					return Err("unsupported EC key".into());
 				}
 			},
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			Id::ED25519 => KeyType::Ed25519,
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			Id::ED448 => KeyType::Ed448,
 			_ => {
 				return Err("unsupported key type".into());
@@ -112,9 +112,9 @@ impl KeyPair {
 			JwsSignatureAlgorithm::Es256 => self.sign_ecdsa(&HashFunction::Sha256, data),
 			JwsSignatureAlgorithm::Es384 => self.sign_ecdsa(&HashFunction::Sha384, data),
 			JwsSignatureAlgorithm::Es512 => self.sign_ecdsa(&HashFunction::Sha512, data),
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			JwsSignatureAlgorithm::Ed25519 => self.sign_eddsa(data),
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			JwsSignatureAlgorithm::Ed448 => self.sign_eddsa(data),
 		}
 	}
@@ -144,7 +144,7 @@ impl KeyPair {
 		Ok(signature)
 	}
 
-	#[cfg(any(ed25519, ed448))]
+	#[cfg(any(feature = "ed25519", feature = "ed448"))]
 	fn sign_eddsa(&self, data: &[u8]) -> Result<Vec<u8>, Error> {
 		let mut signer = Signer::new_without_digest(&self.inner_key)?;
 		let signature = signer.sign_oneshot_to_vec(data)?;
@@ -165,9 +165,9 @@ impl KeyPair {
 			KeyType::EcdsaP256 | KeyType::EcdsaP384 | KeyType::EcdsaP521 => {
 				self.get_ecdsa_jwk(thumbprint)
 			}
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			KeyType::Ed25519 => self.get_eddsa_jwk(thumbprint),
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			KeyType::Ed448 => self.get_eddsa_jwk(thumbprint),
 		}
 	}
@@ -236,12 +236,12 @@ impl KeyPair {
 		Ok(jwk)
 	}
 
-	#[cfg(any(ed25519, ed448))]
+	#[cfg(any(feature = "ed25519", feature = "ed448"))]
 	fn get_eddsa_jwk(&self, thumbprint: bool) -> Result<Value, Error> {
 		let crv = match self.key_type {
-			#[cfg(ed25519)]
+			#[cfg(feature = "ed25519")]
 			KeyType::Ed25519 => "Ed25519",
-			#[cfg(ed448)]
+			#[cfg(feature = "ed448")]
 			KeyType::Ed448 => "Ed448",
 			_ => {
 				return Err("not an EdDSA elliptic curve".into());
@@ -310,13 +310,13 @@ fn gen_ec_pair(nid: Nid) -> Result<PKey<Private>, Error> {
 	Ok(pk)
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 fn gen_ed25519_pair() -> Result<PKey<Private>, Error> {
 	let pk = PKey::generate_ed25519().map_err(|_| Error::from(""))?;
 	Ok(pk)
 }
 
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 fn gen_ed448_pair() -> Result<PKey<Private>, Error> {
 	let pk = PKey::generate_ed448().map_err(|_| Error::from(""))?;
 	Ok(pk)
@@ -329,9 +329,9 @@ pub fn gen_keypair(key_type: KeyType) -> Result<KeyPair, Error> {
 		KeyType::EcdsaP256 => gen_ec_pair(Nid::X9_62_PRIME256V1),
 		KeyType::EcdsaP384 => gen_ec_pair(Nid::SECP384R1),
 		KeyType::EcdsaP521 => gen_ec_pair(Nid::SECP521R1),
-		#[cfg(ed25519)]
+		#[cfg(feature = "ed25519")]
 		KeyType::Ed25519 => gen_ed25519_pair(),
-		#[cfg(ed448)]
+		#[cfg(feature = "ed448")]
 		KeyType::Ed448 => gen_ed448_pair(),
 	}
 	.map_err(|_| Error::from(format!("unable to generate a {key_type} key pair")))?;

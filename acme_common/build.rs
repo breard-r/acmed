@@ -12,8 +12,8 @@ fn main() {
 		let version = u64::from_str_radix(&v, 16).unwrap();
 		// OpenSSL 1.1.1
 		if version >= 0x1_01_01_00_0 {
-			println!("cargo:rustc-cfg=ed25519");
-			println!("cargo:rustc-cfg=ed448");
+			println!("cargo:rustc-cfg=feature=\"ed25519\"");
+			println!("cargo:rustc-cfg=feature=\"ed448\"");
 		}
 		set_rustc_env_var!("ACMED_TLS_LIB_NAME", "OpenSSL");
 	}

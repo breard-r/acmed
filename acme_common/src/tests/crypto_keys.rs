@@ -88,15 +88,15 @@ const KEY_ECDSA_P384_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 ME4CAQAwEAYHKoZIzj0CAQYFK4EEACIENzA1AgEBBDCMsN9kHPueLABk+0PKi7WO
 PO2/53dpt/yV5zOPrYPEoKs4t973nbt46IUN19lLF/s=
 -----END PRIVATE KEY-----"#;
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 const KEY_ECDSA_ED25519_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIJhpRNsiUzoWqNkpJKCtKV5++Tttz3locu1gQKkQnrOa
 -----END PRIVATE KEY-----"#;
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 const KEY_ECDSA_ED25519_PEM_BIS: &str = r#"-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIKa3WD0qeUToPQKSwa9cTsLPgCovqAtXMhlMX2KYBz0o
 -----END PRIVATE KEY-----"#;
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 const KEY_ECDSA_ED448_PEM: &str = r#"-----BEGIN PRIVATE KEY-----
 MEcCAQAwBQYDK2VxBDsEOcFBwsH4zU7u5RgFh48MgJPzXyjN5uXxDapZv4rG6opU
 uMXco2JR1CSjKWgqgu1CAKadJIYiv2EgIw==
@@ -278,7 +278,7 @@ fn test_ecdsa_p384_jwk_thumbprint() {
 	);
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn test_ed25519_jwk() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM.as_bytes()).unwrap();
@@ -301,7 +301,7 @@ fn test_ed25519_jwk() {
 	assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn test_ed25519_jwk_thumbprint() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM.as_bytes()).unwrap();
@@ -322,7 +322,7 @@ fn test_ed25519_jwk_thumbprint() {
 	);
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn test_ed25519_jwk_bis() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM_BIS.as_bytes()).unwrap();
@@ -345,7 +345,7 @@ fn test_ed25519_jwk_bis() {
 	assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn test_ed25519_jwk_thumbprint_bis() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED25519_PEM_BIS.as_bytes()).unwrap();
@@ -366,7 +366,7 @@ fn test_ed25519_jwk_thumbprint_bis() {
 	);
 }
 
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 #[test]
 fn test_ed448_jwk() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED448_PEM.as_bytes()).unwrap();
@@ -389,7 +389,7 @@ fn test_ed448_jwk() {
 	assert_eq!(jwk.get("alg").unwrap(), "EdDSA");
 }
 
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 #[test]
 fn test_ed448_jwk_thumbprint() {
 	let k = KeyPair::from_pem(KEY_ECDSA_ED448_PEM.as_bytes()).unwrap();

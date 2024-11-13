@@ -143,7 +143,7 @@ fn generate_ecdsa_p384_certificate() {
 	assert_eq!(kp.key_type, KeyType::EcdsaP384);
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn generate_ed25519_certificate() {
 	let (kp, _) =
@@ -152,7 +152,7 @@ fn generate_ed25519_certificate() {
 	assert_eq!(kp.key_type, KeyType::Ed25519);
 }
 
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 #[test]
 fn generate_ed448_certificate() {
 	let (kp, _) =

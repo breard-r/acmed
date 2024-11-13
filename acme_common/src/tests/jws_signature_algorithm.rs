@@ -47,14 +47,14 @@ fn test_es384_sign_p256() {
 	assert!(res.is_err());
 }
 
-#[cfg(ed25519)]
+#[cfg(feature = "ed25519")]
 #[test]
 fn test_ed25519_sign() {
 	let k = gen_keypair(KeyType::Ed25519).unwrap();
 	let _ = k.sign(&JwsSignatureAlgorithm::Ed25519, TEST_DATA).unwrap();
 }
 
-#[cfg(ed448)]
+#[cfg(feature = "ed448")]
 #[test]
 fn test_ed448_sign() {
 	let k = gen_keypair(KeyType::Ed448).unwrap();
