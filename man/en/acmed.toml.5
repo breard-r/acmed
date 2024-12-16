@@ -773,7 +773,7 @@ args = [
 name = "http-01-echo-echo"
 type = ["challenge-http-01"]
 cmd = "echo"
-args = ["{ proof }"]
+args = ["{{ proof }}"]
 stdout = "{{ env.HTTP_ROOT | default('/var/www') }}/{{ identifier }}/.well-known/acme-challenge/{{ file_name }}"
 
 [[hook]]
