@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- The file extension can now be customized.
+
 ### Changed
 - tacd does no longer supports OpenSSL 1.0.
 
