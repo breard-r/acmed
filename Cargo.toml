@@ -1,11 +1,37 @@
-[workspace]
-members = [
-    "acmed",
-    "tacd",
-]
+[package]
+name = "acmed"
+version = "0.25.0-dev"
+authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
+edition = "2021"
+description = "ACME (RFC 8555) client daemon"
+readme = "README.md"
+repository = "https://github.com/breard-r/acmed"
+license = "MIT OR Apache-2.0"
+keywords = ["acme", "tls", "X.509"]
+categories = ["cryptography"]
+include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+publish = false
+rust-version = "1.74.0"
+
+[features]
+default = ["openssl_dyn"]
+crypto_openssl = []
+openssl_dyn = ["crypto_openssl"]
+openssl_vendored = ["crypto_openssl"]
+ed25519 = []
+ed448 = []
+
+[dependencies]
+
+[target.'cfg(unix)'.dependencies]
+
+[build-dependencies]
 
 [profile.release]
-opt-level = 'z'
-lto = 'thin'
+opt-level = "z"
+debug = false
+lto = true
 codegen-units = 1
-panic = 'abort'
+panic = "abort"
+strip = true
+incremental = false

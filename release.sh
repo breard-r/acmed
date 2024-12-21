@@ -12,19 +12,17 @@ abort_release()
 
 display_crate_version()
 {
-    local crate_name="$1"
     local crate_version
 
-    crate_version=$(grep "^version" "${crate_name}/Cargo.toml" | cut -d '"' -f2)
-    echo "Current version for crate ${crate_name}: ${crate_version}"
+    crate_version=$(grep "^version" "Cargo.toml" | cut -d '"' -f2)
+    echo "Current version: ${crate_version}"
 }
 
 update_crate_version()
 {
-    local crate_name="$1"
     local new_version="$2"
 
-    sed -i "s/^version = .*/version = \"${new_version}\"/" "${crate_name}/Cargo.toml"
+    sed -i "s/^version = .*/version = \"${new_version}\"/" "/Cargo.toml"
 }
 
 display_man_date()
@@ -84,13 +82,10 @@ release_new_version()
     local current_date="$2"
     local confirm_git_diff
 
-    update_crate_version "acme_common" "${new_version}"
-    update_crate_version "acmed" "${new_version}"
-    update_crate_version "tacd" "${new_version}"
+    update_crate_version "${new_version}"
 
     update_man_date "acmed.8" "${current_date}"
     update_man_date "acmed.toml.5" "${current_date}"
-    update_man_date "tacd.8" "${current_date}"
 
     update_changelog "${new_version}"
 
@@ -118,14 +113,11 @@ main()
 
     check_working_directory
 
-    display_crate_version "acme_common"
-    display_crate_version "acmed"
-    display_crate_version "tacd"
+    display_crate_version
 
     echo
     display_man_date "acmed.8"
     display_man_date "acmed.toml.5"
-    display_man_date "tacd.8"
 
     echo
     echo -n "Enter the new version: "
