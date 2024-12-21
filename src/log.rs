@@ -23,8 +23,17 @@ impl Level {
 }
 
 pub fn init(level: Level, is_syslog: bool) {
-	let subscriber = FmtSubscriber::builder()
-		.with_max_level(level.tracing())
-		.finish();
-	tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+	if is_syslog {
+		let identity = std::ffi::CStr::from_bytes_with_nul(crate::APP_IDENTITY).unwrap();
+		let (options, facility) = Default::default();
+		let syslog = syslog_tracing::Syslog::new(identity, options, facility)
+			.expect("building syslog subscriber failed");
+		tracing_subscriber::fmt().with_writer(syslog).init();
+	} else {
+		let subscriber = FmtSubscriber::builder()
+			.with_max_level(level.tracing())
+			.finish();
+		tracing::subscriber::set_global_default(subscriber)
+			.expect("setting default subscriber failed");
+	}
 }
