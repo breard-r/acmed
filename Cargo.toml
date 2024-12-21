@@ -22,6 +22,7 @@ ed25519 = []
 ed448 = []
 
 [dependencies]
+tokio = { version = "1.42.0", default-features = false, features = ["rt", "rt-multi-thread"] }
 
 [target.'cfg(unix)'.dependencies]
 
