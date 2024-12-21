@@ -22,6 +22,7 @@ ed25519 = []
 ed448 = []
 
 [dependencies]
+clap = { version = "4.5.23", default-features = false, features = ["color", "derive", "help", "std"] }
 tokio = { version = "1.42.0", default-features = false, features = ["rt", "rt-multi-thread"] }
 tracing = { version = "0.1.41", default-features = false, features = ["std"] }
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["ansi", "fmt", "std"] }
