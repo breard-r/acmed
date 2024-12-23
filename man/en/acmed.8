@@ -12,7 +12,7 @@
 .Nd ACME client daemon
 .Sh SYNOPSIS
 .Nm
-.Op Fl c|--config Ar FILE
+.Op Fl c|--config Ar DIR
 .Op Fl f|--foreground
 .Op Fl h|--help
 .Op Fl -log-stderr
@@ -32,32 +32,32 @@ client daemon which can automatically request and renew X.509 security certifica
 The options are as follows:
 .Bl -tag
 .It Fl c, -config Ar FILE
-Specify an alternative configuration file.
+Specify an alternative configuration directory.
 .It Fl f, -foreground
-Runs in the foreground
+Runs in the foreground.
 .It Fl h, -help
-Prints help information
+Prints help information.
 .It Fl -log-stderr
-Prints log messages to the standard error output
+Prints log messages to the standard error output.
 .It Fl -log-syslog
-Sends log messages via syslog
+Sends log messages via syslog.
 .It Fl -log-level Ar LEVEL
 Specify the log level. Possible values: error, warn, info, debug and trace.
 .It Fl -no-pid-file
-Do not create any PID file
+Do not create any PID file.
 .It Fl -pid-file Ar FILE
-Specifies the location of the PID file
+Specifies the location of the PID file.
 .It Fl -root-cert Ar FILE
 Add a root certificate to the trust store. This option can be used multiple times.
 .It Fl V, -version
-Prints version information
+Prints version information.
 .El
 .Sh FILES
 .Bl -tag
-.It Pa /etc/acmed/acmed.toml
+.It Pa /etc/acmed/conf-enabled
 Default
 .Nm
-configuration file.
+configuration directory.
 .El
 .Sh SEE ALSO
 .Xr acmed.toml 5 ,

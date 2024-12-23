@@ -287,7 +287,8 @@ Specify the user who will own newly-created certificates files. See
 .Xr chown 2
 for more details.
 .It Cm cert_file_ext Ft string
-Specify the file extension of certificate files.
+Specify the file extension of certificate files. Default is
+.Dq pem .
 .It Cm certificates_directory Ar string
 Specify the directory where the certificates and their associated private keys are stored.
 .It Ic env Ar table
@@ -382,19 +383,6 @@ file-pre-edit
 post-operation
 .El
 .El
-.It Ic include
-Array containing the path to configuration file to include. The path can be either relative or absolute. If relative, it is relative to the configuration file which included it.
-.Pp
-In case or overlapping global option definition, the one of the last included file will be used. For example, if a file
-.Em A
-includes files
-.Em B
-and
-.Em C
-and all three defines the same global option, the final value will be the one defined in file
-.Em C .
-.Pp
-Unix style globing is supported.
 .It Ic rate-limit
 Array of table where each element defines a HTTPS rate limit.
 .Bl -tag

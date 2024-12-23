@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 pub struct CliArgs {
-	/// Path to the main configuration file
-	#[arg(short, long, value_name = "FILE", default_value = crate::DEFAULT_CONFIG_PATH)]
+	/// Path to the main configuration directory
+	#[arg(short, long, value_name = "DIR", default_value = get_default_config_dir().into_os_string())]
 	pub config: PathBuf,
 
 	/// Specify the log level
@@ -44,7 +44,7 @@ pub struct Log {
 #[group(multiple = false)]
 pub struct Pid {
 	/// Path to the PID file
-	#[arg(long, value_name = "FILE", default_value = crate::DEFAULT_PID_FILE)]
+	#[arg(long, value_name = "FILE", default_value = get_default_pid_file().into_os_string())]
 	pid_file: PathBuf,
 
 	/// Do not create any PID file
@@ -62,6 +62,25 @@ impl Pid {
 	}
 }
 
+fn get_default_config_dir() -> PathBuf {
+	let mut path = match option_env!("SYSCONFDIR") {
+		Some(s) => PathBuf::from(s),
+		None => PathBuf::from("/etc"),
+	};
+	path.push("acmed");
+	path.push("conf-enabled");
+	path
+}
+
+fn get_default_pid_file() -> PathBuf {
+	let mut path = match option_env!("RUNSTATEDIR") {
+		Some(s) => PathBuf::from(s),
+		None => PathBuf::from("/run"),
+	};
+	path.push("acmed.pid");
+	path
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -76,16 +95,16 @@ mod tests {
 	fn no_args() {
 		let args: &[&str] = &[];
 		let pa = CliArgs::try_parse_from(args).unwrap();
-		assert_eq!(pa.config, PathBuf::from(crate::DEFAULT_CONFIG_PATH));
+		assert_eq!(pa.config, get_default_config_dir());
 		assert_eq!(pa.log_level, Level::Warn);
 		assert_eq!(pa.log.log_syslog, false);
 		assert_eq!(pa.log.log_stderr, false);
 		assert_eq!(pa.foreground, false);
-		assert_eq!(pa.pid.pid_file, PathBuf::from(crate::DEFAULT_PID_FILE));
+		assert_eq!(pa.pid.pid_file, get_default_pid_file());
 		assert_eq!(pa.pid.no_pid_file, false);
 		assert_eq!(
 			pa.pid.get_pid_file(),
-			Some(PathBuf::from(crate::DEFAULT_PID_FILE).as_path())
+			Some(get_default_pid_file().as_path())
 		);
 		assert!(pa.root_cert.is_empty());
 	}

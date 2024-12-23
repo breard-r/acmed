@@ -1,9 +1,0 @@
-# ------------------------------------------------------------------------
-# Base configruation for ACMEd
-# You should adapt this file to include/enhance with your custom toml's
-# ------------------------------------------------------------------------
-
-include = [
-    "default_hooks.toml",
-    "letsencrypt.toml",
-]

@@ -1,0 +1,68 @@
+use serde_derive::Deserialize;
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RateLimit {
+	pub name: String,
+	pub number: usize,
+	pub period: String,
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::config::load_str;
+
+	#[test]
+	fn empty() {
+		let res = load_str::<RateLimit>("");
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn ok() {
+		let cfg = r#"
+name = "test"
+number = 20
+period = "20s"
+"#;
+
+		let rl: RateLimit = load_str(cfg).unwrap();
+		assert_eq!(rl.name, "test");
+		assert_eq!(rl.number, 20);
+		assert_eq!(rl.period, "20s");
+	}
+
+	#[test]
+	fn missing_name() {
+		let cfg = r#"
+number = 20
+period = "20s"
+"#;
+
+		let res = load_str::<RateLimit>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn missing_number() {
+		let cfg = r#"
+name = "test"
+period = "20s"
+"#;
+
+		let res = load_str::<RateLimit>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn missing_period() {
+		let cfg = r#"
+name = "test"
+number = 20
+"#;
+
+		let res = load_str::<RateLimit>(cfg);
+		assert!(res.is_err());
+	}
+}

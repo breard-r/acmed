@@ -37,9 +37,7 @@ install:
 	    install -m 0755 $(TARGET_DIR)/acmed $(DESTDIR)$(BINDIR)/acmed; \
 	    install -m 0644 $(TARGET_DIR)/man/acmed.8.gz $(DESTDIR)$(MAN8DIR)/acmed.8.gz; \
 	    install -m 0644 $(TARGET_DIR)/man/acmed.toml.5.gz $(DESTDIR)$(MAN5DIR)/acmed.toml.5.gz; \
-	    install -m 0644 acmed/config/acmed.toml $(DESTDIR)$(SYSCONFDIR)/acmed/acmed.toml; \
-	    install -m 0644 acmed/config/default_hooks.toml $(DESTDIR)$(SYSCONFDIR)/acmed/default_hooks.toml; \
-	    install -m 0644 acmed/config/letsencrypt.toml $(DESTDIR)$(SYSCONFDIR)/acmed/letsencrypt.toml; \
+	    install -m 0644 acmed/config/letsencrypt.toml $(DESTDIR)$(SYSCONFDIR)/acmed/conf-available/letsencrypt.toml; \
 	fi
 
 clean:

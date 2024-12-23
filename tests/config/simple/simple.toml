@@ -1,0 +1,10 @@
+[global]
+accounts_directory = "/tmp/example/account/dir"
+certificates_directory = "/tmp/example/cert/dir/"
+
+[[account]]
+name = "example"
+contacts = [
+    { mailto = "acme@example.org" },
+]
+signature_algorithm = "HS384"

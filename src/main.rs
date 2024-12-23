@@ -1,6 +1,8 @@
 mod cli;
+mod config;
 mod log;
 
+use crate::config::AcmedConfig;
 use anyhow::{Context, Result};
 use clap::Parser;
 use daemonize::Daemonize;
@@ -11,17 +13,24 @@ use std::process;
 
 pub const APP_IDENTITY: &[u8] = b"acmed\0";
 pub const APP_THREAD_NAME: &str = "acmed-runtime";
-pub const DEFAULT_CONFIG_PATH: &str = "/etc/acmed/acmed.toml";
 pub const DEFAULT_LOG_LEVEL: log::Level = log::Level::Warn;
-pub const DEFAULT_PID_FILE: &str = "/run/acmed.pid";
 
 fn main() {
 	// CLI
 	let args = cli::CliArgs::parse();
-	println!("Debug: args: {args:?}");
 
 	// Initialize the logging system
 	log::init(args.log_level, !args.log.log_stderr);
+	tracing::trace!("computed args: {args:?}");
+
+	// Load the configuration
+	let cfg = match config::load(args.config.as_path()) {
+		Ok(cfg) => cfg,
+		Err(e) => {
+			tracing::error!("unable to load configuration: {e:#}");
+			std::process::exit(3);
+		}
+	};
 
 	// Initialize the server (PID file and daemon)
 	init_server(args.foreground, args.pid.get_pid_file());
@@ -32,10 +41,10 @@ fn main() {
 		.thread_name(APP_THREAD_NAME)
 		.build()
 		.unwrap()
-		.block_on(start());
+		.block_on(start(cfg));
 }
 
-async fn start() {
+async fn start(cnf: AcmedConfig) {
 	tracing::info!("starting ACMEd");
 }
 
@@ -46,12 +55,12 @@ fn init_server(foreground: bool, pid_file: Option<&Path>) {
 			daemonize = daemonize.pid_file(f);
 		}
 		if let Err(e) = daemonize.start() {
-			tracing::error!("error: {e:#}");
+			tracing::error!("{e:#}");
 			std::process::exit(3);
 		}
 	} else if let Some(f) = pid_file {
 		if let Err(e) = write_pid_file(f) {
-			tracing::error!("error: {e:#}");
+			tracing::error!("{e:#}");
 			std::process::exit(3);
 		}
 	}
