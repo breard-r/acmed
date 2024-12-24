@@ -49,22 +49,32 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 		D: Deserializer<'de>,
 	{
 		let unchecked = AcmedConfig::deserialize(deserializer)?;
+
+		// Checking hooks
 		for key in unchecked.hook.keys() {
+			// Hook name must not start with `internal:`
 			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
 				return Err(de::Error::custom(format!("{key}: invalid hook name")));
 			}
 		}
+
+		// Checking groups
 		for (key, hook_lst) in &unchecked.group {
+			// Group name must not start with `internal:`
 			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
 				return Err(de::Error::custom(format!("{key}: invalid group name")));
 			}
+			// Group must only contain valid hook names
 			for hook_name in hook_lst {
 				if !unchecked.hook.contains_key(hook_name) {
 					return Err(de::Error::custom(format!("{hook_name}: hook not found")));
 				}
 			}
 		}
+
+		// Checking accoutns
 		for account in unchecked.account.values() {
+			// Account must only contain valid hook/group names
 			for hook_name in &account.hooks {
 				if !unchecked.hook.contains_key(hook_name)
 					&& !unchecked.group.contains_key(hook_name)
@@ -73,6 +83,34 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 				}
 			}
 		}
+
+		// Checking certificates
+		for cert in &unchecked.certificate {
+			// Certificate must contain a valid account name
+			if !unchecked.account.contains_key(&cert.account) {
+				return Err(de::Error::custom(format!(
+					"{}: account not found",
+					cert.account
+				)));
+			}
+			// Certificate must contain a valid endpoint name
+			if !unchecked.endpoint.contains_key(&cert.endpoint) {
+				return Err(de::Error::custom(format!(
+					"{}: endpoint not found",
+					cert.endpoint
+				)));
+			}
+			// Certificate must only contain valid hook/group names
+			for hook_name in &cert.hooks {
+				if !unchecked.hook.contains_key(hook_name)
+					&& !unchecked.group.contains_key(hook_name)
+				{
+					return Err(de::Error::custom(format!("{hook_name}: hook not found")));
+				}
+			}
+		}
+
+		// All tests passed
 		Ok(unchecked)
 	}
 }
@@ -307,6 +345,102 @@ contacts = [
 	{ mailto = "acme@example.org" },
 ]
 hooks = ["not-found"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn certificate() {
+		let cfg = r#"
+[account."toto"]
+contacts = [
+	{ mailto = "acme@example.org" },
+]
+
+[hook."my-hook"]
+cmd = "cat"
+type = ["challenge-http-01"]
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+
+[[certificate]]
+account = "toto"
+endpoint = "my-ca"
+identifiers = [
+	{ dns = "example.org", challenge = "http-01"},
+]
+hooks = ["my-hook"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_ok());
+	}
+
+	#[test]
+	fn account_404_certificate() {
+		let cfg = r#"
+[hook."my-hook"]
+cmd = "cat"
+type = ["challenge-http-01"]
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+
+[[certificate]]
+account = "toto"
+endpoint = "my-ca"
+identifiers = [
+	{ dns = "example.org", challenge = "http-01"},
+]
+hooks = ["my-hook"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn endpoint_404_certificate() {
+		let cfg = r#"
+[account."toto"]
+contacts = [
+	{ mailto = "acme@example.org" },
+]
+
+[hook."my-hook"]
+cmd = "cat"
+type = ["challenge-http-01"]
+
+[[certificate]]
+account = "toto"
+endpoint = "my-ca"
+identifiers = [
+	{ dns = "example.org", challenge = "http-01"},
+]
+hooks = ["my-hook"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn hook_404_certificate() {
+		let cfg = r#"
+[account."toto"]
+contacts = [
+	{ mailto = "acme@example.org" },
+]
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+
+[[certificate]]
+account = "toto"
+endpoint = "my-ca"
+identifiers = [
+	{ dns = "example.org", challenge = "http-01"},
+]
+hooks = ["my-hook"]
 "#;
 		let res = load_str::<AcmedConfig>(cfg);
 		assert!(res.is_err());
