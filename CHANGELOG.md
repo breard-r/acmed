@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Instead of loading a default configuration file, ACMEd now loads all the
   files from a default configuration directory (by default,
   `/etc/acmed/conf-enabled`).
+- The configuration arrays for accounts, endpoints, rate limits, hooks and
+  groups has been replaced by tables.
 
 ### Removed
 

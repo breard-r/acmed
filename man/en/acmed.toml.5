@@ -18,7 +18,7 @@ are written in the
 format. The allowed elements are described below.
 .Bl -tag
 .It Ic account
-Table of table representing an account on one or several endpoint.
+Table representing an account on one or several endpoint.
 .Bl -tag
 .It Ic contacts Ar array
 Array of tables describing describing the account holder's contact information. Each table must have one and only one key-value pair. Possible keys and their associated values are:
@@ -235,7 +235,7 @@ Table where the certificate's subject attributes are specified. Possible keys, w
 .El
 .El
 .It Ic endpoint
-Table of table where each element defines a Certificate Authority
+Table where each element defines a Certificate Authority
 .Pq CA
 which may be used to request certificates.
 .Bl -tag
@@ -321,15 +321,9 @@ section. Default is 30d.
 Array containing the path to root certificates that should be added to the trust store.
 .El
 .It Ic group
-Array of table allowing to group several hooks as one. A group is considered as new hook.
-.Bl -tag
-.It Cm hooks Ar array
-Array containing the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
-.It Cm name Ar string
-The name the group is registered under. This name is considered as a hook name. Must be unique.
-.El
+Table of array allowing to group several hooks as one. A group is considered as new hook. The array contains the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
 .It Ic hook
-Array of table where each element defines a command that will be launched at a defined point. See section
+Table where each element defines a command that will be launched at a defined point. See section
 .Sx WRITING A HOOK
 for more details.
 .Bl -tag
@@ -339,8 +333,6 @@ Defines if an error return value for this hook is allowed or not. If not allowed
 Array of strings representing the command's arguments.
 .It Ic cmd Ar string
 The name of the command that will be launched.
-.It Cm name Ar string
-The name the hook is registered under. Must be unique.
 .It Ic stderr Ar string
 Path to the file where the command's standard error output if written.
 .It Ic stdin Ar string
@@ -379,7 +371,7 @@ post-operation
 .El
 .El
 .It Ic rate-limit
-Table of table where each element defines a HTTPS rate limit.
+Table where each element defines a HTTPS rate limit.
 .Bl -tag
 .It Cm number Ar integer
 Number of requests authorized withing the time period.

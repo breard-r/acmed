@@ -11,7 +11,6 @@ pub struct Hook {
 	#[serde(default)]
 	pub(in crate::config) args: Vec<String>,
 	pub(in crate::config) cmd: String,
-	pub(in crate::config) name: String,
 	pub(in crate::config) stderr: Option<PathBuf>,
 	pub(in crate::config) stdin: Option<PathBuf>,
 	pub(in crate::config) stdin_str: Option<String>,
@@ -62,34 +61,10 @@ pub enum HookType {
 	PostOperation,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Group {
-	pub(in crate::config) hooks: Vec<String>,
-	pub(in crate::config) name: String,
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
 	use crate::config::load_str;
-
-	#[test]
-	fn empty_group() {
-		let res = load_str::<Group>("");
-		assert!(res.is_err());
-	}
-
-	#[test]
-	fn valid_group() {
-		let cfg = r#"
-name = "test"
-hooks = ["h1", "H 2"]
-"#;
-		let rl: Group = load_str(cfg).unwrap();
-		assert_eq!(rl.name, "test");
-		assert_eq!(rl.hooks, vec!["h1".to_string(), "H 2".to_string()]);
-	}
 
 	#[test]
 	fn empty_hook() {
@@ -100,7 +75,6 @@ hooks = ["h1", "H 2"]
 	#[test]
 	fn hook_minimal() {
 		let cfg = r#"
-name = "test"
 cmd = "cat"
 type = ["file-pre-edit"]
 "#;
@@ -108,7 +82,6 @@ type = ["file-pre-edit"]
 		assert_eq!(h.allow_failure, false);
 		assert!(h.args.is_empty());
 		assert_eq!(h.cmd, "cat");
-		assert_eq!(h.name, "test");
 		assert!(h.stderr.is_none());
 		assert!(h.stdin.is_none());
 		assert!(h.stdin_str.is_none());
@@ -119,7 +92,6 @@ type = ["file-pre-edit"]
 	#[test]
 	fn hook_full() {
 		let cfg = r#"
-name = "test"
 cmd = "cat"
 args = ["-e"]
 type = ["file-pre-edit"]
@@ -132,7 +104,6 @@ stderr = "/tmp/err.log"
 		assert_eq!(h.allow_failure, true);
 		assert_eq!(h.args, vec!["-e".to_string()]);
 		assert_eq!(h.cmd, "cat");
-		assert_eq!(h.name, "test");
 		assert_eq!(h.stderr, Some(PathBuf::from("/tmp/err.log")));
 		assert_eq!(h.stdin, Some(PathBuf::from("/tmp/in.txt")));
 		assert!(h.stdin_str.is_none());
@@ -143,7 +114,6 @@ stderr = "/tmp/err.log"
 	#[test]
 	fn hook_both_stdin() {
 		let cfg = r#"
-name = "test"
 cmd = "cat"
 type = ["file-pre-edit"]
 stdin = "/tmp/in.txt"
@@ -154,19 +124,8 @@ stdin_str = "some input"
 	}
 
 	#[test]
-	fn hook_missing_name() {
-		let cfg = r#"
-cmd = "cat"
-type = ["file-pre-edit"]
-"#;
-		let res = load_str::<Hook>(cfg);
-		assert!(res.is_err());
-	}
-
-	#[test]
 	fn hook_missing_cmd() {
 		let cfg = r#"
-name = "test"
 type = ["file-pre-edit"]
 "#;
 		let res = load_str::<Hook>(cfg);
@@ -176,7 +135,6 @@ type = ["file-pre-edit"]
 	#[test]
 	fn hook_missing_type() {
 		let cfg = r#"
-name = "test"
 cmd = "cat"
 "#;
 		let res = load_str::<Hook>(cfg);
@@ -186,7 +144,6 @@ cmd = "cat"
 	#[test]
 	fn hook_empty_type() {
 		let cfg = r#"
-name = "test"
 cmd = "cat"
 type = []
 "#;

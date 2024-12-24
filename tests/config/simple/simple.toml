@@ -2,8 +2,39 @@
 accounts_directory = "/tmp/example/account/dir"
 certificates_directory = "/tmp/example/cert/dir/"
 
-[account."example"]
+[account."toto"]
 contacts = [
-    { mailto = "acme@example.org" },
+	{ mailto = "acme@example.org" },
 ]
 signature_algorithm = "HS384"
+
+[rate-limit."my-ca-limit"]
+number = 20
+period = "1s"
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+rate_limits = ["my-ca-limit"]
+tos_agreed = true
+
+[hook."hook-1"]
+cmd = "cat"
+type = ["file-pre-edit"]
+
+[hook."hook-2"]
+cmd = "cat"
+args = [
+	"-e"
+]
+type = ["file-pre-edit"]
+
+[group]
+super-hook = ["hook-1", "hook-2"]
+
+[[certificate]]
+account = "toto"
+endpoint = "my-ca"
+identifiers = [
+	{ dns = "example.org", challenge = "http-01"},
+]
+hooks = ["super-hook"]

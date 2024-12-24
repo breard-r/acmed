@@ -32,9 +32,9 @@ pub struct AcmedConfig {
 	#[serde(default, rename = "rate-limit")]
 	pub(in crate::config) rate_limit: HashMap<String, RateLimit>,
 	#[serde(default)]
-	pub(in crate::config) hook: Vec<Hook>,
+	pub(in crate::config) hook: HashMap<String, Hook>,
 	#[serde(default)]
-	pub(in crate::config) group: Vec<Group>,
+	pub(in crate::config) group: HashMap<String, Vec<String>>,
 	#[serde(default)]
 	pub(in crate::config) account: HashMap<String, Account>,
 	#[serde(default)]
@@ -114,12 +114,29 @@ mod tests {
 			global.certificates_directory,
 			PathBuf::from("/tmp/example/cert/dir")
 		);
-		assert!(cfg.rate_limit.is_empty());
-		assert!(cfg.endpoint.is_empty());
-		assert!(cfg.hook.is_empty());
-		assert!(cfg.group.is_empty());
+		assert_eq!(cfg.rate_limit.len(), 1);
+		let rl = cfg.rate_limit.get("my-ca-limit").unwrap();
+		assert_eq!(rl.number, 20);
+		assert_eq!(rl.period, Duration::from_secs(1));
+		assert_eq!(cfg.endpoint.len(), 1);
+		let ep = cfg.endpoint.get("my-ca").unwrap();
+		assert_eq!(ep.url, "https://acme-v02.ac1.example.org/directory");
+		assert_eq!(ep.rate_limits, vec!["my-ca-limit".to_string()]);
+		assert_eq!(ep.tos_agreed, true);
+		assert_eq!(cfg.hook.len(), 2);
+		let h1 = cfg.hook.get("hook-1").unwrap();
+		assert_eq!(h1.cmd, "cat");
+		assert!(h1.args.is_empty());
+		assert_eq!(h1.hook_type, vec![HookType::FilePreEdit]);
+		let h2 = cfg.hook.get("hook-2").unwrap();
+		assert_eq!(h2.cmd, "cat");
+		assert_eq!(h2.args, vec!["-e".to_string()]);
+		assert_eq!(h2.hook_type, vec![HookType::FilePreEdit]);
+		assert_eq!(cfg.group.len(), 1);
+		let g1 = cfg.group.get("super-hook").unwrap();
+		assert_eq!(*g1, vec!["hook-1".to_string(), "hook-2".to_string()]);
 		assert_eq!(cfg.account.len(), 1);
-		let account = cfg.account.get("example").unwrap();
+		let account = cfg.account.get("toto").unwrap();
 		assert_eq!(account.contacts.len(), 1);
 		assert!(account.env.is_empty());
 		assert!(account.external_account.is_none());
@@ -129,7 +146,15 @@ mod tests {
 			account.signature_algorithm,
 			Some(AccountSignatureAlgorithm::Hs384)
 		);
-		assert!(cfg.certificate.is_empty());
+		assert_eq!(cfg.certificate.len(), 1);
+		let c = cfg.certificate.first().unwrap();
+		assert_eq!(c.account, "toto");
+		assert_eq!(c.endpoint, "my-ca");
+		assert_eq!(c.identifiers.len(), 1);
+		let i = c.identifiers.first().unwrap();
+		assert_eq!(i.dns, Some("example.org".to_string()));
+		assert_eq!(i.challenge, AcmeChallenge::Http01);
+		assert_eq!(c.hooks, vec!["super-hook".to_string()]);
 	}
 
 	#[test]
