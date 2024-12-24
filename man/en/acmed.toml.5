@@ -9,12 +9,11 @@
 .Os
 .Sh NAME
 .Nm acmed.toml
-.Nd ACMEd configuration file
+.Nd ACMEd configuration file format
 .Sh DESCRIPTION
-.Nm
-is the configuration file for
-.Xr acmed 8 .
-It is written in the
+Configuration files for
+.Xr acmed 8
+are written in the
 .Em TOML
 format. The allowed elements are described below.
 .Bl -tag
@@ -396,6 +395,38 @@ Period of time during which a maximal number of requests is authorized. The form
 section.
 .El
 .El
+.Sh CONFIGURATION FILES ORGANIZATION
+It is strongly recommended to split the configuration into several files, each file containing directives related to only one logical component. Ideally, those files should be prefixed using a 2 digit number and an underscore. The first digit should indicate the type of directives within the file:
+.Pp
+.Bl -tag -compact
+.It 0
+global configuration
+.It 1
+hooks and hook groups
+.It 2
+endpoints and their associated rate limits
+.It 3
+accounts
+.It 4
+certificates
+.El
+.Pp
+The second digit should a zero, unless a specific loading order is required.
+.Pp
+For example, the file containing the endpoint for the
+.Dq Example Org
+certificate authority should be named
+.Dq 20_example_org.toml .
+Accounts on this same certificate authority should either be named
+.Dq 30_example_org.toml
+or
+.Dq 30_account_name.toml .
+.Pp
+Some default and example configuration files are available in the conf-available directory. When using those files without modification, you should create a symbolic link pointing to them instead of copying them.
+.Pp
+For legal reasons, the default configuration files for certificate authorities endpoints do not accept the terms of services by default. The recommended way to accept those terms of service is to override this directive, either in a dedicated file or directly in the certificate's configuration. If a dedicated file is used, it is recommended to name it the same way as the endpoint file but with a higher second digit in the prefix (example:
+.Dq 21_example_org.toml
+).
 .Sh WRITING A HOOK
 When requesting a certificate from a CA using ACME, there are three steps that are hard to automatize. The first one is solving challenges in order to prove the ownership of every identifier to be included: it requires to interact with the configuration of other services, hence depends on how the infrastructure works. The second one is restarting all the services that use a given certificate, for the same reason. The last one is archiving: although several default methods can be implemented, sometimes admins wants or are required to do it in a different way.
 .Pp
