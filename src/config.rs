@@ -30,7 +30,7 @@ pub struct AcmedConfig {
 	#[serde(default)]
 	pub(in crate::config) endpoint: HashMap<String, Endpoint>,
 	#[serde(default, rename = "rate-limit")]
-	pub(in crate::config) rate_limit: Vec<RateLimit>,
+	pub(in crate::config) rate_limit: HashMap<String, RateLimit>,
 	#[serde(default)]
 	pub(in crate::config) hook: Vec<Hook>,
 	#[serde(default)]

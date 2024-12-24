@@ -1,14 +1,13 @@
-[[rate-limit]]
-name = "Let's Encrypt rate-limit"
+[[rate-limit."letsencrypt-v2"]]
 number = 20
 period = "1s"
 
 [endpoint."letsencrypt-v2-production"]
 url = "https://acme-v02.api.letsencrypt.org/directory"
-rate_limits = ["Let's Encrypt rate-limit"]
+rate_limits = ["letsencrypt-v2"]
 tos_agreed = false
 
 [endpoint."letsencrypt-v2-staging"]
 url = "https://acme-staging-v02.api.letsencrypt.org/directory"
-rate_limits = ["Let's Encrypt rate-limit"]
+rate_limits = ["letsencrypt-v2"]
 tos_agreed = false
