@@ -3,9 +3,9 @@ use serde_derive::Deserialize;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RateLimit {
-	pub name: String,
-	pub number: usize,
-	pub period: String,
+	pub(in crate::config) name: String,
+	pub(in crate::config) number: usize,
+	pub(in crate::config) period: String,
 }
 
 #[cfg(test)]

@@ -7,17 +7,17 @@ use std::path::PathBuf;
 #[serde(deny_unknown_fields)]
 pub struct Hook {
 	#[serde(default)]
-	pub allow_failure: bool,
+	pub(in crate::config) allow_failure: bool,
 	#[serde(default)]
-	pub args: Vec<String>,
-	pub cmd: String,
-	pub name: String,
-	pub stderr: Option<PathBuf>,
-	pub stdin: Option<PathBuf>,
-	pub stdin_str: Option<String>,
-	pub stdout: Option<PathBuf>,
+	pub(in crate::config) args: Vec<String>,
+	pub(in crate::config) cmd: String,
+	pub(in crate::config) name: String,
+	pub(in crate::config) stderr: Option<PathBuf>,
+	pub(in crate::config) stdin: Option<PathBuf>,
+	pub(in crate::config) stdin_str: Option<String>,
+	pub(in crate::config) stdout: Option<PathBuf>,
 	#[serde(rename = "type")]
-	pub hook_type: Vec<HookType>,
+	pub(in crate::config) hook_type: Vec<HookType>,
 }
 
 impl<'de> Deserialize<'de> for Hook {
@@ -65,8 +65,8 @@ pub enum HookType {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Group {
-	pub hooks: Vec<String>,
-	pub name: String,
+	pub(in crate::config) hooks: Vec<String>,
+	pub(in crate::config) name: String,
 }
 
 #[cfg(test)]

@@ -4,17 +4,17 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Endpoint {
-	pub file_name_format: Option<String>,
-	pub name: String,
-	pub random_early_renew: Option<String>,
+	pub(in crate::config) file_name_format: Option<String>,
+	pub(in crate::config) name: String,
+	pub(in crate::config) random_early_renew: Option<String>,
 	#[serde(default)]
-	pub rate_limits: Vec<String>,
-	pub renew_delay: Option<String>,
+	pub(in crate::config) rate_limits: Vec<String>,
+	pub(in crate::config) renew_delay: Option<String>,
 	#[serde(default)]
-	pub root_certificates: Vec<PathBuf>,
+	pub(in crate::config) root_certificates: Vec<PathBuf>,
 	#[serde(default)]
-	pub tos_agreed: bool,
-	pub url: String,
+	pub(in crate::config) tos_agreed: bool,
+	pub(in crate::config) url: String,
 }
 
 #[cfg(test)]

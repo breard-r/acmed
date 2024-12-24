@@ -23,19 +23,19 @@ const ALLOWED_FILE_EXT: &[&str] = &["toml"];
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AcmedConfig {
-	pub global: Option<GlobalOptions>,
+	pub(in crate::config) global: Option<GlobalOptions>,
 	#[serde(default)]
-	pub endpoint: Vec<Endpoint>,
+	pub(in crate::config) endpoint: Vec<Endpoint>,
 	#[serde(default, rename = "rate-limit")]
-	pub rate_limit: Vec<RateLimit>,
+	pub(in crate::config) rate_limit: Vec<RateLimit>,
 	#[serde(default)]
-	pub hook: Vec<Hook>,
+	pub(in crate::config) hook: Vec<Hook>,
 	#[serde(default)]
-	pub group: Vec<Group>,
+	pub(in crate::config) group: Vec<Group>,
 	#[serde(default)]
-	pub account: Vec<Account>,
+	pub(in crate::config) account: Vec<Account>,
 	#[serde(default)]
-	pub certificate: Vec<Certificate>,
+	pub(in crate::config) certificate: Vec<Certificate>,
 }
 
 pub fn load<P: AsRef<Path>>(config_dir: P) -> Result<AcmedConfig> {

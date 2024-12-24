@@ -6,17 +6,17 @@ use std::collections::HashMap;
 #[serde(remote = "Self")]
 #[serde(deny_unknown_fields)]
 pub struct Account {
-	pub contacts: Vec<AccountContact>,
+	pub(in crate::config) contacts: Vec<AccountContact>,
 	#[serde(default)]
-	pub env: HashMap<String, String>,
-	pub external_account: Option<ExternalAccount>,
+	pub(in crate::config) env: HashMap<String, String>,
+	pub(in crate::config) external_account: Option<ExternalAccount>,
 	#[serde(default)]
-	pub hooks: Vec<String>,
+	pub(in crate::config) hooks: Vec<String>,
 	#[serde(default)]
-	pub key_type: AccountKeyType,
-	pub name: String,
+	pub(in crate::config) key_type: AccountKeyType,
+	pub(in crate::config) name: String,
 	#[serde(default)]
-	pub signature_algorithm: Option<AccountSignatureAlgorithm>,
+	pub(in crate::config) signature_algorithm: Option<AccountSignatureAlgorithm>,
 }
 
 impl<'de> Deserialize<'de> for Account {
@@ -35,16 +35,16 @@ impl<'de> Deserialize<'de> for Account {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct AccountContact {
-	pub mailto: String,
+	pub(in crate::config) mailto: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ExternalAccount {
-	pub identifier: String,
-	pub key: String,
+	pub(in crate::config) identifier: String,
+	pub(in crate::config) key: String,
 	#[serde(default)]
-	pub signature_algorithm: ExternalAccountSignatureAlgorithm,
+	pub(in crate::config) signature_algorithm: ExternalAccountSignatureAlgorithm,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]

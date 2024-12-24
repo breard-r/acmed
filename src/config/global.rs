@@ -6,28 +6,28 @@ use std::path::PathBuf;
 #[serde(deny_unknown_fields)]
 pub struct GlobalOptions {
 	#[serde(default = "get_default_accounts_directory")]
-	pub accounts_directory: PathBuf,
-	pub cert_file_group: Option<String>,
-	pub cert_file_mode: Option<u32>,
-	pub cert_file_user: Option<String>,
+	pub(in crate::config) accounts_directory: PathBuf,
+	pub(in crate::config) cert_file_group: Option<String>,
+	pub(in crate::config) cert_file_mode: Option<u32>,
+	pub(in crate::config) cert_file_user: Option<String>,
 	#[serde(default = "get_default_cert_file_ext")]
-	pub cert_file_ext: String,
+	pub(in crate::config) cert_file_ext: String,
 	#[serde(default = "get_default_certificates_directory")]
-	pub certificates_directory: PathBuf,
+	pub(in crate::config) certificates_directory: PathBuf,
 	#[serde(default)]
-	pub env: HashMap<String, String>,
+	pub(in crate::config) env: HashMap<String, String>,
 	#[serde(default = "get_default_file_name_format")]
-	pub file_name_format: String,
-	pub pk_file_group: Option<String>,
-	pub pk_file_mode: Option<u32>,
-	pub pk_file_user: Option<String>,
+	pub(in crate::config) file_name_format: String,
+	pub(in crate::config) pk_file_group: Option<String>,
+	pub(in crate::config) pk_file_mode: Option<u32>,
+	pub(in crate::config) pk_file_user: Option<String>,
 	#[serde(default = "get_default_pk_file_ext")]
-	pub pk_file_ext: String,
-	pub random_early_renew: Option<String>,
+	pub(in crate::config) pk_file_ext: String,
+	pub(in crate::config) random_early_renew: Option<String>,
 	#[serde(default = "get_default_renew_delay")]
-	pub renew_delay: String,
+	pub(in crate::config) renew_delay: String,
 	#[serde(default)]
-	pub root_certificates: Vec<PathBuf>,
+	pub(in crate::config) root_certificates: Vec<PathBuf>,
 }
 
 fn get_default_lib_dir() -> PathBuf {

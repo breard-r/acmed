@@ -9,25 +9,25 @@ use std::path::PathBuf;
 #[serde(remote = "Self")]
 #[serde(deny_unknown_fields)]
 pub struct Certificate {
-	pub account: String,
+	pub(in crate::config) account: String,
 	#[serde(default)]
-	pub csr_digest: CsrDigest,
-	pub directory: Option<PathBuf>,
-	pub endpoint: String,
+	pub(in crate::config) csr_digest: CsrDigest,
+	pub(in crate::config) directory: Option<PathBuf>,
+	pub(in crate::config) endpoint: String,
 	#[serde(default)]
-	pub env: HashMap<String, String>,
-	pub file_name_format: Option<String>,
-	pub hooks: Vec<String>,
-	pub identifiers: Vec<Identifier>,
+	pub(in crate::config) env: HashMap<String, String>,
+	pub(in crate::config) file_name_format: Option<String>,
+	pub(in crate::config) hooks: Vec<String>,
+	pub(in crate::config) identifiers: Vec<Identifier>,
 	#[serde(default)]
-	pub key_type: KeyType,
+	pub(in crate::config) key_type: KeyType,
 	#[serde(default)]
-	pub kp_reuse: bool,
-	pub name: Option<String>,
-	pub random_early_renew: Option<String>,
-	pub renew_delay: Option<String>,
+	pub(in crate::config) kp_reuse: bool,
+	pub(in crate::config) name: Option<String>,
+	pub(in crate::config) random_early_renew: Option<String>,
+	pub(in crate::config) renew_delay: Option<String>,
 	#[serde(default)]
-	pub subject_attributes: SubjectAttributes,
+	pub(in crate::config) subject_attributes: SubjectAttributes,
 }
 
 impl<'de> Deserialize<'de> for Certificate {
@@ -60,11 +60,11 @@ pub enum CsrDigest {
 #[serde(remote = "Self")]
 #[serde(deny_unknown_fields)]
 pub struct Identifier {
-	pub challenge: AcmeChallenge,
-	pub dns: Option<String>,
+	pub(in crate::config) challenge: AcmeChallenge,
+	pub(in crate::config) dns: Option<String>,
 	#[serde(default)]
-	pub env: HashMap<String, String>,
-	pub ip: Option<String>,
+	pub(in crate::config) env: HashMap<String, String>,
+	pub(in crate::config) ip: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for Identifier {
@@ -127,21 +127,21 @@ pub enum KeyType {
 #[derive(Clone, Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SubjectAttributes {
-	pub country_name: Option<String>,
-	pub generation_qualifier: Option<String>,
-	pub given_name: Option<String>,
-	pub initials: Option<String>,
-	pub locality_name: Option<String>,
-	pub name: Option<String>,
-	pub organization_name: Option<String>,
-	pub organizational_unit_name: Option<String>,
-	pub pkcs9_email_address: Option<String>,
-	pub postal_address: Option<String>,
-	pub postal_code: Option<String>,
-	pub state_or_province_name: Option<String>,
-	pub street: Option<String>,
-	pub surname: Option<String>,
-	pub title: Option<String>,
+	pub(in crate::config) country_name: Option<String>,
+	pub(in crate::config) generation_qualifier: Option<String>,
+	pub(in crate::config) given_name: Option<String>,
+	pub(in crate::config) initials: Option<String>,
+	pub(in crate::config) locality_name: Option<String>,
+	pub(in crate::config) name: Option<String>,
+	pub(in crate::config) organization_name: Option<String>,
+	pub(in crate::config) organizational_unit_name: Option<String>,
+	pub(in crate::config) pkcs9_email_address: Option<String>,
+	pub(in crate::config) postal_address: Option<String>,
+	pub(in crate::config) postal_code: Option<String>,
+	pub(in crate::config) state_or_province_name: Option<String>,
+	pub(in crate::config) street: Option<String>,
+	pub(in crate::config) surname: Option<String>,
+	pub(in crate::config) title: Option<String>,
 }
 
 #[cfg(test)]
