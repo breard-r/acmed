@@ -64,6 +64,15 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 				}
 			}
 		}
+		for account in unchecked.account.values() {
+			for hook_name in &account.hooks {
+				if !unchecked.hook.contains_key(hook_name)
+					&& !unchecked.group.contains_key(hook_name)
+				{
+					return Err(de::Error::custom(format!("{hook_name}: hook not found")));
+				}
+			}
+		}
 		Ok(unchecked)
 	}
 }
@@ -266,6 +275,40 @@ internal-grp = ["internaltest"]
 	#[test]
 	fn hook_404() {
 		let res = load("tests/config/hook_404");
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn hook_account() {
+		let cfg = r#"
+[hook."test"]
+cmd = "cat"
+type = ["file-pre-edit"]
+
+[account."toto"]
+contacts = [
+	{ mailto = "acme@example.org" },
+]
+hooks = ["test"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_ok());
+	}
+
+	#[test]
+	fn hook_404_account() {
+		let cfg = r#"
+[hook."test"]
+cmd = "cat"
+type = ["file-pre-edit"]
+
+[account."toto"]
+contacts = [
+	{ mailto = "acme@example.org" },
+]
+hooks = ["not-found"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
 		assert!(res.is_err());
 	}
 }
