@@ -14,7 +14,6 @@ pub struct Account {
 	pub(in crate::config) hooks: Vec<String>,
 	#[serde(default)]
 	pub(in crate::config) key_type: AccountKeyType,
-	pub(in crate::config) name: String,
 	#[serde(default)]
 	pub(in crate::config) signature_algorithm: Option<AccountSignatureAlgorithm>,
 }
@@ -89,7 +88,6 @@ mod tests {
 	#[test]
 	fn account_minimal() {
 		let cfg = r#"
-name = "test"
 contacts = [
 	{ mailto = "acme@example.org" }
 ]
@@ -106,14 +104,12 @@ contacts = [
 		assert!(a.external_account.is_none());
 		assert!(a.hooks.is_empty());
 		assert_eq!(a.key_type, AccountKeyType::EcDsaP256);
-		assert_eq!(a.name, "test");
 		assert!(a.signature_algorithm.is_none());
 	}
 
 	#[test]
 	fn account_full() {
 		let cfg = r#"
-name = "test"
 contacts = [
 	{ mailto = "acme@example.org" }
 ]
@@ -142,7 +138,6 @@ signature_algorithm = "HS512"
 		assert_eq!(a.external_account, Some(ea));
 		assert_eq!(a.hooks, vec!["hook name".to_string()]);
 		assert_eq!(a.key_type, AccountKeyType::Rsa2048);
-		assert_eq!(a.name, "test");
 		assert_eq!(
 			a.signature_algorithm,
 			Some(AccountSignatureAlgorithm::Hs512)
@@ -150,29 +145,8 @@ signature_algorithm = "HS512"
 	}
 
 	#[test]
-	fn account_missing_name() {
-		let cfg = r#"
-contacts = [
-	{ mailto = "acme@example.org" }
-]
-"#;
-		let res = load_str::<Account>(cfg);
-		assert!(res.is_err());
-	}
-
-	#[test]
-	fn account_missing_contact() {
-		let cfg = r#"name = "test""#;
-		let res = load_str::<Account>(cfg);
-		assert!(res.is_err());
-	}
-
-	#[test]
 	fn account_empty_contact() {
-		let cfg = r#"
-name = "test"
-contacts = []
-"#;
+		let cfg = r#"contacts = []"#;
 		let res = load_str::<Account>(cfg);
 		assert!(res.is_err());
 	}

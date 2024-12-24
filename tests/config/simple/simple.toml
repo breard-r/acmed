@@ -2,8 +2,7 @@
 accounts_directory = "/tmp/example/account/dir"
 certificates_directory = "/tmp/example/cert/dir/"
 
-[[account]]
-name = "example"
+[account."example"]
 contacts = [
     { mailto = "acme@example.org" },
 ]

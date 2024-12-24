@@ -9,8 +9,7 @@ tos_agreed = false
 [endpoint."test AC 2"]
 url = "https://acme-v02.ac2.example.org/directory"
 
-[[account]]
-name = "example"
+[account."example"]
 contacts = [
     { mailto = "acme@example.org" },
 ]

@@ -18,7 +18,7 @@ are written in the
 format. The allowed elements are described below.
 .Bl -tag
 .It Ic account
-Array of table representing an account on one or several endpoint.
+Table of table representing an account on one or several endpoint.
 .Bl -tag
 .It Ic contacts Ar array
 Array of tables describing describing the account holder's contact information. Each table must have one and only one key-value pair. Possible keys and their associated values are:
@@ -78,8 +78,6 @@ rsa2048
 .It
 rsa4096
 .El
-.It Ic name Ar string
-The name the account is registered under. Must be unique.
 .It Cm signature_algorithm Ar string
 Name of the signature algorithm used to sign the messages sent to the endpoint as defined in
 .Em RFC 7518 .

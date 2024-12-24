@@ -36,7 +36,7 @@ pub struct AcmedConfig {
 	#[serde(default)]
 	pub(in crate::config) group: Vec<Group>,
 	#[serde(default)]
-	pub(in crate::config) account: Vec<Account>,
+	pub(in crate::config) account: HashMap<String, Account>,
 	#[serde(default)]
 	pub(in crate::config) certificate: Vec<Certificate>,
 }
@@ -119,13 +119,12 @@ mod tests {
 		assert!(cfg.hook.is_empty());
 		assert!(cfg.group.is_empty());
 		assert_eq!(cfg.account.len(), 1);
-		let account = cfg.account.first().unwrap();
+		let account = cfg.account.get("example").unwrap();
 		assert_eq!(account.contacts.len(), 1);
 		assert!(account.env.is_empty());
 		assert!(account.external_account.is_none());
 		assert!(account.hooks.is_empty());
 		assert_eq!(account.key_type, AccountKeyType::EcDsaP256);
-		assert_eq!(account.name, "example");
 		assert_eq!(
 			account.signature_algorithm,
 			Some(AccountSignatureAlgorithm::Hs384)
@@ -162,13 +161,12 @@ mod tests {
 		assert!(cfg.hook.is_empty());
 		assert!(cfg.group.is_empty());
 		assert_eq!(cfg.account.len(), 1);
-		let account = cfg.account.first().unwrap();
+		let account = cfg.account.get("example").unwrap();
 		assert_eq!(account.contacts.len(), 1);
 		assert!(account.env.is_empty());
 		assert!(account.external_account.is_none());
 		assert!(account.hooks.is_empty());
 		assert_eq!(account.key_type, AccountKeyType::EcDsaP256);
-		assert_eq!(account.name, "example");
 		assert!(account.signature_algorithm.is_none());
 		assert!(cfg.certificate.is_empty());
 	}
