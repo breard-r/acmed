@@ -50,6 +50,18 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 	{
 		let unchecked = AcmedConfig::deserialize(deserializer)?;
 
+		// Checking endpoints
+		for endpoint in unchecked.endpoint.values() {
+			// Endpoint must only contain valid rate limit names
+			for rl_name in &endpoint.rate_limits {
+				if !unchecked.rate_limit.contains_key(rl_name) {
+					return Err(de::Error::custom(format!(
+						"{rl_name}: rate limit not found"
+					)));
+				}
+			}
+		}
+
 		// Checking hooks
 		for key in unchecked.hook.keys() {
 			// Hook name must not start with `internal:`
@@ -441,6 +453,36 @@ identifiers = [
 	{ dns = "example.org", challenge = "http-01"},
 ]
 hooks = ["my-hook"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn endpoint() {
+		let cfg = r#"
+[rate-limit."my-ca-limit"]
+number = 42
+period = "2s"
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+rate_limits = ["my-ca-limit"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_ok());
+	}
+
+	#[test]
+	fn rate_limit_404_endpoint() {
+		let cfg = r#"
+[rate-limit."my-ca-limit"]
+number = 42
+period = "2s"
+
+[endpoint."my-ca"]
+url = "https://acme-v02.ac1.example.org/directory"
+rate_limits = ["nope", "my-ca-limit"]
 "#;
 		let res = load_str::<AcmedConfig>(cfg);
 		assert!(res.is_err());
