@@ -2,6 +2,13 @@
 accounts_directory = "/tmp/example/account/dir"
 certificates_directory = "/tmp/example/cert/dir/"
 
+[endpoint."test AC 1"]
+url = "https://acme-v02.ac1.example.org/directory"
+tos_agreed = false
+
+[endpoint."test AC 2"]
+url = "https://acme-v02.ac2.example.org/directory"
+
 [[account]]
 name = "example"
 contacts = [

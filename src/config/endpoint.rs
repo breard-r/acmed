@@ -6,7 +6,6 @@ use std::path::PathBuf;
 #[serde(deny_unknown_fields)]
 pub struct Endpoint {
 	pub(in crate::config) file_name_format: Option<String>,
-	pub(in crate::config) name: String,
 	pub(in crate::config) random_early_renew: Option<Duration>,
 	#[serde(default)]
 	pub(in crate::config) rate_limits: Vec<String>,
@@ -31,14 +30,10 @@ mod tests {
 
 	#[test]
 	fn minimal() {
-		let cfg = r#"
-name = "test"
-url = "https://acme-v02.api.example.com/directory"
-"#;
+		let cfg = r#"url = "https://acme-v02.api.example.com/directory""#;
 
 		let e: Endpoint = load_str(cfg).unwrap();
 		assert!(e.file_name_format.is_none());
-		assert_eq!(e.name, "test");
 		assert!(e.random_early_renew.is_none());
 		assert!(e.rate_limits.is_empty());
 		assert!(e.renew_delay.is_none());
@@ -50,7 +45,6 @@ url = "https://acme-v02.api.example.com/directory"
 	#[test]
 	fn full() {
 		let cfg = r#"
-name = "test"
 url = "https://acme-v02.api.example.com/directory"
 file_name_format = "{{ key_type }} {{ file_type }} {{ name }}.{{ ext }}"
 random_early_renew = "1d"
@@ -65,7 +59,6 @@ tos_agreed = true
 			e.file_name_format,
 			Some("{{ key_type }} {{ file_type }} {{ name }}.{{ ext }}".to_string())
 		);
-		assert_eq!(e.name, "test");
 		assert_eq!(e.random_early_renew, Some(Duration::from_days(1)));
 		assert_eq!(e.rate_limits, vec!["rl 1", "rl 2"]);
 		assert_eq!(e.renew_delay, Some(Duration::from_days(21)));
@@ -75,8 +68,11 @@ tos_agreed = true
 	}
 
 	#[test]
-	fn missing_name() {
-		let cfg = r#""#;
+	fn missing_url() {
+		let cfg = r#"
+root_certificates = ["root_cert.pem"]
+tos_agreed = true
+"#;
 
 		let res = load_str::<Endpoint>(cfg);
 		assert!(res.is_err());

@@ -17,6 +17,7 @@ pub use rate_limit::*;
 use anyhow::{Context, Result};
 use config::{Config, File};
 use serde_derive::Deserialize;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
@@ -27,7 +28,7 @@ const ALLOWED_FILE_EXT: &[&str] = &["toml"];
 pub struct AcmedConfig {
 	pub(in crate::config) global: Option<GlobalOptions>,
 	#[serde(default)]
-	pub(in crate::config) endpoint: Vec<Endpoint>,
+	pub(in crate::config) endpoint: HashMap<String, Endpoint>,
 	#[serde(default, rename = "rate-limit")]
 	pub(in crate::config) rate_limit: Vec<RateLimit>,
 	#[serde(default)]
@@ -146,7 +147,18 @@ mod tests {
 			PathBuf::from("/tmp/example/cert/dir")
 		);
 		assert!(cfg.rate_limit.is_empty());
-		assert!(cfg.endpoint.is_empty());
+		assert_eq!(cfg.endpoint.len(), 2);
+		println!("Debug: cfg.endpoint: {:?}", cfg.endpoint);
+		let ac1 = cfg.endpoint.get("test ac 1").unwrap();
+		assert_eq!(ac1.url, "https://acme-v02.ac1.example.org/directory");
+		assert_eq!(ac1.tos_agreed, true);
+		assert!(ac1.random_early_renew.is_none());
+		assert!(ac1.root_certificates.is_empty());
+		let ac2 = cfg.endpoint.get("test ac 2").unwrap();
+		assert_eq!(ac2.url, "https://acme-v02.ac2.example.org/directory");
+		assert_eq!(ac2.tos_agreed, false);
+		assert_eq!(ac2.random_early_renew, Some(Duration::from_secs(10)));
+		assert_eq!(ac2.root_certificates, vec![PathBuf::from("test.pem")]);
 		assert!(cfg.hook.is_empty());
 		assert!(cfg.group.is_empty());
 		assert_eq!(cfg.account.len(), 1);

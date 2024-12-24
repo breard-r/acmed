@@ -237,7 +237,7 @@ Table where the certificate's subject attributes are specified. Possible keys, w
 .El
 .El
 .It Ic endpoint
-Array of table where each element defines a Certificate Authority
+Table of table where each element defines a Certificate Authority
 .Pq CA
 which may be used to request certificates.
 .Bl -tag
@@ -247,8 +247,6 @@ Template used to build the file's name. For detailed documentation, see the
 directive located in the
 .Em certificate
 element.
-.It Cm name Ar string
-The name the endpoint is registered under. Must be unique.
 .It Cm rate_limits Ar array
 Array containing the names of the HTTPS rate limits to apply.
 .It Cm random_early_renew Ar string
@@ -747,8 +745,7 @@ Default certificates and associated private keys directory.
 .Sh EXAMPLES
 The following example defines a typical endpoint, account and certificate for a domain, several subdomains and an IP address.
 .Bd -literal -offset indent
-[[endpoint]]
-name = "example name"
+[endpoint."example-name"]
 url = "https://acme.example.org/directory"
 tos_agreed = true
 
@@ -759,7 +756,7 @@ contacts = [
 ]
 
 [[certificate]]
-endpoint = "example name"
+endpoint = "example-name"
 account = "my test account"
 identifiers = [
     { dns = "exemple.net", challenge = "http-01"},
