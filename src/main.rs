@@ -14,6 +14,7 @@ use std::process;
 pub const APP_IDENTITY: &[u8] = b"acmed\0";
 pub const APP_THREAD_NAME: &str = "acmed-runtime";
 pub const DEFAULT_LOG_LEVEL: log::Level = log::Level::Warn;
+pub const INTERNAL_HOOK_PREFIX: &str = "internal:";
 
 fn main() {
 	// CLI

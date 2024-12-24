@@ -321,11 +321,13 @@ section. Default is 30d.
 Array containing the path to root certificates that should be added to the trust store.
 .El
 .It Ic group
-Table of array allowing to group several hooks as one. A group is considered as new hook. The array contains the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order.
+Table of array allowing to group several hooks as one. A group is considered as new hook. The array contains the names of the hooks that are grouped. The hooks are guaranteed to be called sequentially in the declaration order. The group name must not start with
+.Dq internal: .
 .It Ic hook
 Table where each element defines a command that will be launched at a defined point. See section
 .Sx WRITING A HOOK
-for more details.
+for more details. The hook name must not start with
+.Dq internal: .
 .Bl -tag
 .It Cm allow_failure Ar boolean
 Defines if an error return value for this hook is allowed or not. If not allowed, a failure in this hook will fail the whole certificate request process. Default is false.

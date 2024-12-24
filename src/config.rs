@@ -16,6 +16,7 @@ pub use rate_limit::*;
 
 use anyhow::{Context, Result};
 use config::{Config, File};
+use serde::{de, Deserialize, Deserializer};
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -24,6 +25,7 @@ use walkdir::WalkDir;
 const ALLOWED_FILE_EXT: &[&str] = &["toml"];
 
 #[derive(Debug, Deserialize)]
+#[serde(remote = "Self")]
 #[serde(deny_unknown_fields)]
 pub struct AcmedConfig {
 	pub(in crate::config) global: Option<GlobalOptions>,
@@ -39,6 +41,26 @@ pub struct AcmedConfig {
 	pub(in crate::config) account: HashMap<String, Account>,
 	#[serde(default)]
 	pub(in crate::config) certificate: Vec<Certificate>,
+}
+
+impl<'de> Deserialize<'de> for AcmedConfig {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let unchecked = AcmedConfig::deserialize(deserializer)?;
+		for key in unchecked.hook.keys() {
+			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
+				return Err(de::Error::custom(format!("{key}: invalid hook name")));
+			}
+		}
+		for key in unchecked.group.keys() {
+			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
+				return Err(de::Error::custom(format!("{key}: invalid group name")));
+			}
+		}
+		Ok(unchecked)
+	}
 }
 
 pub fn load<P: AsRef<Path>>(config_dir: P) -> Result<AcmedConfig> {
@@ -194,5 +216,42 @@ mod tests {
 		assert_eq!(account.key_type, AccountKeyType::EcDsaP256);
 		assert!(account.signature_algorithm.is_none());
 		assert!(cfg.certificate.is_empty());
+	}
+
+	#[test]
+	fn invalid_hook_name() {
+		let cfg = r#"
+[hook."internal:hook"]
+cmd = "cat"
+type = ["file-pre-edit"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn invalid_group_name() {
+		let cfg = r#"
+[hook."test"]
+cmd = "cat"
+type = ["file-pre-edit"]
+[group]
+internal:grp = ["test"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn valid_group_name() {
+		let cfg = r#"
+[hook."internaltest"]
+cmd = "cat"
+type = ["file-pre-edit"]
+[group]
+internal-grp = ["internaltest"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
+		assert!(res.is_ok());
 	}
 }
