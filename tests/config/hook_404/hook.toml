@@ -1,0 +1,6 @@
+[hook."test-hook"]
+cmd = "cat"
+type = ["file-post-edit"]
+
+[group]
+test-grp = ["test-hook", "invalid-name"]

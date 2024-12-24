@@ -54,9 +54,14 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 				return Err(de::Error::custom(format!("{key}: invalid hook name")));
 			}
 		}
-		for key in unchecked.group.keys() {
+		for (key, hook_lst) in &unchecked.group {
 			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
 				return Err(de::Error::custom(format!("{key}: invalid group name")));
+			}
+			for hook_name in hook_lst {
+				if !unchecked.hook.contains_key(hook_name) {
+					return Err(de::Error::custom(format!("{hook_name}: hook not found")));
+				}
 			}
 		}
 		Ok(unchecked)
@@ -194,7 +199,6 @@ mod tests {
 		);
 		assert!(cfg.rate_limit.is_empty());
 		assert_eq!(cfg.endpoint.len(), 2);
-		println!("Debug: cfg.endpoint: {:?}", cfg.endpoint);
 		let ac1 = cfg.endpoint.get("test ac 1").unwrap();
 		assert_eq!(ac1.url, "https://acme-v02.ac1.example.org/directory");
 		assert_eq!(ac1.tos_agreed, true);
@@ -205,8 +209,12 @@ mod tests {
 		assert_eq!(ac2.tos_agreed, false);
 		assert_eq!(ac2.random_early_renew, Some(Duration::from_secs(10)));
 		assert_eq!(ac2.root_certificates, vec![PathBuf::from("test.pem")]);
-		assert!(cfg.hook.is_empty());
-		assert!(cfg.group.is_empty());
+		assert_eq!(cfg.hook.len(), 1);
+		let h = cfg.hook.get("test-hook").unwrap();
+		assert_eq!(h.cmd, "cat");
+		assert_eq!(cfg.group.len(), 1);
+		let g = cfg.group.get("test-grp").unwrap();
+		assert_eq!(*g, vec!["test-hook".to_string()]);
 		assert_eq!(cfg.account.len(), 1);
 		let account = cfg.account.get("example").unwrap();
 		assert_eq!(account.contacts.len(), 1);
@@ -253,5 +261,11 @@ internal-grp = ["internaltest"]
 "#;
 		let res = load_str::<AcmedConfig>(cfg);
 		assert!(res.is_ok());
+	}
+
+	#[test]
+	fn hook_404() {
+		let res = load("tests/config/hook_404");
+		assert!(res.is_err());
 	}
 }

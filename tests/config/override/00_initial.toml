@@ -13,3 +13,7 @@ url = "https://acme-v02.ac2.example.org/directory"
 contacts = [
     { mailto = "acme@example.org" },
 ]
+
+[hook."test-hook"]
+cmd = "cat"
+type = ["file-post-edit"]
