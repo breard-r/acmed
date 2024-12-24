@@ -1,3 +1,4 @@
+use crate::config::Duration;
 use serde_derive::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -5,7 +6,7 @@ use serde_derive::Deserialize;
 pub struct RateLimit {
 	pub(in crate::config) name: String,
 	pub(in crate::config) number: usize,
-	pub(in crate::config) period: String,
+	pub(in crate::config) period: Duration,
 }
 
 #[cfg(test)]
@@ -30,7 +31,7 @@ period = "20s"
 		let rl: RateLimit = load_str(cfg).unwrap();
 		assert_eq!(rl.name, "test");
 		assert_eq!(rl.number, 20);
-		assert_eq!(rl.period, "20s");
+		assert_eq!(rl.period, Duration::from_secs(20));
 	}
 
 	#[test]

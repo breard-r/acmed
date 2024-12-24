@@ -1,3 +1,4 @@
+use crate::config::Duration;
 use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -23,9 +24,9 @@ pub struct GlobalOptions {
 	pub(in crate::config) pk_file_user: Option<String>,
 	#[serde(default = "get_default_pk_file_ext")]
 	pub(in crate::config) pk_file_ext: String,
-	pub(in crate::config) random_early_renew: Option<String>,
+	pub(in crate::config) random_early_renew: Option<Duration>,
 	#[serde(default = "get_default_renew_delay")]
-	pub(in crate::config) renew_delay: String,
+	pub(in crate::config) renew_delay: Duration,
 	#[serde(default)]
 	pub(in crate::config) root_certificates: Vec<PathBuf>,
 }
@@ -63,8 +64,8 @@ fn get_default_pk_file_ext() -> String {
 	"pem".to_string()
 }
 
-fn get_default_renew_delay() -> String {
-	"30d".to_string()
+fn get_default_renew_delay() -> Duration {
+	Duration::from_days(3)
 }
 
 #[cfg(test)]
@@ -135,8 +136,8 @@ root_certificates = ["root_cert.pem"]
 		assert_eq!(go.pk_file_mode, Some(0o644));
 		assert_eq!(go.pk_file_user, Some("acme_test".to_string()));
 		assert_eq!(go.pk_file_ext, "pem.txt");
-		assert_eq!(go.random_early_renew, Some("2d".to_string()));
-		assert_eq!(go.renew_delay, "21d");
+		assert_eq!(go.random_early_renew, Some(Duration::from_days(2)));
+		assert_eq!(go.renew_delay, Duration::from_days(21));
 		assert_eq!(go.root_certificates, vec![PathBuf::from("root_cert.pem")]);
 	}
 }

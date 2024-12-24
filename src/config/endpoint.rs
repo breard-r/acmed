@@ -1,3 +1,4 @@
+use crate::config::Duration;
 use serde_derive::Deserialize;
 use std::path::PathBuf;
 
@@ -6,10 +7,10 @@ use std::path::PathBuf;
 pub struct Endpoint {
 	pub(in crate::config) file_name_format: Option<String>,
 	pub(in crate::config) name: String,
-	pub(in crate::config) random_early_renew: Option<String>,
+	pub(in crate::config) random_early_renew: Option<Duration>,
 	#[serde(default)]
 	pub(in crate::config) rate_limits: Vec<String>,
-	pub(in crate::config) renew_delay: Option<String>,
+	pub(in crate::config) renew_delay: Option<Duration>,
 	#[serde(default)]
 	pub(in crate::config) root_certificates: Vec<PathBuf>,
 	#[serde(default)]
@@ -65,9 +66,9 @@ tos_agreed = true
 			Some("{{ key_type }} {{ file_type }} {{ name }}.{{ ext }}".to_string())
 		);
 		assert_eq!(e.name, "test");
-		assert_eq!(e.random_early_renew, Some("1d".to_string()));
+		assert_eq!(e.random_early_renew, Some(Duration::from_days(1)));
 		assert_eq!(e.rate_limits, vec!["rl 1", "rl 2"]);
-		assert_eq!(e.renew_delay, Some("21d".to_string()));
+		assert_eq!(e.renew_delay, Some(Duration::from_days(21)));
 		assert_eq!(e.root_certificates, vec![PathBuf::from("root_cert.pem")]);
 		assert_eq!(e.tos_agreed, true);
 		assert_eq!(e.url, "https://acme-v02.api.example.com/directory");

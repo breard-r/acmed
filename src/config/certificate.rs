@@ -1,3 +1,4 @@
+use crate::config::Duration;
 use anyhow::Result;
 use serde::{de, Deserialize, Deserializer};
 use serde_derive::Deserialize;
@@ -24,8 +25,8 @@ pub struct Certificate {
 	#[serde(default)]
 	pub(in crate::config) kp_reuse: bool,
 	pub(in crate::config) name: Option<String>,
-	pub(in crate::config) random_early_renew: Option<String>,
-	pub(in crate::config) renew_delay: Option<String>,
+	pub(in crate::config) random_early_renew: Option<Duration>,
+	pub(in crate::config) renew_delay: Option<Duration>,
 	#[serde(default)]
 	pub(in crate::config) subject_attributes: SubjectAttributes,
 }
@@ -214,8 +215,8 @@ subject_attributes.organization_name = "ACME Inc."
 		assert_eq!(c.key_type, KeyType::EcDsaP256);
 		assert_eq!(c.kp_reuse, true);
 		assert_eq!(c.name, Some("test".to_string()));
-		assert_eq!(c.random_early_renew, Some("1d".to_string()));
-		assert_eq!(c.renew_delay, Some("30d".to_string()));
+		assert_eq!(c.random_early_renew, Some(Duration::from_days(1)));
+		assert_eq!(c.renew_delay, Some(Duration::from_days(30)));
 		assert_eq!(c.subject_attributes.country_name, Some("FR".to_string()));
 		assert!(c.subject_attributes.generation_qualifier.is_none());
 		assert!(c.subject_attributes.given_name.is_none());

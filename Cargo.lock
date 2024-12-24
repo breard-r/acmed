@@ -10,6 +10,7 @@ dependencies = [
  "clap",
  "config",
  "daemonize",
+ "nom",
  "serde",
  "serde_derive",
  "syslog-tracing",

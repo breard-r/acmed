@@ -1,5 +1,6 @@
 mod account;
 mod certificate;
+mod duration;
 mod endpoint;
 mod global;
 mod hook;
@@ -7,6 +8,7 @@ mod rate_limit;
 
 pub use account::*;
 pub use certificate::*;
+pub use duration::*;
 pub use endpoint::*;
 pub use global::*;
 pub use hook::*;
