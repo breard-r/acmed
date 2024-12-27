@@ -76,6 +76,12 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 			if key.starts_with(crate::INTERNAL_HOOK_PREFIX) {
 				return Err(de::Error::custom(format!("{key}: invalid group name")));
 			}
+			// Group name must not be a hook name
+			if unchecked.hook.contains_key(key) {
+				return Err(de::Error::custom(format!(
+					"{key}: hooks and groups must not share the same name"
+				)));
+			}
 			// Group must only contain valid hook names
 			for hook_name in hook_lst {
 				if !unchecked.hook.contains_key(hook_name) {
@@ -325,6 +331,24 @@ internal-grp = ["internaltest"]
 	#[test]
 	fn hook_404() {
 		let res = load("tests/config/hook_404");
+		assert!(res.is_err());
+	}
+
+	#[test]
+	fn hook_group_dup() {
+		let cfg = r#"
+[hook."test"]
+cmd = "cat"
+type = ["file-pre-edit"]
+
+[hook."my-hook"]
+cmd = "cat"
+type = ["file-pre-edit"]
+
+[group]
+test = ["my-hook"]
+"#;
+		let res = load_str::<AcmedConfig>(cfg);
 		assert!(res.is_err());
 	}
 
