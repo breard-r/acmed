@@ -17,7 +17,6 @@ pub use rate_limit::*;
 use anyhow::{Context, Result};
 use config::{Config, File};
 use serde::{de, Deserialize, Deserializer};
-use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;

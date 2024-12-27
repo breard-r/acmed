@@ -1,5 +1,5 @@
 use crate::config::Duration;
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
 

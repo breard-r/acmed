@@ -1,7 +1,6 @@
 use crate::config::Duration;
 use anyhow::Result;
 use serde::{de, Deserialize, Deserializer};
-use serde_derive::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
 use std::path::PathBuf;
