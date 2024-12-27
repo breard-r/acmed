@@ -1,8 +1,10 @@
 mod cli;
 mod config;
+mod http;
 mod log;
 
 use crate::config::AcmedConfig;
+use crate::http::{HttpClient, HttpRoutine};
 use anyhow::{Context, Result};
 use clap::Parser;
 use daemonize::Daemonize;
@@ -47,6 +49,30 @@ fn main() {
 
 async fn start(cnf: AcmedConfig) {
 	tracing::info!("starting ACMEd");
+
+	// Start the HTTP routine
+	let http_routine = HttpRoutine::new(&cnf);
+	let http_client = http_routine.get_client();
+	tokio::spawn(async move {
+		http_routine.run().await;
+	});
+
+	// TODO: REMOVE ME
+	use reqwest::{Method, Request, Url};
+	let rsp = http_client
+		.send(Request::new(
+			Method::GET,
+			Url::parse("https://example.org").unwrap(),
+		))
+		.await;
+	tracing::debug!("{rsp:?}");
+	let rsp = http_client
+		.send(Request::new(
+			Method::GET,
+			Url::parse("https://example.com/directory/").unwrap(),
+		))
+		.await;
+	tracing::debug!("{rsp:?}");
 }
 
 fn init_server(foreground: bool, pid_file: Option<&Path>) {
