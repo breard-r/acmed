@@ -1,6 +1,7 @@
 [global]
 accounts_directory = "/tmp/example/account/dir"
 certificates_directory = "/tmp/example/cert/dir/"
+root_certificates = ["tests/root_certs/igc-a 2011.pem"]
 
 [account."toto"]
 contacts = [
@@ -15,6 +16,7 @@ period = "1s"
 [endpoint."my-ca"]
 url = "https://acme-v02.ac1.example.org/directory"
 rate_limits = ["my-ca-limit"]
+root_certificates = ["tests/root_certs/igc-a 2018.pem"]
 tos_agreed = true
 
 [hook."hook-1"]

@@ -4,7 +4,7 @@ mod http;
 mod log;
 
 use crate::config::AcmedConfig;
-use crate::http::{HttpClient, HttpRoutine};
+use crate::http::HttpRoutine;
 use anyhow::{Context, Result};
 use clap::Parser;
 use daemonize::Daemonize;
@@ -60,17 +60,20 @@ async fn start(cnf: AcmedConfig) {
 	// TODO: REMOVE ME
 	use reqwest::{Method, Request, Url};
 	let rsp = http_client
-		.send(Request::new(
-			Method::GET,
-			Url::parse("https://example.org").unwrap(),
-		))
+		.send(
+			"my-ca",
+			Request::new(Method::GET, Url::parse("https://example.org").unwrap()),
+		)
 		.await;
 	tracing::debug!("{rsp:?}");
 	let rsp = http_client
-		.send(Request::new(
-			Method::GET,
-			Url::parse("https://example.com/directory/").unwrap(),
-		))
+		.send(
+			"my-ca",
+			Request::new(
+				Method::GET,
+				Url::parse("https://example.com/directory/").unwrap(),
+			),
+		)
 		.await;
 	tracing::debug!("{rsp:?}");
 }

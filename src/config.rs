@@ -29,7 +29,7 @@ const ALLOWED_FILE_EXT: &[&str] = &["toml"];
 pub struct AcmedConfig {
 	pub(in crate::config) global: Option<GlobalOptions>,
 	#[serde(default)]
-	pub(in crate::config) endpoint: HashMap<String, Endpoint>,
+	pub endpoint: HashMap<String, Endpoint>,
 	#[serde(default, rename = "rate-limit")]
 	pub(in crate::config) rate_limit: HashMap<String, RateLimit>,
 	#[serde(default)]
@@ -40,6 +40,12 @@ pub struct AcmedConfig {
 	pub(in crate::config) account: HashMap<String, Account>,
 	#[serde(default)]
 	pub(in crate::config) certificate: Vec<Certificate>,
+}
+
+impl AcmedConfig {
+	pub fn get_global_root_certs(&self) -> Option<&[PathBuf]> {
+		self.global.as_ref().map(|g| g.root_certificates.as_slice())
+	}
 }
 
 impl<'de> Deserialize<'de> for AcmedConfig {

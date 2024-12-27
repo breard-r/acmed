@@ -11,7 +11,7 @@ pub struct Endpoint {
 	pub(in crate::config) rate_limits: Vec<String>,
 	pub(in crate::config) renew_delay: Option<Duration>,
 	#[serde(default)]
-	pub(in crate::config) root_certificates: Vec<PathBuf>,
+	pub root_certificates: Vec<PathBuf>,
 	#[serde(default)]
 	pub(in crate::config) tos_agreed: bool,
 	pub(in crate::config) url: String,
