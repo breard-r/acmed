@@ -1,4 +1,4 @@
-[[rate-limit."letsencrypt-v2"]]
+[rate-limit."letsencrypt-v2"]
 number = 20
 period = "1s"
 
