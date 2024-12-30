@@ -138,9 +138,10 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 	}
 }
 
-pub fn load<P: AsRef<Path>>(config_dir: P) -> Result<AcmedConfig> {
+#[tracing::instrument(level = "trace", err(Debug))]
+pub fn load<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<AcmedConfig> {
 	let config_dir = config_dir.as_ref();
-	tracing::debug!("loading config directory: {config_dir:?}");
+	tracing::debug!("loading config directory");
 	let settings = Config::builder()
 		.add_source(
 			get_files(config_dir)?
@@ -149,9 +150,9 @@ pub fn load<P: AsRef<Path>>(config_dir: P) -> Result<AcmedConfig> {
 				.collect::<Vec<_>>(),
 		)
 		.build()?;
-	tracing::trace!("loaded config: {settings:?}");
+	tracing::trace!(?settings, "loaded config");
 	let config: AcmedConfig = settings.try_deserialize().context("invalid setting")?;
-	tracing::debug!("computed config: {config:?}");
+	tracing::debug!(?config, "computed config");
 	Ok(config)
 }
 
@@ -169,11 +170,12 @@ fn get_files(config_dir: &Path) -> Result<Vec<PathBuf>> {
 		}
 	}
 	file_lst.sort();
-	tracing::debug!("configuration files found: {file_lst:?}");
+	tracing::debug!(files = ?file_lst, "configuration files found");
 	Ok(file_lst)
 }
 
 #[cfg(test)]
+#[tracing::instrument(level = "trace", err(Debug))]
 fn load_str<'de, T: serde::de::Deserialize<'de>>(config_str: &str) -> Result<T> {
 	let settings = Config::builder()
 		.add_source(File::from_str(config_str, config::FileFormat::Toml))

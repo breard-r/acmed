@@ -21,7 +21,12 @@ pub struct HttpClient {
 }
 
 impl HttpClient {
-	pub async fn send<S: AsRef<str>>(&self, endpoint: S, request: Request) -> Result<Response> {
+	#[tracing::instrument(skip(self), level = "trace", err(Debug))]
+	pub async fn send<S: AsRef<str> + std::fmt::Debug>(
+		&self,
+		endpoint: S,
+		request: Request,
+	) -> Result<Response> {
 		let (tx, rx) = oneshot::channel();
 		let raw_req = RawRequest {
 			request,
@@ -29,11 +34,7 @@ impl HttpClient {
 			tx,
 		};
 		self.tx.send(raw_req)?;
-		let ret = rx.await?;
-		if let Err(ref e) = ret {
-			tracing::error!("http error: {e:#?}");
-		}
-		Ok(ret?)
+		Ok(rx.await??)
 	}
 }
 
@@ -50,11 +51,12 @@ pub(super) struct HttpRoutine {
 }
 
 impl HttpRoutine {
+	#[tracing::instrument(skip_all, level = "trace")]
 	pub(super) fn new(config: &AcmedConfig) -> Self {
 		let (tx, rx) = mpsc::unbounded_channel();
 		let mut endpoints = HashMap::with_capacity(config.endpoint.len());
 		for (name, edp) in &config.endpoint {
-			tracing::debug!("loading endpoint: {name}");
+			tracing::debug!(name, "loading endpoint");
 			let client = get_http_client(config.get_global_root_certs(), &edp.root_certificates);
 			let endpoint = HttpEndpoint { client };
 			endpoints.insert(name.to_owned(), endpoint);
@@ -68,21 +70,22 @@ impl HttpRoutine {
 		}
 	}
 
+	#[tracing::instrument(skip_all, level = "trace")]
 	pub(super) async fn run(mut self) {
 		tracing::trace!("starting the http routine");
 		while let Some(raw_req) = self.rx.recv().await {
-			tracing::debug!("new http request: {:?}", raw_req.request);
+			tracing::debug!(request = ?raw_req.request, "new http request");
 			match self.endpoints.get(&raw_req.endpoint) {
 				Some(edp) => {
 					let ret = edp.client.execute(raw_req.request).await;
 					let _ = raw_req.tx.send(ret);
 				}
 				None => {
-					tracing::error!("{}: endpoint not found", raw_req.endpoint);
+					tracing::error!(endpoint = raw_req.endpoint, "endpoint not found");
 				}
 			}
 		}
-		tracing::warn!("the http routine has stopped");
+		tracing::error!("the http routine has stopped");
 	}
 }
 
@@ -92,17 +95,15 @@ macro_rules! add_root_cert {
 			match get_cert_pem(cert_path) {
 				Ok(cert) => {
 					$builder = $builder.add_root_certificate(cert);
-					tracing::debug!("root certificate loaded: {}", cert_path.display());
+					tracing::debug!(?cert_path, "root certificate loaded");
 				}
-				Err(e) => tracing::error!(
-					"{} unable to load root certificate: {e:#?}",
-					cert_path.display()
-				),
+				Err(e) => tracing::error!(?cert_path, "{e:#?}",),
 			}
 		}
 	};
 }
 
+#[tracing::instrument(level = "trace")]
 fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) -> Client {
 	let useragent = format!(
 		"{}/{} ({}) {}",
