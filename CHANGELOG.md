@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- OpenSSL support has been removed.
 - tacd has been removed.
 - The `include` directive has been removed from the configuration.
 
