@@ -24,7 +24,7 @@ fn main() {
 
 	// Initialize the logging system
 	log::init(args.log_level, !args.log.log_stderr);
-	tracing::trace!(?args, "computed args");
+	tracing::trace!("computed args" = ?args);
 
 	// Load the configuration
 	let cfg = match config::load(args.config.as_path()) {
@@ -70,7 +70,7 @@ async fn debug_remove_me(http_client: crate::http::HttpClient) {
 			Request::new(Method::GET, Url::parse("https://example.invalid").unwrap()),
 		)
 		.await;
-	tracing::debug!(response = ?rsp, "response received");
+	tracing::debug!("response received" = ?rsp);
 	let rsp = http_client
 		.send(
 			"my-ca",
@@ -80,7 +80,7 @@ async fn debug_remove_me(http_client: crate::http::HttpClient) {
 			),
 		)
 		.await;
-	tracing::debug!(response = ?rsp, "response received");
+	tracing::debug!("response received" = ?rsp);
 }
 
 #[tracing::instrument(level = "trace", err(Debug))]

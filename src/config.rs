@@ -150,9 +150,9 @@ pub fn load<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<AcmedConf
 				.collect::<Vec<_>>(),
 		)
 		.build()?;
-	tracing::trace!(?settings, "loaded config");
+	tracing::trace!("loaded config" = ?settings);
 	let config: AcmedConfig = settings.try_deserialize().context("invalid setting")?;
-	tracing::debug!(?config, "computed config");
+	tracing::debug!("computed config" = ?config);
 	Ok(config)
 }
 
@@ -170,7 +170,7 @@ fn get_files(config_dir: &Path) -> Result<Vec<PathBuf>> {
 		}
 	}
 	file_lst.sort();
-	tracing::debug!(files = ?file_lst, "configuration files found");
+	tracing::debug!("configuration files found" = ?file_lst);
 	Ok(file_lst)
 }
 

@@ -56,7 +56,7 @@ impl HttpRoutine {
 		let (tx, rx) = mpsc::unbounded_channel();
 		let mut endpoints = HashMap::with_capacity(config.endpoint.len());
 		for (name, edp) in &config.endpoint {
-			tracing::debug!(name, "loading endpoint");
+			tracing::debug!("endpoint name" = name, "loading endpoint");
 			let client = get_http_client(config.get_global_root_certs(), &edp.root_certificates);
 			let endpoint = HttpEndpoint { client };
 			endpoints.insert(name.to_owned(), endpoint);
@@ -74,14 +74,14 @@ impl HttpRoutine {
 	pub(super) async fn run(mut self) {
 		tracing::trace!("starting the http routine");
 		while let Some(raw_req) = self.rx.recv().await {
-			tracing::debug!(request = ?raw_req.request, "new http request");
+			tracing::debug!("new http request" = ?raw_req.request);
 			match self.endpoints.get(&raw_req.endpoint) {
 				Some(edp) => {
 					let ret = edp.client.execute(raw_req.request).await;
 					let _ = raw_req.tx.send(ret);
 				}
 				None => {
-					tracing::error!(endpoint = raw_req.endpoint, "endpoint not found");
+					tracing::error!("endpoint name" = raw_req.endpoint, "endpoint not found");
 				}
 			}
 		}
@@ -95,9 +95,9 @@ macro_rules! add_root_cert {
 			match get_cert_pem(cert_path) {
 				Ok(cert) => {
 					$builder = $builder.add_root_certificate(cert);
-					tracing::debug!(?cert_path, "root certificate loaded");
+					tracing::debug!("path" = %cert_path.display(), "root certificate loaded");
 				}
-				Err(e) => tracing::error!(?cert_path, "{e:#?}",),
+				Err(e) => tracing::error!(path = ?cert_path, error = "{e:#?}", "unable to load root certificate"),
 			}
 		}
 	};
