@@ -1,39 +1,60 @@
-use clap::ValueEnum;
-use tracing_subscriber::FmtSubscriber;
+use crate::config::{AcmedConfig, Facility, LogFormat};
+use anyhow::{Context, Result};
+use std::fs::File;
+use tracing_subscriber::prelude::*;
+use tracing_subscriber::{filter, Registry};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Level {
-	Error,
-	Warn,
-	Info,
-	Debug,
-	Trace,
+macro_rules! add_output {
+	($vec: ident, $facility: ident, $writer: expr) => {{
+		let layer = tracing_subscriber::fmt::layer()
+			.with_ansi($facility.is_ansi())
+			.with_writer($writer);
+		match $facility.format {
+			LogFormat::Compact => push_output!($vec, $facility, layer.compact()),
+			LogFormat::Full => push_output!($vec, $facility, layer),
+			LogFormat::Json => push_output!($vec, $facility, layer.json()),
+			LogFormat::Pretty => push_output!($vec, $facility, layer.pretty()),
+		};
+	}};
 }
 
-impl Level {
-	fn tracing(&self) -> tracing::Level {
-		match self {
-			Self::Error => tracing::Level::ERROR,
-			Self::Warn => tracing::Level::WARN,
-			Self::Info => tracing::Level::INFO,
-			Self::Debug => tracing::Level::DEBUG,
-			Self::Trace => tracing::Level::TRACE,
+macro_rules! push_output {
+	($vec: ident, $facility: ident, $layer: expr) => {{
+		let level = $facility.get_level();
+		let layer = $layer.with_filter(filter::filter_fn(move |metadata| {
+			metadata.target().starts_with("acmed") && *metadata.level() <= level
+		}));
+		$vec.push(layer.boxed());
+	}};
+}
+
+pub fn init(config: &AcmedConfig) -> Result<()> {
+	let mut layers = Vec::new();
+
+	for lf in &config.logging_facility {
+		match &lf.output {
+			Facility::File(path) => {
+				let file = File::options()
+					.create(true)
+					.append(true)
+					.open(path)
+					.context(path.display().to_string())?;
+				add_output!(layers, lf, file)
+			}
+			Facility::StdErr => add_output!(layers, lf, std::io::stderr),
+			Facility::StdOut => add_output!(layers, lf, std::io::stdout),
+			Facility::SysLog => {
+				let identity = std::ffi::CStr::from_bytes_with_nul(crate::APP_IDENTITY).unwrap();
+				let options = Default::default();
+				let facility = syslog_tracing::Facility::Daemon;
+				let syslog = syslog_tracing::Syslog::new(identity, options, facility).unwrap();
+				add_output!(layers, lf, syslog)
+			}
 		}
 	}
-}
 
-pub fn init(level: Level, is_syslog: bool) {
-	if is_syslog {
-		let identity = std::ffi::CStr::from_bytes_with_nul(crate::APP_IDENTITY).unwrap();
-		let (options, facility) = Default::default();
-		let syslog = syslog_tracing::Syslog::new(identity, options, facility)
-			.expect("building syslog subscriber failed");
-		tracing_subscriber::fmt().with_writer(syslog).init();
-	} else {
-		let subscriber = FmtSubscriber::builder()
-			.with_max_level(level.tracing())
-			.finish();
-		tracing::subscriber::set_global_default(subscriber)
-			.expect("setting default subscriber failed");
-	}
+	let subscriber = Registry::default().with(layers);
+	tracing::subscriber::set_global_default(subscriber).unwrap();
+
+	Ok(())
 }

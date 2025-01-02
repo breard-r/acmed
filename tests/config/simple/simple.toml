@@ -3,6 +3,20 @@ accounts_directory = "/tmp/example/account/dir"
 certificates_directory = "/tmp/example/cert/dir/"
 root_certificates = ["tests/root_certs/igc-a 2011.pem"]
 
+[[logging_facility]]
+output = "stderr"
+format = "pretty"
+level = "trace"
+
+[[logging_facility]]
+output = "syslog"
+ansi = false
+
+[[logging_facility]]
+output = "/tmp/acmed_test.log.json"
+format = "json"
+level = "debug"
+
 [account."toto"]
 contacts = [
 	{ mailto = "acme@example.org" },

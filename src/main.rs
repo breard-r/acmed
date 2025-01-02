@@ -15,26 +15,30 @@ use std::process;
 
 pub const APP_IDENTITY: &[u8] = b"acmed\0";
 pub const APP_THREAD_NAME: &str = "acmed-runtime";
-pub const DEFAULT_LOG_LEVEL: log::Level = log::Level::Warn;
 pub const INTERNAL_HOOK_PREFIX: &str = "internal:";
 
 fn main() {
-	// CLI
+	// Load the command-line interface
 	let args = cli::CliArgs::parse();
-
-	// Initialize the logging system
-	log::init(args.log_level, !args.log.log_stderr);
-	tracing::trace!("computed args" = ?args);
 
 	// Load the configuration
 	let cfg = match config::load(args.config.as_path()) {
 		Ok(cfg) => cfg,
-		Err(_) => std::process::exit(3),
+		Err(e) => {
+			eprintln!("error while loading the configuration: {e:#}");
+			std::process::exit(2)
+		}
 	};
+
+	// Initialize the logging system
+	if let Err(e) = log::init(&cfg) {
+		eprintln!("error while initializing the logging system: {e:#}");
+		std::process::exit(3)
+	}
 
 	// Initialize the server (PID file and daemon)
 	if init_server(args.foreground, args.pid.get_pid_file()).is_err() {
-		std::process::exit(3);
+		std::process::exit(4);
 	}
 
 	// Starting ACMEd

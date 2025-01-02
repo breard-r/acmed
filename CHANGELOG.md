@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Logging facilities can now be defined in the configuration file.
+
 ### Changed
 
 - Instead of loading a default configuration file, ACMEd now loads all the
@@ -24,12 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   groups has been replaced by tables.
 - The name of user-defined hooks and groups cannot start with `internal:`,
   which is now reserved for internal hooks.
+- The default logging level is now info.
 
 ### Removed
 
 - OpenSSL support has been removed.
 - tacd has been removed.
 - The `include` directive has been removed from the configuration.
+- The `acmed` command does not accepts the `--log-stderr`, `--log-syslog` and
+  `--log-level` arguments anymore.
+
+### Fixed
+
+- Logging to syslog now uses the daemon facility.
 
 
 ## [0.24.0] - 2024-12-21

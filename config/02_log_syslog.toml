@@ -1,0 +1,2 @@
+[[logging_facility]]
+output = "syslog"

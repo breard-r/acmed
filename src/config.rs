@@ -4,6 +4,7 @@ mod duration;
 mod endpoint;
 mod global;
 mod hook;
+mod log;
 mod rate_limit;
 
 pub use account::*;
@@ -12,6 +13,7 @@ pub use duration::*;
 pub use endpoint::*;
 pub use global::*;
 pub use hook::*;
+pub use log::*;
 pub use rate_limit::*;
 
 use anyhow::{Context, Result};
@@ -30,6 +32,8 @@ pub struct AcmedConfig {
 	pub(in crate::config) global: Option<GlobalOptions>,
 	#[serde(default)]
 	pub endpoint: HashMap<String, Endpoint>,
+	#[serde(default)]
+	pub logging_facility: Vec<LoggingFacility>,
 	#[serde(default, rename = "rate-limit")]
 	pub(in crate::config) rate_limit: HashMap<String, RateLimit>,
 	#[serde(default)]
@@ -138,10 +142,8 @@ impl<'de> Deserialize<'de> for AcmedConfig {
 	}
 }
 
-#[tracing::instrument(level = "trace", err(Debug))]
 pub fn load<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<AcmedConfig> {
 	let config_dir = config_dir.as_ref();
-	tracing::debug!("loading config directory");
 	let settings = Config::builder()
 		.add_source(
 			get_files(config_dir)?
@@ -150,9 +152,7 @@ pub fn load<P: AsRef<Path> + std::fmt::Debug>(config_dir: P) -> Result<AcmedConf
 				.collect::<Vec<_>>(),
 		)
 		.build()?;
-	tracing::trace!("loaded config" = ?settings);
 	let config: AcmedConfig = settings.try_deserialize().context("invalid setting")?;
-	tracing::debug!("computed config" = ?config);
 	Ok(config)
 }
 
@@ -170,12 +170,10 @@ fn get_files(config_dir: &Path) -> Result<Vec<PathBuf>> {
 		}
 	}
 	file_lst.sort();
-	tracing::debug!("configuration files found" = ?file_lst);
 	Ok(file_lst)
 }
 
 #[cfg(test)]
-#[tracing::instrument(level = "trace", err(Debug))]
 fn load_str<'de, T: serde::de::Deserialize<'de>>(config_str: &str) -> Result<T> {
 	let settings = Config::builder()
 		.add_source(File::from_str(config_str, config::FileFormat::Toml))
@@ -197,6 +195,7 @@ mod tests {
 		assert!(cfg.hook.is_empty());
 		assert!(cfg.group.is_empty());
 		assert!(cfg.account.is_empty());
+		assert!(cfg.logging_facility.is_empty());
 		assert!(cfg.certificate.is_empty());
 	}
 
@@ -253,6 +252,28 @@ mod tests {
 		let i = c.identifiers.first().unwrap();
 		assert_eq!(i.dns, Some("example.org".to_string()));
 		assert_eq!(i.challenge, AcmeChallenge::Http01);
+		assert_eq!(cfg.logging_facility.len(), 3);
+		let stderr = cfg.logging_facility.first().unwrap();
+		assert_eq!(stderr.output, Facility::StdErr);
+		assert_eq!(stderr.format, LogFormat::Pretty);
+		assert_eq!(stderr.level, Level::Trace);
+		assert_eq!(stderr.ansi, None);
+		assert_eq!(stderr.is_ansi(), true);
+		let syslog = cfg.logging_facility.get(1).unwrap();
+		assert_eq!(syslog.output, Facility::SysLog);
+		assert_eq!(syslog.format, LogFormat::Full);
+		assert_eq!(syslog.level, Level::Info);
+		assert_eq!(syslog.ansi, Some(false));
+		assert_eq!(syslog.is_ansi(), false);
+		let file = cfg.logging_facility.get(2).unwrap();
+		assert_eq!(
+			file.output,
+			Facility::File(PathBuf::from("/tmp/acmed_test.log.json"))
+		);
+		assert_eq!(file.format, LogFormat::Json);
+		assert_eq!(file.level, Level::Debug);
+		assert_eq!(file.ansi, None);
+		assert_eq!(file.is_ansi(), false);
 		assert_eq!(c.hooks, vec!["super-hook".to_string()]);
 	}
 

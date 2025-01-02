@@ -15,9 +15,6 @@
 .Op Fl c|--config Ar DIR
 .Op Fl f|--foreground
 .Op Fl h|--help
-.Op Fl -log-stderr
-.Op Fl -log-syslog
-.Op Fl -log-level Ar LEVEL
 .Op Fl -no-pid-file
 .Op Fl -pid-file Ar FILE
 .Op Fl -root-cert Ar FILE
@@ -37,12 +34,6 @@ Specify an alternative configuration directory.
 Runs in the foreground.
 .It Fl h, -help
 Prints help information.
-.It Fl -log-stderr
-Prints log messages to the standard error output.
-.It Fl -log-syslog
-Sends log messages via syslog.
-.It Fl -log-level Ar LEVEL
-Specify the log level. Possible values: error, warn, info, debug and trace.
 .It Fl -no-pid-file
 Do not create any PID file.
 .It Fl -pid-file Ar FILE

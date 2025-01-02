@@ -372,8 +372,52 @@ file-pre-edit
 post-operation
 .El
 .El
+.It Ic logging_facility
+Table where each element defines a logging facility. Possible fields and values are:
+.Bl -tag
+.It Cm output Ar string
+Path of the file where the log will be written. If the file does not exists, it will be created. It the file already exists, logs will be appended at the end of the file. The following special values may be specified:
+.Bl -dash -compact
+.It
+stderr: write the logs into the terminal's standard error stream
+.It
+stdout: write the logs into the terminal's standard stream
+.It
+syslog: write the logs into syslog using the daemon facility
+.El
+.It Cm format Ar string
+Log format. Possible values are:
+.Bl -dash -compact
+.It
+compact
+.It
+full
+.Aq default
+.It
+json
+.It
+pretty
+.El
+.It Cm level Ar string
+Log level. Possible values are:
+.Bl -dash -compact
+.It
+error
+.It
+warn
+.It
+info
+.Aq default
+.It
+debug
+.It
+trace
+.El
+.It Cm ansi Ar boolean
+Defines whether or not the log will use the ANSI terminal escape codes for colors and other text formatting. Default if true for terminal outputs (strerr and stdout) and false for syslog and files.
+.El
 .It Ic rate-limit
-Table where each element defines a HTTPS rate limit.
+Table where each element defines a HTTPS rate limit. Possible fields and values are:
 .Bl -tag
 .It Cm number Ar integer
 Number of requests authorized withing the time period.
@@ -388,7 +432,7 @@ It is strongly recommended to split the configuration into several files, each f
 .Pp
 .Bl -tag -compact
 .It 0
-global configuration
+global configuration (including logging facilities)
 .It 1
 hooks and hook groups
 .It 2
