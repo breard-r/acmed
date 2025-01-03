@@ -21,7 +21,8 @@ pub struct HttpClient {
 }
 
 impl HttpClient {
-	#[tracing::instrument(skip(self), level = "trace", err(Debug))]
+	// TODO: err(Alternate)
+	#[tracing::instrument(skip(self), name = "http request", level = "trace", err)]
 	pub async fn send<S: AsRef<str> + std::fmt::Debug>(
 		&self,
 		endpoint: S,
@@ -52,16 +53,16 @@ pub(super) struct HttpRoutine {
 
 impl HttpRoutine {
 	#[tracing::instrument(skip_all, level = "trace")]
-	pub(super) fn new(config: &AcmedConfig) -> Self {
+	pub(super) fn new(config: &AcmedConfig) -> Result<Self> {
 		let (tx, rx) = mpsc::unbounded_channel();
 		let mut endpoints = HashMap::with_capacity(config.endpoint.len());
 		for (name, edp) in &config.endpoint {
 			tracing::debug!("endpoint name" = name, "loading endpoint");
-			let client = get_http_client(config.get_global_root_certs(), &edp.root_certificates);
+			let client = get_http_client(config.get_global_root_certs(), &edp.root_certificates)?;
 			let endpoint = HttpEndpoint { client };
 			endpoints.insert(name.to_owned(), endpoint);
 		}
-		Self { tx, rx, endpoints }
+		Ok(Self { tx, rx, endpoints })
 	}
 
 	pub(super) fn get_client(&self) -> HttpClient {
@@ -92,19 +93,17 @@ impl HttpRoutine {
 macro_rules! add_root_cert {
 	($builder: ident, $iter: ident) => {
 		for cert_path in $iter {
-			match get_cert_pem(cert_path) {
-				Ok(cert) => {
-					$builder = $builder.add_root_certificate(cert);
-					tracing::debug!("path" = %cert_path.display(), "root certificate loaded");
-				}
-				Err(e) => tracing::error!(path = ?cert_path, error = "{e:#?}", "unable to load root certificate"),
+			if let Ok(cert) = get_cert_pem(cert_path) {
+				$builder = $builder.add_root_certificate(cert);
+				tracing::debug!("path" = %cert_path.display(), "root certificate loaded");
 			}
 		}
 	};
 }
 
-#[tracing::instrument(level = "trace")]
-fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) -> Client {
+// TODO: err(Alternate)
+#[tracing::instrument(level = "trace", err)]
+fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) -> Result<Client> {
 	let useragent = format!(
 		"{}/{} ({}) {}",
 		env!("CARGO_BIN_NAME"),
@@ -121,9 +120,12 @@ fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) ->
 		add_root_cert!(client_builder, base_certs);
 	}
 	add_root_cert!(client_builder, end_certs);
-	client_builder.build().unwrap()
+	let client = client_builder.build()?;
+	Ok(client)
 }
 
+// TODO: err(Alternate)
+#[tracing::instrument(name = "load root certificate", level = "trace", err)]
 fn get_cert_pem(cert_path: &Path) -> Result<Certificate> {
 	let mut buff = Vec::new();
 	File::open(cert_path)?.read_to_end(&mut buff)?;

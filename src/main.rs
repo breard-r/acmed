@@ -54,7 +54,7 @@ async fn start(cnf: AcmedConfig) {
 	tracing::info!("starting ACMEd");
 
 	// Start the HTTP routine
-	let http_routine = HttpRoutine::new(&cnf);
+	let http_routine = HttpRoutine::new(&cnf).expect("unable to load the http client");
 	let http_client = http_routine.get_client();
 	tokio::spawn(async move {
 		http_routine.run().await;
@@ -87,7 +87,8 @@ async fn debug_remove_me(http_client: crate::http::HttpClient) {
 	tracing::debug!("response received" = ?rsp);
 }
 
-#[tracing::instrument(level = "trace", err(Debug))]
+// TODO: err(Alternate)
+#[tracing::instrument(level = "trace", err)]
 fn init_server(foreground: bool, pid_file: Option<&Path>) -> Result<()> {
 	if !foreground {
 		let mut daemonize = Daemonize::new();
