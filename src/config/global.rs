@@ -118,8 +118,8 @@ root_certificates = ["root_cert.pem"]
 "#;
 
 		let mut env = HashMap::with_capacity(2);
-		env.insert("test".to_string(), "Test".to_string());
-		env.insert("http_root".to_string(), "/srv/http".to_string());
+		env.insert("TEST".to_string(), "Test".to_string());
+		env.insert("HTTP_ROOT".to_string(), "/srv/http".to_string());
 		let go: GlobalOptions = load_str(cfg).unwrap();
 		assert_eq!(go.accounts_directory, PathBuf::from("/tmp/accounts"));
 		assert_eq!(go.cert_file_group, Some("acme_test".to_string()));

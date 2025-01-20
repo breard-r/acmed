@@ -66,6 +66,7 @@ impl<'de> Deserialize<'de> for Facility {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum LogFormat {
 	Compact,
 	#[default]
@@ -75,6 +76,7 @@ pub enum LogFormat {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub(in crate::config) enum Level {
 	Error,
 	Warn,

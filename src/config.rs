@@ -292,12 +292,12 @@ mod tests {
 		);
 		assert!(cfg.rate_limit.is_empty());
 		assert_eq!(cfg.endpoint.len(), 2);
-		let ac1 = cfg.endpoint.get("test ac 1").unwrap();
+		let ac1 = cfg.endpoint.get("test AC 1").unwrap();
 		assert_eq!(ac1.url, "https://acme-v02.ac1.example.org/directory");
 		assert_eq!(ac1.tos_agreed, true);
 		assert!(ac1.random_early_renew.is_none());
 		assert!(ac1.root_certificates.is_empty());
-		let ac2 = cfg.endpoint.get("test ac 2").unwrap();
+		let ac2 = cfg.endpoint.get("test AC 2").unwrap();
 		assert_eq!(ac2.url, "https://acme-v02.ac2.example.org/directory");
 		assert_eq!(ac2.tos_agreed, false);
 		assert_eq!(ac2.random_early_renew, Some(Duration::from_secs(10)));

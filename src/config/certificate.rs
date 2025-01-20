@@ -49,6 +49,7 @@ impl<'de> Deserialize<'de> for Certificate {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum CsrDigest {
 	#[default]
 	Sha256,
@@ -106,10 +107,9 @@ pub enum AcmeChallenge {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum KeyType {
-	#[serde(rename = "ed25519")]
 	Ed25519,
-	#[serde(rename = "ed448")]
 	Ed448,
 	#[serde(rename = "ecdsa_p256")]
 	EcDsaP256,
@@ -118,9 +118,7 @@ pub enum KeyType {
 	#[serde(rename = "ecdsa_p521")]
 	EcDsaP521,
 	#[default]
-	#[serde(rename = "rsa2048")]
 	Rsa2048,
-	#[serde(rename = "rsa4096")]
 	Rsa4096,
 }
 

@@ -1,11 +1,9 @@
 global.accounts_directory = "/tmp/other/account/dir"
 
-endpoint."test ac 2".random_early_renew = "10s"
+endpoint."test AC 2".random_early_renew = "10s"
+endpoint."test AC 2".root_certificates = ["test.pem"]
 
 endpoint."test AC 1".tos_agreed = true
-
-[endpoint."test AC 2"]
-root_certificates = ["test.pem"]
 
 [group]
 test-grp = ["test-hook"]

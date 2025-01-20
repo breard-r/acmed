@@ -46,18 +46,23 @@ pub struct ExternalAccount {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum AccountKeyType {
 	Ed25519,
 	Ed448,
+	#[serde(rename = "ecdsa_p256")]
 	#[default]
 	EcDsaP256,
+	#[serde(rename = "ecdsa_p384")]
 	EcDsaP384,
+	#[serde(rename = "ecdsa_p521")]
 	EcDsaP521,
 	Rsa2048,
 	Rsa4096,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum AccountSignatureAlgorithm {
 	Hs256,
 	Hs384,
@@ -66,6 +71,7 @@ pub enum AccountSignatureAlgorithm {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum ExternalAccountSignatureAlgorithm {
 	#[default]
 	Hs256,
@@ -82,6 +88,29 @@ mod tests {
 	fn empty_account() {
 		let res = load_str::<Account>("");
 		assert!(res.is_err());
+	}
+
+	#[test]
+	fn account_key_types() {
+		let tests = [
+			(AccountKeyType::Ed25519, "ed25519"),
+			(AccountKeyType::Ed448, "ed448"),
+			(AccountKeyType::EcDsaP256, "ecdsa_p256"),
+			(AccountKeyType::EcDsaP384, "ecdsa_p384"),
+			(AccountKeyType::EcDsaP521, "ecdsa_p521"),
+			(AccountKeyType::Rsa2048, "rsa2048"),
+			(AccountKeyType::Rsa4096, "rsa4096"),
+		];
+		let cfg = r#"
+contacts = [
+	{ mailto = "acme@example.org" }
+]
+"#;
+		for (ref_val, str_val) in tests {
+			let cfg_str = format!("{cfg}\nkey_type = \"{str_val}\"\n");
+			let a: Account = load_str(&cfg_str).unwrap();
+			assert_eq!(a.key_type, ref_val);
+		}
 	}
 
 	#[test]
@@ -120,7 +149,7 @@ key_type = "rsa2048"
 signature_algorithm = "HS512"
 "#;
 		let mut env = HashMap::with_capacity(2);
-		env.insert("test".to_string(), "Test".to_string());
+		env.insert("TEST".to_string(), "Test".to_string());
 		let ea = ExternalAccount {
 			identifier: "toto".to_string(),
 			key: "VGhpcyBpcyBhIHRlc3Q=".to_string(),
