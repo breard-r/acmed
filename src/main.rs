@@ -7,7 +7,7 @@ use crate::config::AcmedConfig;
 use crate::http::HttpRoutine;
 use anyhow::Result;
 use clap::Parser;
-use daemonize::Daemonize;
+use fork::{daemon, Fork};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -16,6 +16,20 @@ use std::process;
 pub const APP_IDENTITY: &[u8] = b"acmed\0";
 pub const APP_THREAD_NAME: &str = "acmed-runtime";
 pub const INTERNAL_HOOK_PREFIX: &str = "internal:";
+
+macro_rules! run_server {
+	($cfg: ident, $args: ident) => {
+		if let Some(pid_file_path) = $args.pid.get_pid_file() {
+			let _ = write_pid_file(pid_file_path);
+		}
+		let tokio_runtime = tokio::runtime::Builder::new_multi_thread()
+			.enable_all()
+			.thread_name(APP_THREAD_NAME)
+			.build()
+			.unwrap()
+			.block_on(start($cfg));
+	};
+}
 
 fn main() {
 	// Load the command-line interface
@@ -36,18 +50,14 @@ fn main() {
 		std::process::exit(3)
 	}
 
-	// Initialize the server (PID file and daemon)
-	if init_server(args.foreground, args.pid.get_pid_file()).is_err() {
-		std::process::exit(4);
-	}
-
 	// Starting ACMEd
-	tokio::runtime::Builder::new_multi_thread()
-		.enable_all()
-		.thread_name(APP_THREAD_NAME)
-		.build()
-		.unwrap()
-		.block_on(start(cfg));
+	if args.foreground {
+		run_server!(cfg, args);
+	} else {
+		if let Ok(Fork::Child) = daemon(false, false) {
+			run_server!(cfg, args);
+		}
+	}
 }
 
 async fn start(cnf: AcmedConfig) {
@@ -89,19 +99,6 @@ async fn debug_remove_me(http_client: crate::http::HttpClient) {
 
 // TODO: err(Alternate)
 #[tracing::instrument(level = "trace", err)]
-fn init_server(foreground: bool, pid_file: Option<&Path>) -> Result<()> {
-	if !foreground {
-		let mut daemonize = Daemonize::new();
-		if let Some(f) = pid_file {
-			daemonize = daemonize.pid_file(f);
-		}
-		daemonize.start()?
-	} else if let Some(f) = pid_file {
-		write_pid_file(f)?
-	}
-	Ok(())
-}
-
 fn write_pid_file(pid_file: &Path) -> Result<()> {
 	let data = format!("{}\n", process::id()).into_bytes();
 	let mut file = File::create(pid_file)?;
