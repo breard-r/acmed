@@ -21,8 +21,7 @@ pub struct HttpClient {
 }
 
 impl HttpClient {
-	// TODO: err(Alternate)
-	#[tracing::instrument(skip(self), name = "http request", level = "trace", err)]
+	#[tracing::instrument(skip(self), name = "http_request", err)]
 	pub async fn send<S: AsRef<str> + std::fmt::Debug>(
 		&self,
 		endpoint: S,
@@ -101,8 +100,7 @@ macro_rules! add_root_cert {
 	};
 }
 
-// TODO: err(Alternate)
-#[tracing::instrument(level = "trace", err)]
+#[tracing::instrument(skip_all, err)]
 fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) -> Result<Client> {
 	let useragent = format!(
 		"{}/{} ({}) {}",
@@ -113,8 +111,8 @@ fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) ->
 	);
 	let mut client_builder = ClientBuilder::new();
 	let mut default_headers = HeaderMap::new();
-	default_headers.append(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5".parse().unwrap());
-	default_headers.append(header::USER_AGENT, useragent.parse().unwrap());
+	default_headers.append(header::ACCEPT_LANGUAGE, "en-US,en;q=0.5".parse()?);
+	default_headers.append(header::USER_AGENT, useragent.parse()?);
 	client_builder = client_builder.default_headers(default_headers);
 	if let Some(base_certs) = base_certs_opt {
 		add_root_cert!(client_builder, base_certs);
@@ -124,8 +122,7 @@ fn get_http_client(base_certs_opt: Option<&[PathBuf]>, end_certs: &[PathBuf]) ->
 	Ok(client)
 }
 
-// TODO: err(Alternate)
-#[tracing::instrument(name = "load root certificate", level = "trace", err)]
+#[tracing::instrument(name = "load_root_certificate", err)]
 fn get_cert_pem(cert_path: &Path) -> Result<Certificate> {
 	let mut buff = Vec::new();
 	File::open(cert_path)?.read_to_end(&mut buff)?;

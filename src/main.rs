@@ -97,8 +97,7 @@ async fn debug_remove_me(http_client: crate::http::HttpClient) {
 	tracing::debug!("response received" = ?rsp);
 }
 
-// TODO: err(Alternate)
-#[tracing::instrument(level = "trace", err)]
+#[tracing::instrument(err)]
 fn write_pid_file(pid_file: &Path) -> Result<()> {
 	let data = format!("{}\n", process::id()).into_bytes();
 	let mut file = File::create(pid_file)?;
