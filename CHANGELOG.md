@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The minimum supported Rust version (MSRV) is now 1.81.
+
 ### Fixed
 - Fix the panic when tacd starts.
 
