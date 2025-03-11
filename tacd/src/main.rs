@@ -58,13 +58,13 @@ fn init(cnf: &ArgMatches) -> Result<()> {
 		.get_one::<String>("listen")
 		.map(|e| e.as_str())
 		.unwrap_or(DEFAULT_LISTEN_ADDR);
-	let crt_signature_alg = match cnf.get_one::<&str>("crt-signature-alg") {
+	let crt_signature_alg = match cnf.get_one::<String>("crt-signature-alg") {
 		Some(alg) => alg
 			.parse()
 			.map_err(|e: acme_common::error::Error| anyhow!(e))?,
 		None => DEFAULT_CRT_KEY_TYPE,
 	};
-	let crt_digest = match cnf.get_one::<&str>("crt-digest") {
+	let crt_digest = match cnf.get_one::<String>("crt-digest") {
 		Some(alg) => alg
 			.parse()
 			.map_err(|e: acme_common::error::Error| anyhow!(e))?,
