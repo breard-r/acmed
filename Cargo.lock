@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "acme_common"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "base64",
  "daemonize",
@@ -25,7 +25,7 @@ dependencies = [
 
 [[package]]
 name = "acmed"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "acme_common",
  "async-lock",
@@ -1498,9 +1498,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.24"
+version = "0.23.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96bf61953b1bc045820a2b947e6e9771c58c8c4b15242425b03f783ede1b34fe"
+checksum = "822ee9188ac4ec04a2f0531e55d035fb2de73f18b41a63c70c2712503b6fb13c"
 dependencies = [
  "once_cell",
  "rustls-pki-types",
@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "tacd"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "acme_common",
  "anyhow",
