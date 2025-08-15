@@ -2,7 +2,7 @@ use nom::bytes::complete::take_while_m_n;
 use nom::character::complete::digit1;
 use nom::combinator::map_res;
 use nom::multi::fold_many1;
-use nom::IResult;
+use nom::{IResult, Parser};
 use serde::{de, Deserialize, Deserializer};
 
 type StdDuration = std::time::Duration;
@@ -54,7 +54,8 @@ fn get_multiplicator(input: &str) -> IResult<&str, u64> {
 }
 
 fn get_duration_part(input: &str) -> IResult<&str, StdDuration> {
-	let (input, nb) = map_res(digit1, |s: &str| s.parse::<u64>())(input)?;
+	let mut parse_u64 = map_res(digit1, |s: &str| s.parse::<u64>());
+	let (input, nb) = parse_u64.parse(input)?;
 	let (input, mult) = get_multiplicator(input)?;
 	Ok((input, StdDuration::from_secs(nb * mult)))
 }
@@ -67,7 +68,8 @@ fn parse_duration(input: &str) -> IResult<&str, Duration> {
 			acc += item;
 			acc
 		},
-	)(input)?;
+	)
+	.parse(input)?;
 	Ok((input, Duration(std_duration)))
 }
 
