@@ -97,9 +97,9 @@ ignore = [
 allow = [
     "Apache-2.0",
     "BSD-3-Clause",
+    "CDLA-Permissive-2.0",
     "MIT",
     "ISC",
-    "MPL-2.0",
     "Unicode-3.0",
 ]
 # The confidence threshold for detecting a license from license text.
@@ -112,7 +112,7 @@ confidence-threshold = 0.8
 exceptions = [
     # Each entry is the crate and version constraint, and its specific allow
     # list
-    { allow = ["OpenSSL"], crate = "ring" },
+    #{ allow = ["OpenSSL"], crate = "ring" },
 ]
 
 # Some crates don't have (easily) machine readable licensing information,
