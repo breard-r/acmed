@@ -1,4 +1,4 @@
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de};
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]

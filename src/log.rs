@@ -2,7 +2,7 @@ use crate::config::{AcmedConfig, Facility, LogFormat};
 use anyhow::{Context, Result};
 use std::fs::File;
 use tracing_subscriber::prelude::*;
-use tracing_subscriber::{filter, Registry};
+use tracing_subscriber::{Registry, filter};
 
 macro_rules! add_output {
 	($vec: ident, $facility: ident, $writer: expr) => {{

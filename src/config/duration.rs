@@ -3,7 +3,7 @@ use nom::character::complete::digit1;
 use nom::combinator::map_res;
 use nom::multi::fold_many1;
 use nom::{IResult, Parser};
-use serde::{de, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, de};
 
 type StdDuration = std::time::Duration;
 

@@ -7,7 +7,7 @@ use crate::config::AcmedConfig;
 use crate::http::HttpRoutine;
 use anyhow::Result;
 use clap::Parser;
-use fork::{daemon, Fork};
+use fork::{Fork, daemon};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;

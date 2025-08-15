@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded to Rust edition 2024.
+- The minimum supported Rust version (MSRV) is now 1.85.
 - Instead of loading a default configuration file, ACMEd now loads all the
   files from a default configuration directory (by default,
   `/etc/acmed/conf-enabled`).

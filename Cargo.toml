@@ -2,7 +2,7 @@
 name = "acmed"
 version = "0.25.0-dev"
 authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
-edition = "2021"
+edition = "2024"
 description = "ACME (RFC 8555) client daemon"
 readme = "README.md"
 repository = "https://github.com/breard-r/acmed"
@@ -11,7 +11,7 @@ keywords = ["acme", "tls", "X.509"]
 categories = ["cryptography"]
 build = "build.rs"
 publish = false
-rust-version = "1.74.0"
+rust-version = "1.85.1"
 
 [features]
 default = ["openssl_dyn"]

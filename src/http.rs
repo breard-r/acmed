@@ -1,7 +1,7 @@
 use crate::config::AcmedConfig;
 use anyhow::Result;
 use reqwest::header::HeaderMap;
-use reqwest::{header, Certificate, Client, ClientBuilder, Request, Response};
+use reqwest::{Certificate, Client, ClientBuilder, Request, Response, header};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
