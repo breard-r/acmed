@@ -5,8 +5,6 @@ use crate::storage::FileManager;
 use acme_common::crypto::{gen_keypair, HashFunction, JwsSignatureAlgorithm, KeyPair, KeyType};
 use acme_common::error::Error;
 use std::collections::HashMap;
-use std::fmt;
-use std::str::FromStr;
 use std::time::SystemTime;
 
 mod contact;
@@ -17,31 +15,6 @@ pub struct ExternalAccount {
 	pub identifier: String,
 	pub key: Vec<u8>,
 	pub signature_algorithm: JwsSignatureAlgorithm,
-}
-
-#[derive(Clone, Debug)]
-pub enum AccountContactType {
-	Mailfrom,
-}
-
-impl FromStr for AccountContactType {
-	type Err = Error;
-
-	fn from_str(s: &str) -> Result<Self, Error> {
-		match s.to_lowercase().as_str() {
-			"mailfrom" => Ok(AccountContactType::Mailfrom),
-			_ => Err(format!("{s}: unknown contact type.").into()),
-		}
-	}
-}
-
-impl fmt::Display for AccountContactType {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		let s = match self {
-			AccountContactType::Mailfrom => "mailfrom",
-		};
-		write!(f, "{s}")
-	}
 }
 
 #[derive(Clone, Debug)]
