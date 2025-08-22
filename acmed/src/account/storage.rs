@@ -104,8 +104,10 @@ struct AccountStorage {
 async fn do_fetch(file_manager: &FileManager, name: &str) -> Result<Option<Account>, Error> {
 	if account_files_exists(file_manager) {
 		let data = get_account_data(file_manager).await?;
-		let obj: AccountStorage = bincode::deserialize(&data[..])
-			.map_err(|e| Error::from(&e.to_string()).prefix(name))?;
+		let cfg = bincode::config::legacy();
+		let obj: AccountStorage = bincode::serde::decode_from_slice(&data[..], cfg)
+			.map_err(|e| Error::from(&e.to_string()).prefix(name))?
+			.0;
 		let endpoints = obj
 			.endpoints
 			.iter()
@@ -168,7 +170,8 @@ async fn do_save(file_manager: &FileManager, account: &Account) -> Result<(), Er
 		past_keys,
 		external_account,
 	};
-	let encoded: Vec<u8> = bincode::serialize(&account_storage)
+	let cfg = bincode::config::legacy();
+	let encoded: Vec<u8> = bincode::serde::encode_to_vec(&account_storage, cfg)
 		.map_err(|e| Error::from(&e.to_string()).prefix(&account.name))?;
 	set_account_data(file_manager, &encoded).await
 }

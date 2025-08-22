@@ -3,7 +3,7 @@ use nom::bytes::complete::take_while_m_n;
 use nom::character::complete::digit1;
 use nom::combinator::map_res;
 use nom::multi::fold_many1;
-use nom::IResult;
+use nom::{IResult, Parser};
 use std::time::Duration;
 
 fn is_duration_chr(c: char) -> bool {
@@ -24,7 +24,7 @@ fn get_multiplicator(input: &str) -> IResult<&str, u64> {
 }
 
 fn get_duration_part(input: &str) -> IResult<&str, Duration> {
-	let (input, nb) = map_res(digit1, |s: &str| s.parse::<u64>())(input)?;
+	let (input, nb) = map_res(digit1, |s: &str| s.parse::<u64>()).parse(input)?;
 	let (input, mult) = get_multiplicator(input)?;
 	Ok((input, Duration::from_secs(nb * mult)))
 }
@@ -37,7 +37,8 @@ fn get_duration(input: &str) -> IResult<&str, Duration> {
 			acc += item;
 			acc
 		},
-	)(input)
+	)
+	.parse(input)
 }
 
 pub fn parse_duration(input: &str) -> Result<Duration, Error> {

@@ -6,7 +6,7 @@ use crate::storage::{certificate_files_exists, get_certificate, FileManager};
 use acme_common::crypto::{HashFunction, KeyType, SubjectAttribute, X509Certificate};
 use acme_common::error::Error;
 use log::{debug, info, trace, warn};
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::time::Duration;
@@ -82,7 +82,7 @@ impl Certificate {
 		let expires_in = expires_in.saturating_sub(self.renew_delay);
 		let expires_in = if !self.random_early_renew.is_zero() {
 			expires_in
-				.saturating_sub(thread_rng().gen_range(Duration::ZERO..self.random_early_renew))
+				.saturating_sub(rng().random_range(Duration::ZERO..self.random_early_renew))
 		} else {
 			expires_in
 		};
