@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - ReleaseDate
 
 ### Changed
+- The minimum supported Rust version (MSRV) is now 1.85.
 - The development has been move from GitHub to Codeberg.
 
 

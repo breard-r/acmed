@@ -99,7 +99,7 @@ man =(curl -sSf "https://codeberg.org/rbd/acmed/raw/branch/main/man/en/tacd.8")
 ## Build from source
 
 In order to compile ACMEd, you will need the [Rust][rust] compiler and its
-package manager, Cargo. The minimum supported Rust version (MSRV) is 1.74,
+package manager, Cargo. The minimum supported Rust version (MSRV) is 1.85,
 although it is recommended to use the latest stable one.
 
 ACMEd depends OpenSSL 1.1.0 or higher.
