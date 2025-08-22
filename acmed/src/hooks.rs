@@ -15,7 +15,7 @@ use std::{env, fmt};
 
 pub trait HookEnvData {
 	fn set_env(&mut self, env: &HashMap<String, String>);
-	fn get_env(&self) -> Iter<String, String>;
+	fn get_env(&self) -> Iter<'_, String, String>;
 }
 
 fn deref<F, G>(t: (&F, &G)) -> (F, G)
@@ -35,7 +35,7 @@ macro_rules! imple_hook_data_env {
 				}
 			}
 
-			fn get_env(&self) -> Iter<String, String> {
+			fn get_env(&self) -> Iter<'_, String, String> {
 				self.env.iter()
 			}
 		}
