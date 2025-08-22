@@ -23,10 +23,7 @@ pub struct ValidHttpResponse {
 impl ValidHttpResponse {
 	pub fn get_header(&self, name: &str) -> Option<String> {
 		match self.headers.get(name) {
-			Some(r) => match header_to_string(r) {
-				Ok(h) => Some(h),
-				Err(_) => None,
-			},
+			Some(r) => header_to_string(r).ok(),
 			None => None,
 		}
 	}
