@@ -2,7 +2,7 @@
 Description=ACME client daemon
 After=network.target
 ConditionPathExists=/etc/acmed/acmed.toml
-Documentation=man:acmed.toml(5) man:acmed(8) https://github.com/breard-r/acmed/wiki
+Documentation=man:acmed.toml(5) man:acmed(8) https://codeberg.org/rbd/acmed/wiki
 
 [Service]
 User=acmed

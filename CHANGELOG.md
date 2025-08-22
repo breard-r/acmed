@@ -6,10 +6,17 @@
 [//]: # (without any warranty.)
 
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+
+## [Unreleased] - ReleaseDate
+
+### Changed
+- The development has been move from GitHub to Codeberg.
 
 
 ## [0.25.0] - 2025-03-17
@@ -33,7 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.23.0] - 2024-02-10
 
 ### Added
-- The `challenge-tls-alpn-01` hook now exposes the `raw_proof` variable, which contains the SHA-256 digest of the key authorization, encoded using Base64 URL scheme without padding.
+- The `challenge-tls-alpn-01` hook now exposes the `raw_proof` variable, which
+  contains the SHA-256 digest of the key authorization, encoded using Base64
+  URL scheme without padding.
 
 ### Changed
 - The minimum supported Rust version (MSRV) is now 1.74.
@@ -42,26 +51,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.22.2] - 2024-01-09
 
 ### Fixed
-- The default hooks were not properly updated during the 0.22.0 release, which causes the certificate renewal to fail.
+- The default hooks were not properly updated during the 0.22.0 release, which
+  causes the certificate renewal to fail.
 
 
 ## [0.22.1] - 2023-12-20
 
 ### Fixed
-- The `Cargo.lock` file is now updated before a new version is released (GitHub bug #103).
+- The `Cargo.lock` file is now updated before a new version is released (GitHub
+  bug #103).
 
 
 ## [0.22.0] - 2023-12-20
 
 ### Fixed
-- ACMEd no longer crashes when the `random_early_renew` parameter is set to zero (GitHub bug #102).
+- ACMEd no longer crashes when the `random_early_renew` parameter is set to
+  zero (GitHub bug #102).
 
 ### Changed
 - The minimum supported Rust version (MSRV) is now 1.70.
 - Manual (and badly designed) threads have been replaced by async.
-- Randomized early delay, for spacing out renewals when dealing with a lot of certificates.
+- Randomized early delay, for spacing out renewals when dealing with a lot of
+  certificates.
 - Replaced the template engine TinyTemplate with MiniJinja.
-- The default period of time between the certificate renewal and its expiration date (`renew_delay`) has been changed from 3 weeks to 30 days.
+- The default period of time between the certificate renewal and its expiration
+  date (`renew_delay`) has been changed from 3 weeks to 30 days.
 
 
 ## [0.21.0] - 2022-12-19
@@ -81,13 +95,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - An invalid reference in the command line arguments has been fixed.
 - Some missing file path in log messages has been added.
-- The calculation of the certificate's expiration delay does no longer break compilation on some systems.
+- The calculation of the certificate's expiration delay does no longer break
+  compilation on some systems.
 
 
 ## [0.19.0] - 2022-04-17
 
 ### Added
-- The `acmed@user.service` systemd unit configuration has been added as an alternative to the `acmed.service` unit.
+- The `acmed@user.service` systemd unit configuration has been added as an
+  alternative to the `acmed.service` unit.
 
 ### Changed
 - The minimal required Rust version is now 1.54.
@@ -96,25 +112,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add support for Ed25519 and Ed448 account keys and certificates.
-- In addition to `restart`, the Polkit rule also allows the `reload`, `try-restart`, `reload-or-restart` and `try-reload-or-restart` verbs.
+- In addition to `restart`, the Polkit rule also allows the `reload`,
+  `try-restart`, `reload-or-restart` and `try-reload-or-restart` verbs.
 
 
 ## [0.17.0] - 2021-05-04
 
 ### Added
-- Allow the configuration of some default values at compile time using environment variables.
+- Allow the configuration of some default values at compile time using
+  environment variables.
 
 ### Changed
-- The template engine has been changed in favor of TinyTemplate, which has a different syntax than the previous one.
+- The template engine has been changed in favor of TinyTemplate, which has a
+  different syntax than the previous one.
 - The default account directory now is `/var/lib/acmed/accounts`.
-- The default certificates and private keys directory now is `/var/lib/acmed/certs`.
+- The default certificates and private keys directory now is
+  `/var/lib/acmed/certs`.
 - The default for volatile runtime data now is `/run`.
 
 
 ## [0.16.0] - 2020-11-11
 
 ### Added
-- The `pkcs9_email_address`, `postal_address` and `postal_code` subject attributes has been added.
+- The `pkcs9_email_address`, `postal_address` and `postal_code` subject
+  attributes has been added.
 
 ### Changed
 - The `friendly_name` and `pseudonym` subject attributes has been removed.
@@ -124,19 +145,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.15.0] - 2020-11-03
 
 ### Added
-- The names of both the certificate file and the associated private key can now be configured.
+- The names of both the certificate file and the associated private key can now
+  be configured.
 
 ### Fixed
-- Configuration files cannot be loaded more than one time, which prevents infinite recursion.
+- Configuration files cannot be loaded more than one time, which prevents
+  infinite recursion.
 
 ### Changed
-- Certificates are now allowed to share the same name if their respective key type is different.
+- Certificates are now allowed to share the same name if their respective key
+  type is different.
 
 
 ## [0.14.0] - 2020-10-27
 
 ### Added
-- Add proxy support through the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment variables.
+- Add proxy support through the `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`
+  environment variables.
 - Allow to specify a unique name for each certificate.
 
 ### Changed
@@ -146,9 +171,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.13.0] - 2020-10-10
 
 ### Added
-- In the configuration, `root_certificates` has been added to the `global` and `endpoint` sections as an array of strings representing the path to root certificate files.
-- At compilation, it is now possible to statically link OpenSSL using the `openssl_vendored` feature.
-- In the Makefile, it is now possible to specify which target triple to build for.
+- In the configuration, `root_certificates` has been added to the `global` and
+  `endpoint` sections as an array of strings representing the path to root
+  certificate files.
+- At compilation, it is now possible to statically link OpenSSL using the
+  `openssl_vendored` feature.
+- In the Makefile, it is now possible to specify which target triple to build
+  for.
 
 
 ## [0.12.0] - 2020-09-26
@@ -168,7 +197,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - External account binding.
 
 ### Changed
-- The `email` account configuration field has been removed. In replacement, use the `contacts` field.
+- The `email` account configuration field has been removed. In replacement, use
+  the `contacts` field.
 - Accounts now have their own hooks and environment.
 - Accounts are now stored in a single binary file.
 
@@ -180,22 +210,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] - 2020-08-27
 
 ### Added
-- The account key type and signature algorithm can now be specified in the configuration using the `key_type` and `signature_algorithm` parameters.
-- The delay to renew a certificate before its expiration date can be specified in the configuration using the `renew_delay` parameter at either the certificate, endpoint and global level.
-- It is now possible to specify IP identifiers (RFC 8738) using the `ip` parameter instead of the `dns` one.
-- The hook templates of type `challenge-*` have a new `identifier_tls_alpn` field which contains, if available, the identifier in a form that is suitable to the TLS ALPN challenge.
+- The account key type and signature algorithm can now be specified in the
+  configuration using the `key_type` and `signature_algorithm` parameters.
+- The delay to renew a certificate before its expiration date can be specified
+  in the configuration using the `renew_delay` parameter at either the
+  certificate, endpoint and global level.
+- It is now possible to specify IP identifiers (RFC 8738) using the `ip`
+  parameter instead of the `dns` one.
+- The hook templates of type `challenge-*` have a new `identifier_tls_alpn`
+  field which contains, if available, the identifier in a form that is suitable
+  to the TLS ALPN challenge.
 - Globing is now supported for configuration files inclusion.
-- The CSR's digest algorithm can now be specified using the `csr_digest` parameter.
+- The CSR's digest algorithm can now be specified using the `csr_digest`
+  parameter.
 
 ### Changed
-- In the certificate configuration, the `domains` field has been renamed `identifiers`.
+- In the certificate configuration, the `domains` field has been renamed
+  `identifiers`.
 - The `algorithm` certificate configuration field has been renamed `key_type`.
 - The `algorithm` hook template variable has been renamed `key_type`.
 - The `domain` hook template variable has been renamed `identifier`.
 - The default hooks have been updated.
 
 ### Fixed
-- The Makefile now works on FreeBSD. It should also work on other BSD although it has not been tested.
+- The Makefile now works on FreeBSD. It should also work on other BSD although
+  it has not been tested.
 
 
 ## [0.9.0] - 2020-08-01
@@ -207,7 +246,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The HTTP(S) part is now handled by `attohttpc` instead of `reqwest`.
 
 ### Fixed
-- In tacd, the `--acme-ext-file` parameter is now in conflict with `acme-ext` instead of itself.
+- In tacd, the `--acme-ext-file` parameter is now in conflict with `acme-ext`
+  instead of itself.
 
 
 ## [0.8.0] - 2020-06-12
@@ -222,20 +262,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.7.0] - 2020-03-12
 
 ### Added
-- Wildcard certificates are now supported. In the file name, the `*` is replaced by `_`.
+- Wildcard certificates are now supported. In the file name, the `*` is
+  replaced by `_`.
 - Internationalized domain names are now supported.
 
 ### Changed
-- The PID file is now always written whether or not ACMEd is running in the foreground. Previously, it was written only when running in the background.
+- The PID file is now always written whether or not ACMEd is running in the
+  foreground. Previously, it was written only when running in the background.
 
 ### Fixed
-- In the directory, the `externalAccountRequired` field is now a boolean instead of a string.
+- In the directory, the `externalAccountRequired` field is now a boolean
+  instead of a string.
 
 
 ## [0.6.1] - 2019-09-13
 
 ### Fixed
-- A race condition when requesting multiple certificates on the same non-existent account has been fixed.
+- A race condition when requesting multiple certificates on the same
+  non-existent account has been fixed.
 - The `foregroung` option has been renamed `foreground`.
 
 
@@ -243,13 +287,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Hooks now have the optional `allow_failure` field.
-- In hooks, the `stdin_str` has been added in replacement of the previous `stdin` behavior.
+- In hooks, the `stdin_str` has been added in replacement of the previous
+  `stdin` behavior.
 - HTTPS request rate limits.
 
 ### Changed
 - Certificates are renewed in parallel.
-- Hooks are now cleaned right after the current challenge has been validated instead of after the certificate's retrieval.
-- In hooks, the `stdin` field now refers to the path of the file that should be written into the hook's standard input.
+- Hooks are now cleaned right after the current challenge has been validated
+  instead of after the certificate's retrieval.
+- In hooks, the `stdin` field now refers to the path of the file that should be
+  written into the hook's standard input.
 - The logging format has been re-written.
 
 ### Fixed
@@ -259,10 +306,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2019-05-09
 
 ### Added
-- ACMEd now displays a warning when the server indicates an error in an order or an authorization.
+- ACMEd now displays a warning when the server indicates an error in an order
+  or an authorization.
 - A configuration file can now include several other files.
 - Hooks have access to environment variables.
-- In the configuration, the global section, certificates and domains can define environment variables for the hooks.
+- In the configuration, the global section, certificates and domains can define
+  environment variables for the hooks.
 - tacd is now able to listen on a unix socket.
 
 
@@ -271,9 +320,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Man pages.
 - The project can now be built and installed using `make`.
-- The post-operation hooks now have access to the `is_success` template variable.
+- The post-operation hooks now have access to the `is_success` template
+  variable.
 - Challenge hooks now have the `is_clean_hook` template variable.
-- An existing certificate will be renewed if more domains have been added in the configuration.
+- An existing certificate will be renewed if more domains have been added in
+  the configuration.
 
 ### Changed
 - Unknown configuration fields are no longer tolerated.
@@ -291,16 +342,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - tacd, the TLS-ALPN-01 validation daemon.
 - An account object has been added in the configuration.
 - In the configuration, hooks now have a mandatory `type` variable.
-- It is now possible to declare hooks to clean after the challenge validation hooks.
+- It is now possible to declare hooks to clean after the challenge validation
+  hooks.
 - The CLI `--root-cert` option has been added.
-- Failure recovery: HTTPS requests rejected by the server that are recoverable, like the badNonce error, are now retried several times before being considered a hard failure.
-- The TLS-ALPN-01 challenge is now supported. The proof is a string representation of the acmeIdentifier extension. The self-signed certificate itself has to be built by a hook.
+- Failure recovery: HTTPS requests rejected by the server that are recoverable,
+  like the badNonce error, are now retried several times before being
+  considered a hard failure.
+- The TLS-ALPN-01 challenge is now supported. The proof is a string
+  representation of the acmeIdentifier extension. The self-signed certificate
+  itself has to be built by a hook.
 
 ### Changed
-- In the configuration, the `email` certificate field has been replaced by the `account` field which matches an account object.
-- The format of the `domain` configuration variable has changed and now includes the challenge type.
+- In the configuration, the `email` certificate field has been replaced by the
+  `account` field which matches an account object.
+- The format of the `domain` configuration variable has changed and now
+  includes the challenge type.
 - The `token` challenge hook variable has been renamed `file_name`.
-- The `challenge_hooks`, `post_operation_hooks`, `file_pre_create_hooks`, `file_post_create_hooks`, `file_pre_edit_hooks` and `file_post_edit_hooks` certificate variables has been replaced by `hooks`.
+- The `challenge_hooks`, `post_operation_hooks`, `file_pre_create_hooks`,
+  `file_post_create_hooks`, `file_pre_edit_hooks` and `file_post_edit_hooks`
+  certificate variables has been replaced by `hooks`.
 - The logs has been purged from many useless debug and trace entries.
 
 ### Removed
@@ -311,18 +371,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2019-03-30
 
 ### Changed
-- The bug that prevented from requesting more than two certificates has been fixed.
+- The bug that prevented from requesting more than two certificates has been
+  fixed.
 
 
 ## [0.2.0] - 2019-03-27
 
 ### Added
-- The `kp_reuse` flag allow to reuse a key pair instead of creating a new one at each renewal.
-- It is now possible to define hook groups that can reference either hooks or other hook groups.
-- Hooks can be defined when before and after a file is created or edited (`file_pre_create_hooks`, `file_post_create_hooks`, `file_pre_edit_hooks` and `file_post_edit_hooks`).
-- It is now possible to send logs either to syslog or stderr using the `--to-syslog` and `--to-stderr` arguments.
+- The `kp_reuse` flag allow to reuse a key pair instead of creating a new one
+  at each renewal.
+- It is now possible to define hook groups that can reference either hooks or
+  other hook groups.
+- Hooks can be defined when before and after a file is created or edited
+  (`file_pre_create_hooks`, `file_post_create_hooks`, `file_pre_edit_hooks` and
+  `file_post_edit_hooks`).
+- It is now possible to send logs either to syslog or stderr using the
+  `--to-syslog` and `--to-stderr` arguments.
 
 ### Changed
 - `post_operation_hook` has been renamed `post_operation_hooks`.
 - By default, logs are now sent to syslog instead of stderr.
-- The process is now daemonized by default. It is possible to still run it in the foreground using the `--foregroung` flag.
+- The process is now daemonized by default. It is possible to still run it in
+  the foreground using the `--foregroung` flag.
