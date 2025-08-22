@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   test:
     name: Build & test on Rust ${{ matrix.rust }}
-    runs-on: codeberg-tiny
+    runs-on: codeberg-small
     strategy:
       matrix:
         rust:
@@ -41,7 +41,7 @@ jobs:
         run: source "$HOME/.cargo/env" && cargo +stable fmt --all -- --check
   clippy:
     name: Clippy
-    runs-on: codeberg-tiny
+    runs-on: codeberg-small
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v4
       - name: Download rustup install script
