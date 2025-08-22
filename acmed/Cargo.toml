@@ -35,7 +35,7 @@ serde_json = "1.0.114"
 toml = "0.8.12"
 tokio = { version = "1.36.0", features = ["full"] }
 rand = "0.8.5"
-reqwest = "0.12.1"
+reqwest = "0.12.23"
 minijinja = "2.5.0"
 
 [target.'cfg(unix)'.dependencies]
