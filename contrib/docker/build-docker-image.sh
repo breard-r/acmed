@@ -1,7 +1,10 @@
 #!/bin/bash
+#
 # ACMED certificate watcher and renewer daemon.
 # Helper script to build debian based docker image
-# Author: Nicolas Karageuzian
+#
+# SPDX-FileCopyrightText: Nicolas Karageuzian
+# SPDX-License-Identifier: FSFAP
 
 set -euo pipefail
 

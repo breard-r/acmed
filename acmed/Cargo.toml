@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["acme", "tls", "X.509"]
 categories = ["cryptography"]
 build = "build.rs"
-include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
+include = ["src/**/*", "Cargo.toml", "../LICENSES/*"]
 publish = false
 rust-version = "1.74.0"
 

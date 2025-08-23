@@ -1,13 +1,6 @@
-
-[//]: # (Copyright 2019-2020 Rodolphe Bréard <rodolphe@breard.tf>)
-
-[//]: # (Copying and distribution of this file, with or without modification,)
-[//]: # (are permitted in any medium without royalty provided the copyright)
-[//]: # (notice and this notice are preserved.  This file is offered as-is,)
-[//]: # (without any warranty.)
-
 # ACMEd
 
+[![REUSE status](https://api.reuse.software/badge/codeberg.org/rbd/acmed)](https://api.reuse.software/info/codeberg.org/rbd/acmed)
 ![License MIT OR Apache 2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)
 
 The Automatic Certificate Management Environment (ACME), is an internet
@@ -216,13 +209,15 @@ be as much or less work to start a new project from scratch.
 
 ### Is it free and open-source software?
 
-Yes, ACMEd is dual-licensed under the MIT and Apache 2.0 terms. See
-[LICENSE-MIT.txt](LICENSE-MIT.txt) and
-[LICENSE-APACHE-2.0.txt](LICENSE-APACHE-2.0.txt) for details.
+Yes, ACMEd is licensed under either the MIT or Apache 2.0 licenses. Some files
+that are not directly part of the source code itself, like the man pages, are
+distributed under the FSF All Permissive license.
 
-The man pages, the default hooks configuration file, the `CHANGELOG.md` and the
-`README.md` files are released under the [GNU All-Permissive
-License](https://www.gnu.org/prep/maintain/html_node/License-Notices-for-Other-Files.html).
+This project is [REUSE][reuse] compliant. You will therefore find a copy of
+every license in the `LICENSES` directory and more details on the applicable
+license of every file in the `REUSE.toml` file.
+
+[reuse]: https://reuse.software/
 
 ### Where is this project hosted?
 

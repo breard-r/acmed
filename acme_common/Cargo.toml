@@ -6,7 +6,7 @@ edition = "2018"
 readme = "../README.md"
 repository = "https://codeberg.org/rbd/acmed"
 license = "MIT OR Apache-2.0"
-include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
+include = ["src/**/*", "Cargo.toml", "../LICENSES/*"]
 publish = false
 rust-version = "1.74.0"
 

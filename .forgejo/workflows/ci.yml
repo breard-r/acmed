@@ -63,3 +63,12 @@ jobs:
         run: source "$HOME/.cargo/env" && cargo install --locked cargo-deny
       - name: Run cargo-deny
         run: source "$HOME/.cargo/env" && cargo deny --all-features check
+  reuse:
+    name: REUSE
+    runs-on: codeberg-tiny
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+      - name: Install pipx
+        run: sudo apt update && sudo apt install -y pipx
+      - name: Run REUSE
+        run: pipx run reuse lint

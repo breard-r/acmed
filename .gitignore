@@ -12,3 +12,6 @@
 # Test files
 /test
 test.*
+
+# Misc
+TODO.md

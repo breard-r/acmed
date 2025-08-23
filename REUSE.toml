@@ -1,0 +1,47 @@
+version = 1
+
+[[annotations]]
+path = [
+    "acme_common/build.rs",
+    "acme_common/src/**",
+    "acmed/build.rs",
+    "acmed/src/**",
+    "tacd/build.rs",
+    "tacd/src/**"
+]
+SPDX-FileCopyrightText = "Rodolphe Bréard"
+SPDX-License-Identifier = "MIT OR Apache-2.0"
+
+[[annotations]]
+path = [
+    ".forgejo/**",
+    ".gitignore",
+    "acme_common/Cargo.toml",
+    "acmed/Cargo.toml",
+    "acmed/config/**",
+    "Cargo.lock",
+    "Cargo.toml",
+    "CHANGELOG.md",
+    "contrib/polkit/**",
+    "contrib/rc.d/**",
+    "contrib/systemd/**",
+    "CONTRIBUTING.md",
+    "deny.toml",
+    "Makefile",
+    "man/**",
+    "README.md",
+    "release.sh",
+    "REUSE.toml",
+    "rustfmt.toml",
+    "tacd/Cargo.toml"
+]
+SPDX-FileCopyrightText = "Rodolphe Bréard"
+SPDX-License-Identifier = "FSFAP"
+
+[[annotations]]
+path = [
+    ".dockerignore",
+    "contrib/docker/**"
+]
+SPDX-FileCopyrightText = "Nicolas Karageuzian"
+SPDX-License-Identifier = "FSFAP"
